@@ -1,8 +1,20 @@
 const express = require('express');
 const path = require('path');
+const session = require('express-session');
+const bodyParser = require('body-parser');
 const routes = require('./routes');
 const app = express();
 const port = 3000;
+
+// Set up session management
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+}));
+
+// Set up body parsing
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));

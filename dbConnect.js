@@ -37,3 +37,11 @@ module.exports = {
     connectToDb,
     closeDbConnection,
 };
+
+///////////////////   DB-SCRIPTS   /////////////////
+// CREATE TABLE users (
+//     id SERIAL PRIMARY KEY,
+//     username VARCHAR(10) NOT NULL UNIQUE,
+//     name VARCHAR(10) NOT NULL,
+//     password TEXT NOT NULL
+// );

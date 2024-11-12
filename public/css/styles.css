@@ -43,3 +43,28 @@ button {
 .or {
     margin: 10px 0;
 }
+
+/*****************   Signup Page   ********************/
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+label, input {
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+input {
+    padding: 8px;
+    width: 100%;
+    max-width: 300px;
+}
+button[type="submit"], .back-to-home {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-top: 20px;
+    margin-bottom: 10px; /* Additional margin for spacing */
+}

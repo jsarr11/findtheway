@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header>
+    <button onclick="window.location.href='/signup-en'">English</button>
+</header>
+<main>
+    <h1>Εγγραφή</h1>
+    <form action="/signup-el" method="post">
+        <label for="username">Όνομα χρήστη:</label>
+        <input type="text" id="username" name="username" required maxlength="10">
+        <label for="name">Όνομα:</label>
+        <input type="text" id="name" name="name" required maxlength="10">
+        <label for="password">Κωδικός:</label>
+        <input type="password" id="password" name="password" required>
+        <label for="confirmPassword">Επιβεβαίωση Κωδικού:</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required>
+        <button type="submit">Εγγραφή</button>
+    </form>
+    <button class="back-to-home" onclick="window.location.href='/home-el'">Επιστροφή στην Αρχική Σελίδα</button>
+</main>
+</body>
+</html>
