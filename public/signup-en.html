@@ -12,7 +12,7 @@
 </header>
 <main>
     <h1>Signup</h1>
-    <form action="/signup-en" method="post">
+    <form id="signupForm" action="/signup-en" method="post">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required maxlength="10">
         <label for="name">Name:</label>
@@ -21,9 +21,40 @@
         <input type="password" id="password" name="password" required>
         <label for="confirmPassword">Confirm Password:</label>
         <input type="password" id="confirmPassword" name="confirmPassword" required>
+        <div id="errorMessage" class="error-message"></div>
         <button type="submit">Signup</button>
     </form>
     <button class="back-to-home" onclick="window.location.href='/home-en'">Back to Home Page</button>
 </main>
+<script>
+    document.getElementById('signupForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const errorMessage = document.getElementById('errorMessage');
+
+        errorMessage.innerHTML = '';
+        errorMessage.style.display = 'none';
+
+        try {
+            const response = await fetch(form.action, {
+                method: form.method,
+                body: new URLSearchParams(formData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                errorMessage.innerHTML = errorText;
+                errorMessage.style.display = 'block';
+            } else {
+                window.location.href = `/signup-success-en.html`;
+            }
+        } catch (err) {
+            console.error('Error submitting form', err);
+            errorMessage.innerHTML = 'An error occurred while submitting the form. Please try again.';
+            errorMessage.style.display = 'block';
+        }
+    });
+</script>
 </body>
 </html>

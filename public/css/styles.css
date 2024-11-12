@@ -68,3 +68,8 @@ button[type="submit"], .back-to-home {
     margin-top: 20px;
     margin-bottom: 10px; /* Additional margin for spacing */
 }
+.error-message {
+    color: red;
+    font-size: 1rem;
+    display: none;
+}
