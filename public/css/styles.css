@@ -73,3 +73,13 @@ button[type="submit"], .back-to-home {
     font-size: 1rem;
     display: none;
 }
+
+/*****************   User Page & Play Page   ********************/
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.button-container button {
+    margin-bottom: 10px;
+}

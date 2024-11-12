@@ -12,8 +12,11 @@
 </header>
 <main>
     <h1>Welcome, <span id="username"></span>!</h1>
-    <p>This is your user page.</p>
-    <button onclick="window.location.href='/logout-en'">Logout</button>
+    <div class="button-container">
+        <button onclick="window.location.href='/play-en'">Play</button>
+        <button onclick="window.location.href='/scores-en'">Scores</button>
+        <button onclick="window.location.href='/logout-en'">Logout</button>
+    </div>
 </main>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Page</title>
+    <title>Σελίδα Χρήστη</title>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
@@ -12,8 +12,11 @@
 </header>
 <main>
     <h1>Καλώς ήρθες, <span id="username"></span>!</h1>
-    <p>Αυτή είναι η σελίδα χρήστη σου.</p>
-    <button onclick="window.location.href='/logout-el'">Αποσύνδεση</button>
+    <div class="button-container">
+        <button onclick="window.location.href='/play-el'">Παίξε</button>
+        <button onclick="window.location.href='/scores-el'">Βαθμολογίες</button>
+        <button onclick="window.location.href='/logout-el'">Αποσύνδεση</button>
+    </div>
 </main>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
