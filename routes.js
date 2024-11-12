@@ -25,7 +25,15 @@ const path = require('path');
 
 // Home route
 router.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'home.html'));
+    res.sendFile(path.join(__dirname, 'public', 'home-el.html'));
+});
+// Home-el route
+router.get('/home-el', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'home-el.html'));
+});
+// Home-en route
+router.get('/home-en', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'home-en.html'));
 });
 
 module.exports = router;
