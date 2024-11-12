@@ -157,4 +157,14 @@ router.get('/logout-en', (req, res) => {
 });
 
 
+///////////////////////////   INFO PAGES   //////////////////////////////
+// Serve info pages
+router.get('/info-en', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'info-en.html'));
+});
+router.get('/info-el', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'info-el.html'));
+});
+
+
 module.exports = router;
