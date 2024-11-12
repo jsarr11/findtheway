@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Page</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header>
+    <button onclick="window.location.href='/user-page-en'">English</button>
+</header>
+<main>
+    <h1>Καλώς ήρθες, <span id="username"></span>!</h1>
+    <p>Αυτή είναι η σελίδα χρήστη σου.</p>
+    <button onclick="window.location.href='/logout'">Αποσύνδεση</button>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const response = await fetch('/get-username');
+            const data = await response.json();
+            const username = data.username;
+            document.getElementById('username').textContent = username;
+        } catch (err) {
+            console.error('Error fetching username', err);
+        }
+    });
+</script>
+</body>
+</html>

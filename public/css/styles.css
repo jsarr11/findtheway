@@ -44,7 +44,7 @@ button {
     margin: 10px 0;
 }
 
-/*****************   Signup Page   ********************/
+/*****************   Signup Page & Login Page   ********************/
 form {
     display: flex;
     flex-direction: column;
