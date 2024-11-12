@@ -166,5 +166,23 @@ router.get('/info-el', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'info-el.html'));
 });
 
+///////////////////////////   PLAY PAGES   //////////////////////////////
+// Serve play pages
+router.get('/play-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'play-en.html'));
+});
+
+router.get('/play-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'play-el.html'));
+});
+
 
 module.exports = router;

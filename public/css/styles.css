@@ -83,3 +83,12 @@ button[type="submit"], .back-to-home {
 .button-container button {
     margin-bottom: 10px;
 }
+.button-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.button-row button {
+    margin: 0 10px;
+}
