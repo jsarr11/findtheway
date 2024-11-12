@@ -184,5 +184,41 @@ router.get('/play-el', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'play-el.html'));
 });
 
+///////////////////////////   PLAY KRUSKAL PAGES   //////////////////////////////
+// Serve play Kruskal pages
+router.get('/play-kruskal-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'play-kruskal-en.html'));
+});
+
+router.get('/play-kruskal-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'play-kruskal-el.html'));
+});
+
+///////////////////////////   PLAY PRIM PAGES   //////////////////////////////
+// Serve play Prim pages
+router.get('/play-prim-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'play-prim-en.html'));
+});
+
+router.get('/play-prim-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'play-prim-el.html'));
+});
+
 
 module.exports = router;
