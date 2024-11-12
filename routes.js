@@ -230,5 +230,93 @@ router.get('/play-el-back', (req, res) => {
     res.redirect('/play-el');
 });
 
+///////////////////////////   THEORY PAGES   //////////////////////////////
+// Serve theory Kruskal pages
+router.get('/theory-kruskal-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'theory-kruskal-en.html'));
+});
+
+router.get('/theory-kruskal-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'theory-kruskal-el.html'));
+});
+
+// Serve theory Prim pages
+router.get('/theory-prim-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'theory-prim-en.html'));
+});
+
+router.get('/theory-prim-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'theory-prim-el.html'));
+});
+
+///////////////////////////   TUTORIAL PAGES   //////////////////////////////
+// Serve tutorial Kruskal pages
+router.get('/tutorial-kruskal-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'tutorial-kruskal-en.html'));
+});
+
+router.get('/tutorial-kruskal-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'tutorial-kruskal-el.html'));
+});
+
+// Serve tutorial Prim pages
+router.get('/tutorial-prim-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'tutorial-prim-en.html'));
+});
+
+router.get('/tutorial-prim-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'tutorial-prim-el.html'));
+});
+
+///////////////////////////   BACK BUTTON ROUTES   //////////////////////////////
+// Serve back button routes for play pages
+router.get('/play-kruskal-en-back', (req, res) => {
+    res.redirect('/play-kruskal-en');
+});
+
+router.get('/play-kruskal-el-back', (req, res) => {
+    res.redirect('/play-kruskal-el');
+});
+
+router.get('/play-prim-en-back', (req, res) => {
+    res.redirect('/play-prim-en');
+});
+
+router.get('/play-prim-el-back', (req, res) => {
+    res.redirect('/play-prim-el');
+});
+
 
 module.exports = router;
