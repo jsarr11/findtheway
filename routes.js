@@ -220,5 +220,15 @@ router.get('/play-prim-el', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'play-prim-el.html'));
 });
 
+///////////////////////////   BACK BUTTON ROUTES   //////////////////////////////
+// Serve back button routes
+router.get('/play-en-back', (req, res) => {
+    res.redirect('/play-en');
+});
+
+router.get('/play-el-back', (req, res) => {
+    res.redirect('/play-el');
+});
+
 
 module.exports = router;
