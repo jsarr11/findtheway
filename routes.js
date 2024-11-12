@@ -136,6 +136,25 @@ router.get('/get-username', (req, res) => {
     res.json({ username: req.session.username });
 });
 
+///////////////////////////   LOGOUT   ///////////////////////////
+// Handle logout for Greek page
+router.get('/logout-el', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).send('Unable to log out');
+        }
+        res.redirect('/home-el');
+    });
+});
+// Handle logout for English page
+router.get('/logout-en', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).send('Unable to log out');
+        }
+        res.redirect('/home-en');
+    });
+});
 
 
 module.exports = router;
