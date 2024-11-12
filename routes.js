@@ -318,5 +318,33 @@ router.get('/play-prim-el-back', (req, res) => {
     res.redirect('/play-prim-el');
 });
 
+///////////////////////////   SCORES PAGES   //////////////////////////////
+// Serve scores pages
+router.get('/scores-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'scores-en.html'));
+});
+
+router.get('/scores-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'scores-el.html'));
+});
+
+///////////////////////////   BACK BUTTON ROUTES   //////////////////////////////
+// Serve back button routes for user pages
+router.get('/user-page-en-back', (req, res) => {
+    res.redirect('/user-page-en');
+});
+
+router.get('/user-page-el-back', (req, res) => {
+    res.redirect('/user-page-el');
+});
+
 
 module.exports = router;
