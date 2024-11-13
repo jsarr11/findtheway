@@ -45,3 +45,10 @@ module.exports = {
 //     name VARCHAR(10) NOT NULL,
 //     password TEXT NOT NULL
 // );
+
+// CREATE TABLE scores (
+//     id SERIAL PRIMARY KEY REFERENCES users(id),
+//     kruskal INT,
+//     prim INT
+// );
+
