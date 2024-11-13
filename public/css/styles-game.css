@@ -9,6 +9,7 @@
 .node text {
     font-size: 12px;
     fill: #fff;
+    font-weight: bold;
 }
 .link {
     stroke: #999;
@@ -43,4 +44,21 @@
     margin-top: 20px;
     font-size: 1.2rem;
     color: #007bff;
+}
+#selected-vertices {
+    margin-top: 20px;
+}
+#total-weight {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    color: #007bff;
+}
+#vertices-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#vertices-table th, #vertices-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
 }

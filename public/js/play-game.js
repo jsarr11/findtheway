@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let selectedEdges = [];
+let totalWeight = 0;
+let svg, link, linkText, node, nodeText;
 
 function generateRandomGraph(vertices, edges) {
     console.log('Generating random graph');
@@ -13,26 +15,26 @@ function generateRandomGraph(vertices, edges) {
     let graph = createGraph(vertices, edges);
     console.log('Graph generated:', graph);
 
-    const svg = d3.select("#graph-container").append("svg")
+    svg = d3.select("#graph-container").append("svg")
         .attr("width", graphContainer.clientWidth)
         .attr("height", graphContainer.clientHeight);
 
-    const link = svg.selectAll(".link")
+    link = svg.selectAll(".link")
         .data(graph.edges)
         .enter().append("line")
         .attr("class", "link")
-        .style("stroke", "#ccc")
-        .style("stroke-width", 2)
+        .style("stroke", d => d.isStartingEdge ? "#ff0000" : "#ccc")
+        .style("stroke-width", d => d.isStartingEdge ? 4 : 2)
         .on("click", selectEdge);
 
-    const linkText = svg.selectAll(".linkText")
+    linkText = svg.selectAll(".linkText")
         .data(graph.edges)
         .enter().append("text")
         .attr("class", "linkText")
         .attr("dy", -3)
         .text(d => d.weight);
 
-    const node = svg.selectAll(".node")
+    node = svg.selectAll(".node")
         .data(graph.vertices)
         .enter().append("circle")
         .attr("class", "node")
@@ -41,7 +43,7 @@ function generateRandomGraph(vertices, edges) {
         .style("stroke", "#fff")
         .style("stroke-width", 1.5);
 
-    const nodeText = svg.selectAll(".nodeText")
+    nodeText = svg.selectAll(".nodeText")
         .data(graph.vertices)
         .enter().append("text")
         .attr("class", "nodeText")
@@ -55,6 +57,11 @@ function generateRandomGraph(vertices, edges) {
         .force("charge", d3.forceManyBody().strength(-300))
         .force("center", d3.forceCenter(graphContainer.clientWidth / 2, graphContainer.clientHeight / 2))
         .on("tick", ticked);
+
+    // Randomly pick a starting edge for Prim's Algorithm
+    const startingEdge = graph.edges[Math.floor(Math.random() * graph.edges.length)];
+    startingEdge.isStartingEdge = true;
+    displayMessage(`Starting edge: (${startingEdge.source.index}, ${startingEdge.target.index}) - Weight: ${startingEdge.weight}`);
 
     function ticked() {
         link
@@ -77,9 +84,15 @@ function generateRandomGraph(vertices, edges) {
     }
 
     function selectEdge(event, edge) {
-        selectedEdges.push(edge);
-        displayMessage(`Selected edge: (${edge.source.index}, ${edge.target.index}) - Weight: ${edge.weight}`);
-        d3.select(this).style("stroke", "#007bff").style("stroke-width", 4);
+        if (!edge.isSelected) {
+            edge.isSelected = true;
+            selectedEdges.push(edge);
+            totalWeight += edge.weight;
+            updateSelectedVertices(edge.source.index, edge.target.index);
+            updateTotalWeight();
+            displayMessage(`Selected edge: (${edge.source.index}, ${edge.target.index}) - Weight: ${edge.weight}`);
+            d3.select(this).style("stroke", "#007bff").style("stroke-width", 4);
+        }
     }
 }
 
@@ -120,9 +133,34 @@ function createGraph(vertices, edges) {
     return graph;
 }
 
+function updateSelectedVertices(source, target) {
+    const tbody = document.getElementById('vertices-table').getElementsByTagName('tbody')[0];
+    const rowCount = tbody.rows.length + 1;
+    const newRow = tbody.insertRow();
+    newRow.insertCell(0).innerText = rowCount;
+    newRow.insertCell(1).innerText = `${source}-${target}`;
+}
+
+function updateTotalWeight() {
+    document.getElementById('weight-value').innerText = totalWeight;
+}
+
 function undoSelection() {
-    selectedEdges.pop();
-    displayMessage('Last selection undone.');
+    const lastEdge = selectedEdges.pop();
+    if (lastEdge) {
+        totalWeight -= lastEdge.weight;
+        updateTotalWeight();
+
+        const tbody = document.getElementById('vertices-table').getElementsByTagName('tbody')[0];
+        tbody.deleteRow(tbody.rows.length - 1);
+
+        lastEdge.isSelected = false;
+        d3.select(link.filter(d => d === lastEdge).node())
+            .style("stroke", lastEdge.isStartingEdge ? "#ff0000" : "#ccc")
+            .style("stroke-width", lastEdge.isStartingEdge ? 4 : 2);
+
+        displayMessage('Last selection undone.');
+    }
 }
 
 function submitSelection() {

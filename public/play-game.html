@@ -12,13 +12,29 @@
     <button onclick="window.location.href='/play-game-el'">Ελληνικά</button>
 </header>
 <main>
-    <h1>Play Game</h1>
+    <h1>Play Game - Prim's Algorithm</h1>
     <div id="graph-container"></div>
     <div class="button-container">
         <button onclick="undoSelection()">Undo</button>
         <button onclick="submitSelection()">Submit</button>
     </div>
     <div id="message"></div>
+    <div id="selected-vertices">
+        <h2>Selected Vertices</h2>
+        <table id="vertices-table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Vertex</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div id="total-weight">
+        <h2>Total Weight: <span id="weight-value">0</span></h2>
+    </div>
 </main>
 <script src="/js/play-game.js"></script>
 </body>
