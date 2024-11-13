@@ -9,12 +9,16 @@ body {
 }
 
 .game-container {
-    text-align: center;
-    width: 100%;
-    height: 100%;
+    width: 90%; /* Adjusted width */
+    height: 90%; /* Adjusted height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-svg {
-    width: 70%;
-    height: 70%;
+#cy {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ccc;
 }

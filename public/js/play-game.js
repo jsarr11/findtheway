@@ -1,59 +1,70 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const svg = d3.select("svg");
-
-    const width = parseInt(svg.style("width"));
-    const height = parseInt(svg.style("height"));
-
-    const nodes = d3.range(7).map(i => ({index: i, x: Math.random() * width, y: Math.random() * height}));
-    const edges = [];
-
-    // Ensure the graph is connected
-    for (let i = 1; i < nodes.length; i++) {
-        edges.push({source: nodes[i-1], target: nodes[i]});
+    const nodes = [];
+    for (let i = 0; i < 7; i++) {
+        nodes.push({ data: { id: (i + 1).toString() } });
     }
 
-    // Add additional edges to make a total of 12 edges
-    while (edges.length < 12) {
-        const source = nodes[Math.floor(Math.random() * nodes.length)];
-        const target = nodes[Math.floor(Math.random() * nodes.length)];
+    const edges = [];
+    for (let i = 1; i < nodes.length; i++) {
+        edges.push({ data: { source: (i).toString(), target: (i + 1).toString(), weight: Math.floor(Math.random() * 16) + 5 } });
+    }
 
-        if (source !== target && !edges.some(edge => (edge.source === source && edge.target === target) || (edge.source === target && edge.target === source))) {
-            edges.push({source, target});
+    while (edges.length < 10) {
+        const source = (Math.floor(Math.random() * nodes.length) + 1).toString();
+        const target = (Math.floor(Math.random() * nodes.length) + 1).toString();
+        if (source !== target && !edges.some(edge => (edge.data.source === source && edge.data.target === target) || (edge.data.source === target && edge.data.target === source))) {
+            edges.push({ data: { source, target, weight: Math.floor(Math.random() * 16) + 5 } });
         }
     }
 
-    const link = svg.append("g")
-        .attr("class", "links")
-        .selectAll("line")
-        .data(edges)
-        .enter().append("line")
-        .attr("stroke-width", 2)
-        .attr("stroke", "#999");
+    const cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: {
+            nodes: nodes,
+            edges: edges
+        },
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    'background-color': '#69b3a2',
+                    'label': 'data(id)',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'color': '#ffffff',
+                    'width': '15px',
+                    'height': '15px',
+                    'font-size': '8px'
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 1,
+                    'line-color': '#999',
+                    'label': 'data(weight)',
+                    'text-margin-y': -5, // Further offset the label vertically
+                    'color': '#000000',
+                    'font-size': '4px', // Adjust the font size
+                    'text-wrap': 'wrap', // Ensure the text wraps if needed
+                    'text-rotation': 'none' // Ensure the text is horizontal
+                }
+            }
+        ],
+        layout: {
+            name: 'cose',
+            padding: 10
+        }
+    });
 
-    const circle = svg.append("g")
-        .attr("class", "nodes")
-        .selectAll("circle")
-        .data(nodes)
-        .enter().append("circle")
-        .attr("r", 10)
-        .attr("fill", "#69b3a2");
+    // Adjust label positions to avoid overlapping when edges cross
+    cy.ready(function() {
+        cy.elements('edge').forEach(function(edge) {
+            const label = edge.data('weight');
+            edge.data('label', label);
+        });
 
-    const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(edges).distance(300).strength(1)) // Adjusted link distance
-        .force("charge", d3.forceManyBody().strength(-150)) // Adjusted charge force
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collision", d3.forceCollide().radius(90)) // Increased collision radius
-        .on("tick", ticked);
-
-    function ticked() {
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-
-        circle
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
-    }
+        // Bring edges to the front
+        cy.elements('edge').move({ parent: null });
+    });
 });
