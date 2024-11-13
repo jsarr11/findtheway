@@ -64,7 +64,8 @@ document.addEventListener("DOMContentLoaded", function() {
         layout: {
             name: 'cose',
             padding: 10
-        }
+        },
+        userZoomingEnabled: false // Disable zooming with mouse wheel
     });
 
     // Adjust label positions to avoid overlapping when edges cross
