@@ -1,64 +1,20 @@
-/* Add necessary styles for the play game page */
-#graph-container {
-    width: 100%;
-    height: 80vh; /* Adjusted height to make it larger */
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    position: relative;
-}
-.node text {
-    font-size: 12px;
-    fill: #fff;
-    font-weight: bold;
-}
-.link {
-    stroke: #999;
-    stroke-width: 2px;
-}
-.link text {
-    font-size: 12px;
-    fill: #000;
-}
-.edge {
-    padding: 10px;
-    margin: 5px;
-    border: 1px solid #007bff;
-    border-radius: 5px;
-    cursor: pointer;
-}
-.edge:hover {
-    background-color: #007bff;
-    color: white;
-}
-.button-container {
+body {
+    font-family: Arial, sans-serif;
     display: flex;
-    flex-direction: row;
     justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
 }
-.button-container button {
-    margin: 0 10px;
-    padding: 10px 20px;
-    cursor: pointer;
-}
-#message {
-    margin-top: 20px;
-    font-size: 1.2rem;
-    color: #007bff;
-}
-#selected-vertices {
-    margin-top: 20px;
-}
-#total-weight {
-    margin-top: 20px;
-    font-size: 1.2rem;
-    color: #007bff;
-}
-#vertices-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-#vertices-table th, #vertices-table td {
-    border: 1px solid #ccc;
-    padding: 8px;
+
+.game-container {
     text-align: center;
+    width: 100%;
+    height: 100%;
+}
+
+svg {
+    width: 70%;
+    height: 70%;
 }
