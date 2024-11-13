@@ -17,6 +17,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // Pick a random node as the starting node
+    const startingNodeIndex = Math.floor(Math.random() * nodes.length);
+    const startingNodeId = nodes[startingNodeIndex].data.id;
+
     const cy = cytoscape({
         container: document.getElementById('cy'),
         elements: {
@@ -38,6 +42,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             },
             {
+                selector: 'node[id="' + startingNodeId + '"]',
+                style: {
+                    'background-color': '#ff6347' // Different color for the starting node
+                }
+            },
+            {
                 selector: 'edge',
                 style: {
                     'width': 1,
@@ -54,8 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
         layout: {
             name: 'cose',
             padding: 10
-        },
-        userZoomingEnabled: false // Disable zooming with mouse wheel
+        }
     });
 
     // Adjust label positions to avoid overlapping when edges cross
