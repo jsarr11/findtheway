@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Play Kruskal</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/custom-level.css"> <!-- Link to the new CSS file -->
 </head>
 <body>
 <header>
@@ -17,16 +18,55 @@
         <button onclick="window.location.href='/tutorial-kruskal-en'">Tutorial</button>
     </div>
     <div class="button-row">
-        <button>Beginner</button>
-        <button>Intermediate</button>
-        <button>Expert</button>
+        <button onclick="playGame('beginner')">Beginner</button>
+        <button onclick="playGame('intermediate')">Intermediate</button>
+        <button onclick="playGame('expert')">Expert</button>
     </div>
     <div class="button-container">
-        <button>Create Custom Level</button>
+        <button onclick="showCustomLevelPopup()">Create Custom Level</button>
     </div>
     <div class="button-container">
         <button onclick="window.location.href='/play-en-back'">Back</button>
     </div>
 </main>
+
+<!-- Custom Level Popup -->
+<div id="customLevelPopup" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCustomLevelPopup()">&times;</span>
+        <h2>Create Custom Level</h2>
+        <label for="vertices">Number of Vertices:</label>
+        <input type="number" id="vertices" name="vertices" min="2" required><br>
+        <label for="edges">Number of Edges:</label>
+        <input type="number" id="edges" name="edges" min="1" required><br>
+        <label for="minWeight">Minimum Weight:</label>
+        <input type="number" id="minWeight" name="minWeight" min="1" required><br>
+        <label for="maxWeight">Maximum Weight:</label>
+        <input type="number" id="maxWeight" name="maxWeight" min="1" required><br>
+        <button onclick="playCustomGame()">Play</button>
+    </div>
+</div>
+
+<script>
+    function showCustomLevelPopup() {
+        document.getElementById('customLevelPopup').style.display = 'block';
+    }
+
+    function closeCustomLevelPopup() {
+        document.getElementById('customLevelPopup').style.display = 'none';
+    }
+
+    function playGame(level) {
+        window.location.href = `/main-game-kruskal-en?level=${level}`;
+    }
+
+    function playCustomGame() {
+        const vertices = document.getElementById('vertices').value;
+        const edges = document.getElementById('edges').value;
+        const minWeight = document.getElementById('minWeight').value;
+        const maxWeight = document.getElementById('maxWeight').value;
+        window.location.href = `/main-game-kruskal-en?level=custom&vertices=${vertices}&edges=${edges}&minWeight=${minWeight}&maxWeight=${maxWeight}`;
+    }
+</script>
 </body>
 </html>

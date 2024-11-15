@@ -347,4 +347,43 @@ router.get('/user-page-el-back', (req, res) => {
 });
 
 
+/////////////////////////   SERVE GAMES   /////////////////////////////////////
+// Serve English game page with session check
+router.get('/main-game-prim-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'main-game-prim-en.html'));
+});
+
+// Serve Greek game page with session check
+router.get('/main-game-prim-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'main-game-prim-el.html'));
+});
+
+// Serve English Kruskal's game page with session check
+router.get('/main-game-kruskal-en', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-en');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'main-game-kruskal-en.html'));
+});
+
+// Serve Greek Kruskal's game page with session check
+router.get('/main-game-kruskal-el', (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.username) {
+        return res.redirect('/login-el');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'main-game-kruskal-el.html'));
+});
+
+
+
 module.exports = router;
