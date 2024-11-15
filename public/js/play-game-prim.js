@@ -63,14 +63,35 @@ document.addEventListener("DOMContentLoaded", function() {
             elements: { nodes: nodes, edges: edges },
             style: [
                 { selector: 'node', style: { 'background-color': '#69b3a2', 'label': 'data(id)', 'text-valign': 'center', 'text-halign': 'center', 'color': '#ffffff', 'width': '15px', 'height': '15px', 'font-size': '8px' } },
-                { selector: 'node[id="' + startingNodeId + '"]', style: { 'background-color': '#ff6347' } },
-                { selector: 'edge', style: { 'width': 1, 'line-color': '#999', 'label': 'data(weight)', 'text-margin-y': -5, 'color': '#000000', 'font-size': '4px', 'text-wrap': 'wrap', 'text-rotation': 'none' } }
+                { selector: 'node[id="' + startingNodeId + '"]', style: { 'background-color': '#FF0000' } }, // Starting node is red
+                { selector: 'edge', style: { 'width': 1, 'line-color': '#999', 'label': 'data(weight)', 'text-margin-y': -5, 'color': '#000000', 'font-size': '4px', 'text-wrap': 'wrap', 'text-rotation': 'none' } },
+                { selector: 'edge.selected', style: { 'width': 4, 'line-color': '#0000FF' } }, // Selected edge is thick and blue
+                { selector: 'node.selected', style: { 'background-color': '#0000FF' } } // Nodes connected by selected edge turn blue
             ],
             layout: { name: 'cose', padding: 10 },
             userZoomingEnabled: false,
             userPanningEnabled: false,
             boxSelectionEnabled: false,
             autoungrabify: true
+        });
+
+        cy.on('tap', 'edge', function(evt) {
+            const edge = evt.target;
+            edge.style({ 'width': 4, 'line-color': '#0000FF' }); // Ensure the edge stays thick and blue
+            const sourceNode = cy.$(`#${edge.data('source')}`);
+            const targetNode = cy.$(`#${edge.data('target')}`);
+
+            if (sourceNode.id() === startingNodeId) {
+                sourceNode.style('background-color', '#FF00FF'); // Fuchsia
+            } else {
+                sourceNode.style('background-color', '#0000FF'); // Blue
+            }
+
+            if (targetNode.id() === startingNodeId) {
+                targetNode.style('background-color', '#FF00FF'); // Fuchsia
+            } else {
+                targetNode.style('background-color', '#0000FF'); // Blue
+            }
         });
 
         cy.ready(function() {
