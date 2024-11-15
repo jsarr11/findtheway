@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Παίξε Παιχνίδι</title>
     <link rel="stylesheet" href="css/styles-game.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.min.js"></script>
     <script src="js/play-game-prim.js" defer></script>
 </head>
 <body>
 <div class="game-container">
-    <h1>Παίξε Παιχνίδι</h1>
+    <h1>Παίξτε Παιχνίδι</h1>
     <div id="cy"></div>
+    <button id="undo-button">Αναίρεση Τελευταίας Ακμής</button>
+    <table id="action-table">
+        <tr>
+            <th>Κορυφές</th>
+            <th>Βάρος</th>
+        </tr>
+    </table>
 </div>
 </body>
 </html>

@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const minWeight = parseInt(urlParams.get('minWeight')) || 1;
     const maxWeight = parseInt(urlParams.get('maxWeight')) || 16;
 
+    let actionHistory = [];
+
     function createGraph(level) {
         const levelConfig = {
             beginner: { vertices: 5, edges: 7, minWeight: 1, maxWeight: 16 },
@@ -69,15 +71,63 @@ document.addEventListener("DOMContentLoaded", function() {
             autoungrabify: true
         });
 
+        function updateActionTable() {
+            const actionTable = document.getElementById('action-table');
+            actionTable.innerHTML = '<tr><th>Vertices</th><th>Weight</th></tr>';
+            actionHistory.forEach(({ edge }) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${edge.data('source')}-${edge.data('target')}</td><td>${edge.data('weight')}</td>`;
+                actionTable.appendChild(row);
+            });
+        }
+
+        function isEdgeInTable(edgeId) {
+            return actionHistory.some(({ edge }) => edge.id() === edgeId);
+        }
+
+        function isNodeInTable(nodeId) {
+            return actionHistory.some(({ sourceNode, targetNode }) => sourceNode.id() === nodeId || targetNode.id() === nodeId);
+        }
+
         cy.on('tap', 'edge', function(evt) {
             const edge = evt.target;
+
+            if (isEdgeInTable(edge.id())) {
+                return; // Skip if edge is already in the table
+            }
+
             edge.style({ 'width': 4, 'line-color': '#0000FF' }); // Ensure the edge stays thick and blue
             const sourceNode = cy.$(`#${edge.data('source')}`);
             const targetNode = cy.$(`#${edge.data('target')}`);
 
             sourceNode.style('background-color', '#0000FF'); // Blue
             targetNode.style('background-color', '#0000FF'); // Blue
+
+            actionHistory.push({ edge, sourceNode, targetNode }); // Store clicked edge and connected nodes
+            updateActionTable(); // Update the action table
         });
+
+        document.getElementById('undo-button').addEventListener('click', function() {
+            if (actionHistory.length > 0) {
+                const { edge, sourceNode, targetNode } = actionHistory.pop();
+                edge.style({ 'width': 1, 'line-color': '#999' }); // Revert edge style
+
+                if (!isNodeInTable(sourceNode.id())) {
+                    sourceNode.style('background-color', '#69b3a2'); // Revert to original color
+                }
+
+                if (!isNodeInTable(targetNode.id())) {
+                    targetNode.style('background-color', '#69b3a2'); // Revert to original color
+                }
+
+                updateActionTable(); // Update the action table
+            }
+        });
+
+        function hasOtherConnectedBlueEdges(node, cy) {
+            const connectedEdges = node.connectedEdges();
+            return connectedEdges.some(edge => edge.style('line-color') === 'rgb(0, 0, 255)'); // Check if any connected edges are blue
+        }
 
         cy.ready(function() {
             cy.elements('edge').forEach(function(edge) {
