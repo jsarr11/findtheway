@@ -67,7 +67,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 { selector: 'edge', style: { 'width': 1, 'line-color': '#999', 'label': 'data(weight)', 'text-margin-y': -5, 'color': '#000000', 'font-size': '4px', 'text-wrap': 'wrap', 'text-rotation': 'none' } }
             ],
             layout: { name: 'cose', padding: 10 },
-            userZoomingEnabled: false
+            userZoomingEnabled: false,
+            userPanningEnabled: false,
+            boxSelectionEnabled: false,
+            autoungrabify: true
         });
 
         cy.ready(function() {
