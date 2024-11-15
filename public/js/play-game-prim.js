@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const minWeight = parseInt(urlParams.get('minWeight')) || 1;
     const maxWeight = parseInt(urlParams.get('maxWeight')) || 16;
 
+    let actionHistory = [];
+
     function createGraph(level) {
         const levelConfig = {
             beginner: { vertices: 5, edges: 7, minWeight: 1, maxWeight: 16 },
@@ -92,7 +94,46 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 targetNode.style('background-color', '#0000FF'); // Blue
             }
+
+            actionHistory.push({ edge, sourceNode, targetNode }); // Store clicked edge and connected nodes
         });
+
+        document.getElementById('undo-button').addEventListener('click', function() {
+            if (actionHistory.length > 0) {
+                const { edge, sourceNode, targetNode } = actionHistory.pop();
+                edge.style({ 'width': 1, 'line-color': '#999' }); // Revert edge style
+
+                if (sourceNode.id() === startingNodeId) {
+                    const remainingEdges = cy.$(`#${startingNodeId}`).connectedEdges().filter(e => e.style('line-color') === 'rgb(0, 0, 255)');
+                    if (remainingEdges.length === 0) {
+                        sourceNode.style('background-color', '#FF0000'); // Revert starting node to red if no other connected blue edges
+                    } else {
+                        sourceNode.style('background-color', '#FF00FF'); // Keep fuchsia if still connected
+                    }
+                } else {
+                    sourceNode.style('background-color', '#69b3a2'); // Revert to original color
+                }
+
+                if (targetNode.id() === startingNodeId) {
+                    const remainingEdges = cy.$(`#${startingNodeId}`).connectedEdges().filter(e => e.style('line-color') === 'rgb(0, 0, 255)');
+                    if (remainingEdges.length === 0) {
+                        targetNode.style('background-color', '#FF0000'); // Revert starting node to red if no other connected blue edges
+                    } else {
+                        targetNode.style('background-color', '#FF00FF'); // Keep fuchsia if still connected
+                    }
+                } else {
+                    targetNode.style('background-color', '#69b3a2'); // Revert to original color
+                }
+            }
+        });
+
+
+        function hasOtherConnectedBlueEdges(node, cy, currentEdge) {
+            const connectedEdges = node.connectedEdges().filter(e => e !== currentEdge);
+            return connectedEdges.some(edge => edge.style('line-color') === 'rgb(0, 0, 255)'); // Check if any other connected edges are blue
+        }
+
+
 
         cy.ready(function() {
             cy.elements('edge').forEach(function(edge) {
