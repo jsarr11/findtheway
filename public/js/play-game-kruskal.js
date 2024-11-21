@@ -1,3 +1,6 @@
+import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.esm.min.js';
+import { kruskalAllMSTs } from './kruskal-mst.js';
+
 document.addEventListener("DOMContentLoaded", function() {
     const urlParams = new URLSearchParams(window.location.search);
     const level = urlParams.get('level') || 'beginner';
@@ -50,6 +53,21 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("Vertices and Edges with Weights:");
         console.table(edgeTable);
 
+        const adjacencyMatrix = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(0));
+
+        edges.forEach(edge => {
+            const sourceIndex = parseInt(edge.data.source) - 1;
+            const targetIndex = parseInt(edge.data.target) - 1;
+            const weight = edge.data.weight;
+            adjacencyMatrix[sourceIndex][targetIndex] = weight;
+            adjacencyMatrix[targetIndex][sourceIndex] = weight;
+        });
+
+        console.log("Adjacency Matrix:");
+        adjacencyMatrix.forEach(row => console.log(row.join(' ')));
+
+        const allMSTs = kruskalAllMSTs(adjacencyMatrix);
+
         function exportData(table) {
             return { table };
         }
@@ -62,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function() {
             style: [
                 { selector: 'node', style: { 'background-color': '#69b3a2', 'label': 'data(id)', 'text-valign': 'center', 'text-halign': 'center', 'color': '#ffffff', 'width': '15px', 'height': '15px', 'font-size': '8px' } },
                 { selector: 'edge', style: { 'width': 1, 'line-color': '#999', 'label': 'data(weight)', 'text-margin-y': -5, 'color': '#000000', 'font-size': '4px', 'text-wrap': 'wrap', 'text-rotation': 'none' } },
-                { selector: 'edge:selected', style: { 'width': 4, 'line-color': '#0000FF' } } // Selected edge is thick and blue
+                { selector: 'edge:selected', style: { 'width': 4, 'line-color': '#0000FF' } }
             ],
             layout: { name: 'cose', padding: 10 },
             userZoomingEnabled: false,
@@ -93,49 +111,66 @@ document.addEventListener("DOMContentLoaded", function() {
             const edge = evt.target;
 
             if (isEdgeInTable(edge.id())) {
-                return; // Skip if edge is already in the table
+                return;
             }
 
-            edge.style({ 'width': 4, 'line-color': '#0000FF' }); // Ensure the edge stays thick and blue
+            edge.style({ 'width': 4, 'line-color': '#0000FF' });
             const sourceNode = cy.$(`#${edge.data('source')}`);
             const targetNode = cy.$(`#${edge.data('target')}`);
 
-            sourceNode.style('background-color', '#0000FF'); // Blue
-            targetNode.style('background-color', '#0000FF'); // Blue
+            sourceNode.style('background-color', '#0000FF');
+            targetNode.style('background-color', '#0000FF');
 
-            actionHistory.push({ edge, sourceNode, targetNode }); // Store clicked edge and connected nodes
-            updateActionTable(); // Update the action table
+            actionHistory.push({ edge, sourceNode, targetNode });
+            updateActionTable();
         });
 
         document.getElementById('undo-button').addEventListener('click', function() {
             if (actionHistory.length > 0) {
                 const { edge, sourceNode, targetNode } = actionHistory.pop();
-                edge.style({ 'width': 1, 'line-color': '#999' }); // Revert edge style
+                edge.style({ 'width': 1, 'line-color': '#999' });
 
                 if (!isNodeInTable(sourceNode.id())) {
-                    sourceNode.style('background-color', '#69b3a2'); // Revert to original color
+                    sourceNode.style('background-color', '#69b3a2');
                 }
 
                 if (!isNodeInTable(targetNode.id())) {
-                    targetNode.style('background-color', '#69b3a2'); // Revert to original color
+                    targetNode.style('background-color', '#69b3a2');
                 }
 
-                updateActionTable(); // Update the action table
+                updateActionTable();
             }
         });
 
-        function hasOtherConnectedBlueEdges(node, cy) {
-            const connectedEdges = node.connectedEdges();
-            return connectedEdges.some(edge => edge.style('line-color') === 'rgb(0, 0, 255)'); // Check if any connected edges are blue
-        }
+        document.getElementById('submit-button-kruskal').addEventListener('click', function() {
+            const playerSolution = actionHistory.map(({ edge }) => ({
+                Vertex1: parseInt(edge.data('source')),
+                Vertex2: parseInt(edge.data('target')),
+                Weight: parseInt(edge.data('weight'))
+            }));
 
-        cy.ready(function() {
-            cy.elements('edge').forEach(function(edge) {
-                const label = edge.data('weight');
-                edge.data('label', label);
+            const normalizeEdges = edges =>
+                edges.map(edge =>
+                    edge.Vertex1 < edge.Vertex2
+                        ? edge
+                        : { Vertex1: edge.Vertex2, Vertex2: edge.Vertex1, Weight: edge.Weight }
+                ).sort((a, b) => a.Vertex1 - b.Vertex1 || a.Vertex2 - b.Vertex2);
+
+            const normalizedPlayerSolution = normalizeEdges(playerSolution);
+
+            const isCorrect = allMSTs.some(mst => {
+                const normalizedMST = normalizeEdges(
+                    mst.map(([u, v, w]) => ({ Vertex1: u + 1, Vertex2: v + 1, Weight: w }))
+                );
+                return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
             });
 
-            cy.elements('edge').move({ parent: null });
+            document.getElementById('popup-message').innerText = isCorrect ? 'Correct!' : 'Incorrect, try again.';
+            document.getElementById('popup').classList.remove('hidden');
+        });
+
+        document.getElementById('popup-close').addEventListener('click', function() {
+            document.getElementById('popup').classList.add('hidden');
         });
     }
 

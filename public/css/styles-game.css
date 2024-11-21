@@ -22,3 +22,31 @@ body {
     height: 100%;
     border: 1px solid #ccc;
 }
+
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 2px solid #000;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 1000;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+#popup-close {
+    margin-top: 10px;
+    padding: 5px 10px;
+    border: none;
+    background-color: #69b3a2;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}

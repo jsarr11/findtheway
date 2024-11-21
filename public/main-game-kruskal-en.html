@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Play Game</title>
     <link rel="stylesheet" href="css/styles-game.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.min.js"></script>
-    <script src="js/play-game-kruskal.js" defer></script> <!-- Updated to use Kruskal's JS file -->
+    <script type="module" src="js/play-game-kruskal.js" defer></script> <!-- Update path if necessary -->
 </head>
 <body>
 <div class="game-container">
@@ -15,10 +14,17 @@
     <button id="undo-button">Undo Last Edge</button>
     <table id="action-table">
         <tr>
-            <th>Vertices</th>
+            <th>Starting Vertex</th>
+            <th>Target Vertex</th>
             <th>Weight</th>
         </tr>
     </table>
+    <button id="submit-button-kruskal">Submit Kruskal's Solution</button>
+
+    <div id="popup" class="popup hidden">
+        <p id="popup-message"></p>
+        <button id="popup-close">Close</button>
+    </div>
 </div>
 </body>
 </html>

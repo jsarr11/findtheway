@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Παιξε</title>
     <link rel="stylesheet" href="css/styles-game.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.min.js"></script>
-    <script src="js/play-game-prim.js" defer></script>
+    <script type="module" src="js/play-game-prim.js" defer></script> <!-- Updated to type="module" -->
 </head>
 <body>
 <div class="game-container">
@@ -18,6 +18,13 @@
             <th>Βάρος</th>
         </tr>
     </table>
+    <button id="submit-button">Ελεγχος</button>
+
+    <div id="popup" class="popup hidden">
+        <p id="popup-message"></p>
+        <button id="popup-close">Κλεισιμο</button>
+    </div>
+
 </div>
 </body>
 </html>

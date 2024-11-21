@@ -1,3 +1,7 @@
+import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.esm.min.js';
+import { primAllMSTs } from './prim-mst.js';
+
+
 document.addEventListener("DOMContentLoaded", function() {
     const urlParams = new URLSearchParams(window.location.search);
     const level = urlParams.get('level') || 'beginner';
@@ -54,6 +58,29 @@ document.addEventListener("DOMContentLoaded", function() {
         console.table(edgeTable);
         console.log("Starting Vertex:", startingNodeId);
 
+        // Create an adjacency matrix
+        const adjacencyMatrix = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(0));
+
+// Fill the adjacency matrix with edge weights
+        edges.forEach(edge => {
+            const sourceIndex = parseInt(edge.data.source) - 1;
+            const targetIndex = parseInt(edge.data.target) - 1;
+            const weight = edge.data.weight;
+            adjacencyMatrix[sourceIndex][targetIndex] = weight;
+            adjacencyMatrix[targetIndex][sourceIndex] = weight; // Assuming an undirected graph
+        });
+
+// Log the adjacency matrix
+        console.log("Adjacency Matrix:");
+        adjacencyMatrix.forEach(row => console.log(row.join(' ')));
+
+// Call the function to find all MSTs and log them
+        const allMSTs = primAllMSTs(adjacencyMatrix, startingNodeId);
+;
+
+
+
+
         function exportData(table, startingVertex) {
             return { table, startingVertex };
         }
@@ -79,13 +106,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
         function updateActionTable() {
             const actionTable = document.getElementById('action-table');
-            actionTable.innerHTML = '<tr><th>Vertices</th><th>Weight</th></tr>';
+            actionTable.innerHTML = '<tr><th>Starting Vertex</th><th>Target Vertex</th><th>Weight</th></tr>';
             actionHistory.forEach(({ edge }) => {
+                const formattedEdge = {
+                    Vertex1: edge.data('source'),
+                    Vertex2: edge.data('target'),
+                    Weight: edge.data('weight')
+                };
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${edge.data('source')}-${edge.data('target')}</td><td>${edge.data('weight')}</td>`;
+                row.innerHTML = `<td>${formattedEdge.Vertex1}</td><td>${formattedEdge.Vertex2}</td><td>${formattedEdge.Weight}</td>`;
                 actionTable.appendChild(row);
             });
         }
+
+
 
         function isEdgeInTable(edgeId) {
             return actionHistory.some(({ edge }) => edge.id() === edgeId);
@@ -154,6 +188,47 @@ document.addEventListener("DOMContentLoaded", function() {
                 updateActionTable(); // Update the action table
             }
         });
+
+        document.getElementById('submit-button').addEventListener('click', function () {
+            // Extract the player's solution from the actionHistory
+            const playerSolution = actionHistory.map(({ edge }) => ({
+                Vertex1: parseInt(edge.data('source')),
+                Vertex2: parseInt(edge.data('target')),
+                Weight: parseInt(edge.data('weight')),
+            }));
+
+            // Normalize the player's solution for comparison
+            const normalizeEdges = edges =>
+                edges.map(edge =>
+                    edge.Vertex1 < edge.Vertex2
+                        ? edge
+                        : { Vertex1: edge.Vertex2, Vertex2: edge.Vertex1, Weight: edge.Weight }
+                ).sort((a, b) => a.Vertex1 - b.Vertex1 || a.Vertex2 - b.Vertex2);
+
+            const normalizedPlayerSolution = normalizeEdges(playerSolution);
+
+            // Check if the player's solution matches any of the MSTs
+            const isCorrect = allMSTs.some(mst => {
+                const normalizedMST = normalizeEdges(
+                    mst.map(([u, v, w]) => ({ Vertex1: u + 1, Vertex2: v + 1, Weight: w }))
+                );
+                return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
+            });
+
+            // Display the popup
+            const popup = document.getElementById('popup');
+            const popupMessage = document.getElementById('popup-message');
+            popupMessage.textContent = isCorrect ? "Right!" : "Wrong!";
+            popup.classList.remove('hidden');
+        });
+
+// Close button functionality
+        document.getElementById('popup-close').addEventListener('click', function () {
+            const popup = document.getElementById('popup');
+            popup.classList.add('hidden');
+        });
+
+
 
         function hasOtherConnectedBlueEdges(node, cy) {
             const connectedEdges = node.connectedEdges();
