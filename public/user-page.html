@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Page</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const switchLangButton = $('#switch-lang');
+            const contentEl = $('#content-el');
+            const contentEn = $('#content-en');
+
+            function setLanguage(language) {
+                if (language === 'en') {
+                    contentEl.hide();
+                    contentEn.show();
+                    switchLangButton.text('Ελληνικά');
+                    $('html').attr('lang', 'en');
+                } else {
+                    contentEl.show();
+                    contentEn.hide();
+                    switchLangButton.text('English');
+                    $('html').attr('lang', 'el');
+                }
+            }
+
+            function toggleLanguage() {
+                const currentLanguage = localStorage.getItem('language') || 'el';
+                const newLanguage = currentLanguage === 'el' ? 'en' : 'el';
+                localStorage.setItem('language', newLanguage);
+                setLanguage(newLanguage);
+            }
+
+            switchLangButton.on('click', toggleLanguage);
+
+            const savedLanguage = localStorage.getItem('language') || 'el';
+            setLanguage(savedLanguage);
+
+            // Fetch username and display it
+            fetch('/get-username')
+                .then(response => response.json())
+                .then(data => {
+                    $('#username').text(data.username);
+                    $('#usernameEn').text(data.username);
+                })
+                .catch(err => console.error('Error fetching username', err));
+        });
+    </script>
+</head>
+<body>
+<header>
+    <button id="switch-lang">English</button>
+</header>
+
+<!-- Greek Content -->
+<div id="content-el">
+    <main>
+        <h1>Καλώς ήρθες, <span id="username"></span>!</h1>
+        <div class="button-container">
+            <!-- Adjust the links as needed to single-language routes or handle them similarly -->
+            <button onclick="window.location.href='/play'">Παίξε</button>
+            <button onclick="window.location.href='/scores'">Βαθμολογίες</button>
+            <button onclick="window.location.href='/logout'">Αποσύνδεση</button>
+        </div>
+    </main>
+</div>
+
+<!-- English Content (hidden by default) -->
+<div id="content-en" style="display:none;">
+    <main>
+        <h1>Welcome, <span id="usernameEn"></span>!</h1>
+        <div class="button-container">
+            <button onclick="window.location.href='/play'">Play</button>
+            <button onclick="window.location.href='/scores'">Scores</button>
+            <button onclick="window.location.href='/logout'">Logout</button>
+        </div>
+    </main>
+</div>
+</body>
+</html>

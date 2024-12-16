@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Παίξε Παιχνίδι</title>
+    <link rel="stylesheet" href="/css/styles-game.css">
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <!-- jQuery and Language Switcher Setup -->
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const switchLangButton = $('#switch-lang');
+            const contentEl = $('#content-el');
+            const contentEn = $('#content-en');
+
+            function setLanguage(language) {
+                if (language === 'en') {
+                    contentEl.hide();
+                    contentEn.show();
+                    switchLangButton.text('Ελληνικά');
+                    $('html').attr('lang', 'en');
+                } else {
+                    contentEl.show();
+                    contentEn.hide();
+                    switchLangButton.text('English');
+                    $('html').attr('lang', 'el');
+                }
+            }
+
+            function toggleLanguage() {
+                const currentLanguage = localStorage.getItem('language') || 'el';
+                const newLanguage = currentLanguage === 'el' ? 'en' : 'el';
+                localStorage.setItem('language', newLanguage);
+                setLanguage(newLanguage);
+            }
+
+            switchLangButton.on('click', toggleLanguage);
+
+            const savedLanguage = localStorage.getItem('language') || 'el';
+            setLanguage(savedLanguage);
+        });
+    </script>
+
+    <!-- Cytoscape and Kruskal JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.min.js"></script>
+    <script type="module" src="/js/kruskal/main.js" defer></script>
+</head>
+<body>
+<header>
+    <button id="switch-lang">English</button>
+</header>
+
+<div class="game-container">
+    <!-- Single cytoscape container -->
+    <div id="cy" style="width:100%; height:100%; border:1px solid #ccc;"></div>
+
+    <!-- Greek Content -->
+    <div id="content-el">
+        <h1>Παίξτε Παιχνίδι</h1>
+        <button id="undo-button-el">Αναίρεση Τελευταίας Ακμής</button>
+        <table id="action-table-el">
+            <tr>
+                <th>Κορυφές</th>
+                <th>Βάρος</th>
+            </tr>
+        </table>
+        <button id="submit-button-kruskal-el">Έλεγχος Kruskal</button>
+        <div id="popup-el" class="popup hidden">
+            <p id="popup-message-el"></p>
+            <button id="popup-close-el">Κλείσιμο</button>
+        </div>
+    </div>
+
+    <!-- English Content (hidden by default) -->
+    <div id="content-en" style="display:none;">
+        <h1>Play Game</h1>
+        <button id="undo-button-en">Undo Last Edge</button>
+        <table id="action-table-en">
+            <tr>
+                <th>Starting Vertex</th>
+                <th>Target Vertex</th>
+                <th>Weight</th>
+            </tr>
+        </table>
+        <button id="submit-button-kruskal-en">Submit Kruskal's Solution</button>
+        <div id="popup-en" class="popup hidden">
+            <p id="popup-message-en"></p>
+            <button id="popup-close-en">Close</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
