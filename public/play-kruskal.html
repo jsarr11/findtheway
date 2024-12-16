@@ -66,7 +66,7 @@
                 <button onclick="showCustomLevelPopup()">Δημιουργία Προσαρμοσμένου Επιπέδου</button>
             </div>
             <div class="button-container">
-                <button onclick="window.location.href='/play-kruskal-back'">Πίσω</button>
+                <button onclick="window.location.href='/user-page'">Πίσω</button>
             </div>
         </div>
 
@@ -86,7 +86,7 @@
                 <button onclick="showCustomLevelPopup()">Create Custom Level</button>
             </div>
             <div class="button-container">
-                <button onclick="window.location.href='/play-kruskal-back'">Back</button>
+                <button onclick="window.location.href='/user-page'">Back</button>
             </div>
         </div>
     </main>
@@ -151,7 +151,7 @@
     function playGame(level) {
         const currentLanguage = localStorage.getItem('language') || 'el';
         const langSuffix = currentLanguage === 'en' ? 'en' : 'el';
-        window.location.href = `/main-game-kruskal-${langSuffix}?level=${level}`;
+        window.location.href = `/main-game-kruskal?level=${level}`;
     }
 
     function playCustomGame() {
@@ -199,7 +199,7 @@
             return;
         }
 
-        window.location.href = `/main-game-kruskal-${langSuffix}?level=custom&vertices=${vertices}&edges=${edges}&minWeight=${minWeight}&maxWeight=${maxWeight}`;
+        window.location.href = `/main-game-kruskal?level=custom&vertices=${vertices}&edges=${edges}&minWeight=${minWeight}&maxWeight=${maxWeight}`;
     }
 
     function showErrorMessage(message) {
