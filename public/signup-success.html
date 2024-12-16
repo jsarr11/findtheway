@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Επιτυχής Εγγραφή</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const switchLangButton = $('#switch-lang');
+            const contentEl = $('#content-el');
+            const contentEn = $('#content-en');
+
+            function setLanguage(language) {
+                if (language === 'en') {
+                    contentEl.hide();
+                    contentEn.show();
+                    switchLangButton.text('Ελληνικά');
+                    $('html').attr('lang', 'en');
+                } else {
+                    contentEl.show();
+                    contentEn.hide();
+                    switchLangButton.text('English');
+                    $('html').attr('lang', 'el');
+                }
+            }
+
+            function toggleLanguage() {
+                const currentLanguage = localStorage.getItem('language') || 'el';
+                const newLanguage = currentLanguage === 'el' ? 'en' : 'el';
+                localStorage.setItem('language', newLanguage);
+                setLanguage(newLanguage);
+            }
+
+            switchLangButton.on('click', toggleLanguage);
+
+            const savedLanguage = localStorage.getItem('language') || 'el';
+            setLanguage(savedLanguage);
+        });
+    </script>
+</head>
+<body>
+<header>
+    <button id="switch-lang">English</button>
+</header>
+<main>
+
+    <!-- Greek Content -->
+    <div id="content-el">
+        <h1>Επιτυχής Εγγραφή</h1>
+        <p>Ο λογαριασμός σας δημιουργήθηκε με επιτυχία.</p>
+        <!-- Unified route for home (e.g., /home). The language switcher will handle language on that page -->
+        <button onclick="window.location.href='/home'">Επιστροφή στην Αρχική Σελίδα για Σύνδεση</button>
+    </div>
+
+    <!-- English Content (hidden by default) -->
+    <div id="content-en" style="display:none;">
+        <h1>Signup Successful</h1>
+        <p>Your account has been created successfully.</p>
+        <button onclick="window.location.href='/home'">Go back to Home Page to Login</button>
+    </div>
+
+</main>
+</body>
+</html>

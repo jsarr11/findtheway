@@ -86,7 +86,7 @@
             <div id="errorMessage" class="error-message"></div>
             <button type="submit">Signup</button>
         </form>
-        <button class="back-to-home" onclick="window.location.href='/home'">Back to Home Page</button>
+        <button class="back-to-home" onclick="window.location.href='/'">Back to Home Page</button>
     </main>
 </div>
 
@@ -113,7 +113,7 @@
                 errorMessage.show();
             } else {
                 const lang = formData.get('lang') || 'el';
-                window.location.href = `/signup-success-${lang}.html`;
+                window.location.href = `/signup-success.html`;
             }
         } catch (err) {
             console.error('Error submitting form', err);

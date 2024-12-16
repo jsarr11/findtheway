@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Πληροφορίες</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const switchLangButton = $('#switch-lang');
+            const contentEl = $('#content-el');
+            const contentEn = $('#content-en');
+
+            function setLanguage(language) {
+                if (language === 'en') {
+                    contentEl.hide();
+                    contentEn.show();
+                    switchLangButton.text('Ελληνικά');
+                    $('html').attr('lang', 'en');
+                } else {
+                    contentEl.show();
+                    contentEn.hide();
+                    switchLangButton.text('English');
+                    $('html').attr('lang', 'el');
+                }
+            }
+
+            function toggleLanguage() {
+                const currentLanguage = localStorage.getItem('language') || 'el';
+                const newLanguage = currentLanguage === 'el' ? 'en' : 'el';
+                localStorage.setItem('language', newLanguage);
+                setLanguage(newLanguage);
+            }
+
+            switchLangButton.on('click', toggleLanguage);
+
+            const savedLanguage = localStorage.getItem('language') || 'el';
+            setLanguage(savedLanguage);
+        });
+    </script>
+</head>
+<body>
+<header>
+    <button id="switch-lang">English</button>
+</header>
+<main>
+    <!-- Greek Content -->
+    <div id="content-el">
+        <h1>Πληροφορίες</h1>
+        <p>Καλώς ήρθατε στη σελίδα πληροφοριών του FindTheWay. Εδώ θα βρείτε όλες τις πληροφορίες που χρειάζεστε για τις υπηρεσίες και τις δυνατότητές μας.</p>
+        <button onclick="window.location.href='/home'">Επιστροφή στην Αρχική Σελίδα</button>
+    </div>
+
+    <!-- English Content (hidden by default) -->
+    <div id="content-en" style="display:none;">
+        <h1>Information</h1>
+        <p>Welcome to the FindTheWay Info Page. Here you will find all the information you need about our services and features.</p>
+        <button onclick="window.location.href='/home'">Back to Home Page</button>
+    </div>
+</main>
+</body>
+</html>
