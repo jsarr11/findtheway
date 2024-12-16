@@ -1,5 +1,9 @@
+// main-kruskal.js
 import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.esm.min.js';
 import { kruskalAllMSTs } from './kruskal-mst.js';
+import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
+import { updateActionTable } from './ui-utils.js';
+import { isEdgeInTable, isNodeInTable } from '../common/common.js';
 
 document.addEventListener("DOMContentLoaded", function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -11,39 +15,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let actionHistory = [];
 
-    function createGraph(level) {
-        const levelConfig = {
-            beginner: { vertices: 5, edges: 7, minWeight: 1, maxWeight: 16 },
-            intermediate: { vertices: 7, edges: 10, minWeight: 1, maxWeight: 16 },
-            expert: { vertices: 10, edges: 15, minWeight: 1, maxWeight: 16 },
-            custom: { vertices: vertices, edges: edgesCount, minWeight: minWeight, maxWeight: maxWeight }
-        };
-
-        const config = levelConfig[level] || levelConfig.beginner;
-
-        const nodes = [];
-        for (let i = 0; i < config.vertices; i++) {
-            nodes.push({ data: { id: (i + 1).toString() } });
-        }
-
-        const edges = [];
-        for (let i = 1; i < nodes.length; i++) {
-            edges.push({ data: { source: (i).toString(), target: (i + 1).toString(), weight: Math.floor(Math.random() * (config.maxWeight - config.minWeight + 1)) + config.minWeight } });
-        }
-
-        while (edges.length < config.edges) {
-            const source = (Math.floor(Math.random() * nodes.length) + 1).toString();
-            const target = (Math.floor(Math.random() * nodes.length) + 1).toString();
-            if (source !== target && !edges.some(edge => (edge.data.source === source && edge.data.target === target) || (edge.data.source === target && edge.data.target === source))) {
-                edges.push({ data: { source, target, weight: Math.floor(Math.random() * (config.maxWeight - config.minWeight + 1)) + config.minWeight } });
-            }
-        }
-
-        return { nodes, edges };
-    }
-
     function initGame(level) {
-        const { nodes, edges } = createGraph(level);
+        // Determine current language from localStorage
+        const currentLanguage = localStorage.getItem('language') || 'el';
+        const suffix = currentLanguage === 'en' ? '-en' : '-el';
+
+        const undoButtonId = 'undo-button' + suffix;
+        const actionTableId = 'action-table' + suffix;
+        const submitButtonId = 'submit-button-kruskal' + suffix;
+        const popupId = 'popup' + suffix;
+        const popupMessageId = 'popup-message' + suffix;
+        const popupCloseId = 'popup-close' + suffix;
+
+        const { nodes, edges } = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
 
         const edgeTable = edges.map(edge => ({
             Vertex1: edge.data.source,
@@ -53,16 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("Vertices and Edges with Weights:");
         console.table(edgeTable);
 
-        const adjacencyMatrix = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(0));
-
-        edges.forEach(edge => {
-            const sourceIndex = parseInt(edge.data.source) - 1;
-            const targetIndex = parseInt(edge.data.target) - 1;
-            const weight = edge.data.weight;
-            adjacencyMatrix[sourceIndex][targetIndex] = weight;
-            adjacencyMatrix[targetIndex][sourceIndex] = weight;
-        });
-
+        const adjacencyMatrix = buildAdjacencyMatrix(nodes, edges);
         console.log("Adjacency Matrix:");
         adjacencyMatrix.forEach(row => console.log(row.join(' ')));
 
@@ -89,28 +64,10 @@ document.addEventListener("DOMContentLoaded", function() {
             autoungrabify: true
         });
 
-        function updateActionTable() {
-            const actionTable = document.getElementById('action-table');
-            actionTable.innerHTML = '<tr><th>Vertices</th><th>Weight</th></tr>';
-            actionHistory.forEach(({ edge }) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${edge.data('source')}-${edge.data('target')}</td><td>${edge.data('weight')}</td>`;
-                actionTable.appendChild(row);
-            });
-        }
-
-        function isEdgeInTable(edgeId) {
-            return actionHistory.some(({ edge }) => edge.id() === edgeId);
-        }
-
-        function isNodeInTable(nodeId) {
-            return actionHistory.some(({ sourceNode, targetNode }) => sourceNode.id() === nodeId || targetNode.id() === nodeId);
-        }
-
         cy.on('tap', 'edge', function(evt) {
             const edge = evt.target;
 
-            if (isEdgeInTable(edge.id())) {
+            if (isEdgeInTable(actionHistory, edge.id())) {
                 return;
             }
 
@@ -122,27 +79,27 @@ document.addEventListener("DOMContentLoaded", function() {
             targetNode.style('background-color', '#0000FF');
 
             actionHistory.push({ edge, sourceNode, targetNode });
-            updateActionTable();
+            updateActionTable(actionHistory, actionTableId); // Pass the correct table ID
         });
 
-        document.getElementById('undo-button').addEventListener('click', function() {
+        document.getElementById(undoButtonId).addEventListener('click', function() {
             if (actionHistory.length > 0) {
                 const { edge, sourceNode, targetNode } = actionHistory.pop();
                 edge.style({ 'width': 1, 'line-color': '#999' });
 
-                if (!isNodeInTable(sourceNode.id())) {
+                if (!isNodeInTable(actionHistory, sourceNode.id())) {
                     sourceNode.style('background-color', '#69b3a2');
                 }
 
-                if (!isNodeInTable(targetNode.id())) {
+                if (!isNodeInTable(actionHistory, targetNode.id())) {
                     targetNode.style('background-color', '#69b3a2');
                 }
 
-                updateActionTable();
+                updateActionTable(actionHistory, actionTableId);
             }
         });
 
-        document.getElementById('submit-button-kruskal').addEventListener('click', function() {
+        document.getElementById(submitButtonId).addEventListener('click', function() {
             const playerSolution = actionHistory.map(({ edge }) => ({
                 Vertex1: parseInt(edge.data('source')),
                 Vertex2: parseInt(edge.data('target')),
@@ -165,12 +122,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
             });
 
-            document.getElementById('popup-message').innerText = isCorrect ? 'Correct!' : 'Incorrect, try again.';
-            document.getElementById('popup').classList.remove('hidden');
+            document.getElementById(popupMessageId).innerText = isCorrect ? 'Correct!' : 'Incorrect, try again.';
+            document.getElementById(popupId).classList.remove('hidden');
         });
 
-        document.getElementById('popup-close').addEventListener('click', function() {
-            document.getElementById('popup').classList.add('hidden');
+        document.getElementById(popupCloseId).addEventListener('click', function() {
+            document.getElementById(popupId).classList.add('hidden');
         });
     }
 
