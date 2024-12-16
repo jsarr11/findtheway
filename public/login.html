@@ -5,47 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="/css/styles.css">
-    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="/js/language-switcher.js"></script>
     <script>
-        $(document).ready(function() {
-            const switchLangButton = $('#switch-lang');
-            const contentEl = $('#content-el');
-            const contentEn = $('#content-en');
-
-            function setLanguage(language) {
-                if (language === 'en') {
-                    contentEl.hide();
-                    contentEn.show();
-                    switchLangButton.text('Ελληνικά');
-                    $('html').attr('lang', 'en');
-                    // Update form lang inputs
-                    $('#loginFormEn input[name="lang"]').val('en');
-                } else {
-                    contentEl.show();
-                    contentEn.hide();
-                    switchLangButton.text('English');
-                    $('html').attr('lang', 'el');
-                    $('#loginForm input[name="lang"]').val('el');
-                }
-            }
-
-            function toggleLanguage() {
-                const currentLanguage = localStorage.getItem('language') || 'el';
-                const newLanguage = currentLanguage === 'el' ? 'en' : 'el';
-                localStorage.setItem('language', newLanguage);
-                setLanguage(newLanguage);
-            }
-
-            switchLangButton.on('click', toggleLanguage);
-            const savedLanguage = localStorage.getItem('language') || 'el';
-            setLanguage(savedLanguage);
-
-            // Submit handling for both forms
+        // Submit handling for both forms
             $('#loginForm, #loginFormEn').on('submit', async function(event) {
                 event.preventDefault();
                 const form = event.target;
                 const formData = new FormData(form);
-                const errorMessage = $(form).find('#errorMessage');
+
+                // Determine which errorMessage ID to use based on which form is submitted
+                const errorMessageId = (form.id === 'loginForm') ? '#errorMessage-el' : '#errorMessage-en';
+                const errorMessage = $(errorMessageId);
 
                 errorMessage.html('');
                 errorMessage.hide();
@@ -73,7 +44,6 @@
                     errorMessage.show();
                 }
             });
-        });
     </script>
 </head>
 <body>
@@ -91,7 +61,7 @@
             <input type="text" id="username" name="username" required maxlength="10">
             <label for="password">Κωδικός:</label>
             <input type="password" id="password" name="password" required>
-            <div id="errorMessage" class="error-message"></div>
+            <div id="errorMessage-el" class="error-message"></div>
             <button type="submit">Σύνδεση</button>
         </form>
         <button class="back-to-home" onclick="window.location.href='/'">Επιστροφή στην Αρχική Σελίδα</button>
@@ -108,7 +78,7 @@
             <input type="text" id="username-en" name="username" required maxlength="10">
             <label for="password-en">Password:</label>
             <input type="password" id="password-en" name="password" required>
-            <div id="errorMessage" class="error-message"></div>
+            <div id="errorMessage-en" class="error-message"></div>
             <button type="submit">Login</button>
         </form>
         <button class="back-to-home" onclick="window.location.href='/'">Back to Home Page</button>

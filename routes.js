@@ -55,6 +55,7 @@ const handleSignup = async (req, res) => {
         await closeDbConnection(client);
 
         req.session.username = username;
+        // no route created for signup-success page
         res.sendFile(path.join(__dirname, `public/signup-success.html`));
     } catch (err) {
         console.error('Error saving user to database', err);

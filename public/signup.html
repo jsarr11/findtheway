@@ -5,43 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signup</title>
     <link rel="stylesheet" href="/css/styles.css">
-    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            const switchLangButton = $('#switch-lang');
-            const contentEl = $('#content-el');
-            const contentEn = $('#content-en');
-            const langInput = $('input[name="lang"]');
-
-            function setLanguage(language) {
-                if (language === 'en') {
-                    contentEl.hide();
-                    contentEn.show();
-                    switchLangButton.text('Ελληνικά');
-                    $('html').attr('lang', 'en');
-                    langInput.val('en');
-                } else {
-                    contentEl.show();
-                    contentEn.hide();
-                    switchLangButton.text('English');
-                    $('html').attr('lang', 'el');
-                    langInput.val('el');
-                }
-            }
-
-            function toggleLanguage() {
-                const currentLanguage = localStorage.getItem('language') || 'el';
-                const newLanguage = currentLanguage === 'el' ? 'en' : 'el';
-                localStorage.setItem('language', newLanguage);
-                setLanguage(newLanguage);
-            }
-
-            switchLangButton.on('click', toggleLanguage);
-
-            const savedLanguage = localStorage.getItem('language') || 'el';
-            setLanguage(savedLanguage);
-        });
-    </script>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="/js/language-switcher.js"></script>
 </head>
 <body>
 <header>
@@ -62,7 +27,7 @@
             <input type="password" id="password" name="password" required>
             <label for="confirmPassword">Επιβεβαίωση Κωδικού:</label>
             <input type="password" id="confirmPassword" name="confirmPassword" required>
-            <div id="errorMessage" class="error-message"></div>
+            <div id="errorMessage-el" class="error-message"></div>
             <button type="submit">Εγγραφή</button>
         </form>
         <button class="back-to-home" onclick="window.location.href='/'">Επιστροφή στην Αρχική Σελίδα</button>
@@ -83,7 +48,7 @@
             <input type="password" id="password-en" name="password" required>
             <label for="confirmPassword-en">Confirm Password:</label>
             <input type="password" id="confirmPassword-en" name="confirmPassword" required>
-            <div id="errorMessage" class="error-message"></div>
+            <div id="errorMessage-en" class="error-message"></div>
             <button type="submit">Signup</button>
         </form>
         <button class="back-to-home" onclick="window.location.href='/'">Back to Home Page</button>
@@ -96,7 +61,10 @@
         event.preventDefault();
         const form = event.target;
         const formData = new FormData(form);
-        const errorMessage = $(form).find('#errorMessage');
+
+        // Determine which errorMessage ID to use based on which form is submitted
+        const errorMessageId = (form.id === 'signupForm') ? '#errorMessage-el' : '#errorMessage-en';
+        const errorMessage = $(errorMessageId);
 
         errorMessage.html('');
         errorMessage.hide();
