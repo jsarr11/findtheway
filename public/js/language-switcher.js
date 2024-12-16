@@ -4,16 +4,21 @@ $(document).ready(function() {
     const contentEn = $('#content-en');
 
     function setLanguage(language) {
+        console.log('Current language:', language); // Log the current language
+
         if (language === 'en') {
             contentEl.hide();
             contentEn.show();
             switchLangButton.text('Ελληνικά');
+            $('html').attr('lang', 'en');
         } else {
             contentEl.show();
             contentEn.hide();
             switchLangButton.text('English');
+            $('html').attr('lang', 'el');
         }
     }
+
 
     function toggleLanguage() {
         const currentLanguage = localStorage.getItem('language') || 'el';
