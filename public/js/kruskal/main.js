@@ -1,11 +1,10 @@
-// main-kruskal.js
 import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.esm.min.js';
 import { kruskalAllMSTs } from './kruskal-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable } from './ui-utils.js';
 import { isEdgeInTable, isNodeInTable } from '../common/common.js';
 
-document.addEventListener("DOMContentLoaded", function() {
+$(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
     const level = urlParams.get('level') || 'beginner';
     const vertices = parseInt(urlParams.get('vertices')) || 5;
@@ -15,20 +14,40 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let actionHistory = [];
 
-    function initGame(level) {
-        // Determine current language from localStorage
+    // Initialize the game
+    initGame(level, vertices, edgesCount, minWeight, maxWeight);
+
+    // Function to initialize the game
+    function initGame(level, vertices, edgesCount, minWeight, maxWeight) {
         const currentLanguage = localStorage.getItem('language') || 'el';
         const suffix = currentLanguage === 'en' ? '-en' : '-el';
 
-        const undoButtonId = 'undo-button' + suffix;
-        const actionTableId = 'action-table' + suffix;
-        const submitButtonId = 'submit-button-kruskal' + suffix;
-        const popupId = 'popup' + suffix;
-        const popupMessageId = 'popup-message' + suffix;
-        const popupCloseId = 'popup-close' + suffix;
+        const ids = {
+            undoButtonId: 'undo-button' + suffix,
+            actionTableId: 'action-table' + suffix,
+            submitButtonId: 'submit-button-kruskal' + suffix,
+            popupId: 'popup' + suffix,
+            popupMessageId: 'popup-message' + suffix,
+            popupCloseId: 'popup-close' + suffix
+        };
 
         const { nodes, edges } = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
 
+        logGraphDetails(edges);
+
+        const adjacencyMatrix = buildAdjacencyMatrix(nodes, edges);
+        logAdjacencyMatrix(adjacencyMatrix);
+
+        const allMSTs = kruskalAllMSTs(adjacencyMatrix);
+        exportDataForDownload(edges);
+
+        const cy = initializeCytoscape(nodes, edges);
+
+        setupEventListeners(cy, allMSTs, ids);
+    }
+
+    // Function to log graph details
+    function logGraphDetails(edges) {
         const edgeTable = edges.map(edge => ({
             Vertex1: edge.data.source,
             Vertex2: edge.data.target,
@@ -36,22 +55,24 @@ document.addEventListener("DOMContentLoaded", function() {
         }));
         console.log("Vertices and Edges with Weights:");
         console.table(edgeTable);
+    }
 
-        const adjacencyMatrix = buildAdjacencyMatrix(nodes, edges);
+    // Function to log adjacency matrix
+    function logAdjacencyMatrix(adjacencyMatrix) {
         console.log("Adjacency Matrix:");
         adjacencyMatrix.forEach(row => console.log(row.join(' ')));
+    }
 
-        const allMSTs = kruskalAllMSTs(adjacencyMatrix);
+    // Function to export data for download
+    function exportDataForDownload(edgeTable) {
+        window.exportData = { table: edgeTable };
+    }
 
-        function exportData(table) {
-            return { table };
-        }
-
-        window.exportData = exportData(edgeTable);
-
-        const cy = cytoscape({
+    // Function to initialize Cytoscape
+    function initializeCytoscape(nodes, edges) {
+        return cytoscape({
             container: document.getElementById('cy'),
-            elements: { nodes: nodes, edges: edges },
+            elements: { nodes, edges },
             style: [
                 { selector: 'node', style: { 'background-color': '#69b3a2', 'label': 'data(id)', 'text-valign': 'center', 'text-halign': 'center', 'color': '#ffffff', 'width': '15px', 'height': '15px', 'font-size': '8px' } },
                 { selector: 'edge', style: { 'width': 1, 'line-color': '#999', 'label': 'data(weight)', 'text-margin-y': -5, 'color': '#000000', 'font-size': '4px', 'text-wrap': 'wrap', 'text-rotation': 'none' } },
@@ -63,73 +84,89 @@ document.addEventListener("DOMContentLoaded", function() {
             boxSelectionEnabled: false,
             autoungrabify: true
         });
+    }
 
+    // Function to set up event listeners
+    function setupEventListeners(cy, allMSTs, ids) {
         cy.on('tap', 'edge', function(evt) {
-            const edge = evt.target;
-
-            if (isEdgeInTable(actionHistory, edge.id())) {
-                return;
-            }
-
-            edge.style({ 'width': 4, 'line-color': '#0000FF' });
-            const sourceNode = cy.$(`#${edge.data('source')}`);
-            const targetNode = cy.$(`#${edge.data('target')}`);
-
-            sourceNode.style('background-color', '#0000FF');
-            targetNode.style('background-color', '#0000FF');
-
-            actionHistory.push({ edge, sourceNode, targetNode });
-            updateActionTable(actionHistory, actionTableId); // Pass the correct table ID
+            handleEdgeSelection(evt, cy, actionHistory, ids.actionTableId);
         });
 
-        document.getElementById(undoButtonId).addEventListener('click', function() {
-            if (actionHistory.length > 0) {
-                const { edge, sourceNode, targetNode } = actionHistory.pop();
-                edge.style({ 'width': 1, 'line-color': '#999' });
-
-                if (!isNodeInTable(actionHistory, sourceNode.id())) {
-                    sourceNode.style('background-color', '#69b3a2');
-                }
-
-                if (!isNodeInTable(actionHistory, targetNode.id())) {
-                    targetNode.style('background-color', '#69b3a2');
-                }
-
-                updateActionTable(actionHistory, actionTableId);
-            }
+        $('#' + ids.undoButtonId).click(function() {
+            handleUndoAction(cy, actionHistory, ids.actionTableId);
         });
 
-        document.getElementById(submitButtonId).addEventListener('click', function() {
-            const playerSolution = actionHistory.map(({ edge }) => ({
-                Vertex1: parseInt(edge.data('source')),
-                Vertex2: parseInt(edge.data('target')),
-                Weight: parseInt(edge.data('weight'))
-            }));
-
-            const normalizeEdges = edges =>
-                edges.map(edge =>
-                    edge.Vertex1 < edge.Vertex2
-                        ? edge
-                        : { Vertex1: edge.Vertex2, Vertex2: edge.Vertex1, Weight: edge.Weight }
-                ).sort((a, b) => a.Vertex1 - b.Vertex1 || a.Vertex2 - b.Vertex2);
-
-            const normalizedPlayerSolution = normalizeEdges(playerSolution);
-
-            const isCorrect = allMSTs.some(mst => {
-                const normalizedMST = normalizeEdges(
-                    mst.map(([u, v, w]) => ({ Vertex1: u + 1, Vertex2: v + 1, Weight: w }))
-                );
-                return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
-            });
-
-            document.getElementById(popupMessageId).innerText = isCorrect ? 'Correct!' : 'Incorrect, try again.';
-            document.getElementById(popupId).classList.remove('hidden');
+        $('#' + ids.submitButtonId).click(function() {
+            handleSubmitAction(cy, actionHistory, allMSTs, ids);
         });
 
-        document.getElementById(popupCloseId).addEventListener('click', function() {
-            document.getElementById(popupId).classList.add('hidden');
+        $('#' + ids.popupCloseId).click(function() {
+            $('#' + ids.popupId).addClass('hidden');
         });
     }
 
-    initGame(level);
+    // Function to handle edge selection
+    function handleEdgeSelection(evt, cy, actionHistory, actionTableId) {
+        const edge = evt.target;
+        if (isEdgeInTable(actionHistory, edge.id())) return;
+
+        edge.style({ 'width': 4, 'line-color': '#0000FF' });
+        const sourceNode = cy.$(`#${edge.data('source')}`);
+        const targetNode = cy.$(`#${edge.data('target')}`);
+
+        sourceNode.style('background-color', '#0000FF');
+        targetNode.style('background-color', '#0000FF');
+
+        actionHistory.push({ edge, sourceNode, targetNode });
+        updateActionTable(actionHistory, actionTableId);
+    }
+
+    // Function to handle undo action
+    function handleUndoAction(cy, actionHistory, actionTableId) {
+        if (actionHistory.length > 0) {
+            const { edge, sourceNode, targetNode } = actionHistory.pop();
+            edge.style({ 'width': 1, 'line-color': '#999' });
+
+            if (!isNodeInTable(actionHistory, sourceNode.id())) {
+                sourceNode.style('background-color', '#69b3a2');
+            }
+
+            if (!isNodeInTable(actionHistory, targetNode.id())) {
+                targetNode.style('background-color', '#69b3a2');
+            }
+
+            updateActionTable(actionHistory, actionTableId);
+        }
+    }
+
+    // Function to handle submit action
+    function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
+        const playerSolution = actionHistory.map(({ edge }) => ({
+            Vertex1: parseInt(edge.data('source')),
+            Vertex2: parseInt(edge.data('target')),
+            Weight: parseInt(edge.data('weight'))
+        }));
+
+        const normalizedPlayerSolution = normalizeEdges(playerSolution);
+
+        const isCorrect = allMSTs.some(mst => {
+            const normalizedMST = normalizeEdges(
+                mst.map(([u, v, w]) => ({ Vertex1: u + 1, Vertex2: v + 1, Weight: w }))
+            );
+            return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
+        });
+
+        const popupMessage = $('#' + ids.popupMessageId);
+        popupMessage.text(isCorrect ? "Correct!" : "Incorrect, try again.");
+        $('#' + ids.popupId).removeClass('hidden');
+    }
+
+    // Function to normalize edges
+    function normalizeEdges(edges) {
+        return edges.map(edge =>
+            edge.Vertex1 < edge.Vertex2
+                ? edge
+                : { Vertex1: edge.Vertex2, Vertex2: edge.Vertex1, Weight: edge.Weight }
+        ).sort((a, b) => a.Vertex1 - b.Vertex1 || a.Vertex2 - b.Vertex2);
+    }
 });
