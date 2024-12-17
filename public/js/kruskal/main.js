@@ -5,6 +5,8 @@ import { updateActionTable } from './ui-utils.js';
 import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
 import '../common/timer.js';
 import { totalSeconds, stopTimer } from '../common/timer.js'; // Import totalSeconds
+import '../common/edgeWeights.js';
+import { addEdgeWeight, subtractEdgeWeight } from '../common/edgeWeights.js';
 
 $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -115,6 +117,10 @@ $(document).ready(function() {
 
         actionHistory.push({ edge, sourceNode, targetNode });
         updateActionTable(actionHistory, actionTableId);
+
+        // Add the weight of the selected edge
+        const edgeWeight = parseInt(edge.data('weight'));
+        addEdgeWeight(edgeWeight);
     }
 
     // Function to handle undo action
@@ -132,6 +138,10 @@ $(document).ready(function() {
             }
 
             updateActionTable(actionHistory, actionTableId);
+
+            // Subtract the weight of the undone edge
+            const edgeWeight = parseInt(edge.data('weight'));
+            subtractEdgeWeight(edgeWeight);
         }
     }
 
