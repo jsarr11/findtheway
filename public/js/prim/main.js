@@ -2,7 +2,7 @@ import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/c
 import { primAllMSTs } from './prim-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable, hasOtherConnectedBlueEdges } from './ui-utils.js';
-import { isEdgeInTable, isNodeInTable } from '../common/common.js';
+import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
 
 $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -63,12 +63,6 @@ $(document).ready(function() {
         console.log("Vertices and Edges with Weights:");
         console.table(edgeTable);
         console.log("Starting Vertex:", startingNodeId);
-    }
-
-    // Function to log adjacency matrix
-    function logAdjacencyMatrix(adjacencyMatrix) {
-        console.log("Adjacency Matrix:");
-        adjacencyMatrix.forEach(row => console.log(row.join(' ')));
     }
 
     // Function to export data for download
@@ -188,14 +182,5 @@ $(document).ready(function() {
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? "Right!" : "Wrong!");
         $('#' + ids.popupId).removeClass('hidden');
-    }
-
-    // Function to normalize edges
-    function normalizeEdges(edges) {
-        return edges.map(edge =>
-            edge.Vertex1 < edge.Vertex2
-                ? edge
-                : { Vertex1: edge.Vertex2, Vertex2: edge.Vertex1, Weight: edge.Weight }
-        ).sort((a, b) => a.Vertex1 - b.Vertex1 || a.Vertex2 - b.Vertex2);
     }
 });
