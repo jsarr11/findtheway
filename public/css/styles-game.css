@@ -64,3 +64,7 @@ body {
     padding: 20px;
     overflow: auto; /* Enable scrolling if content overflows */
 }
+
+#switch-lang {
+    display: none;
+}
