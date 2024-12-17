@@ -103,10 +103,6 @@ $(document).ready(function() {
         $('#' + ids.submitButtonId).click(function() {
             handleSubmitAction(cy, actionHistory, allMSTs, ids);
         });
-
-        $('#' + ids.popupCloseId).click(function() {
-            $('#' + ids.popupId).addClass('hidden');
-        });
     }
 
     // Function to handle edge selection
