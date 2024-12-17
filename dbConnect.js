@@ -48,7 +48,7 @@ module.exports = {
 
 // CREATE TABLE scores (
 //     id SERIAL PRIMARY KEY REFERENCES users(id),
-//     kruskal INT,
-//     prim INT
+//     kruskal INT DEFAULT 0,
+//     prim INT DEFAULT 0
 // );
 

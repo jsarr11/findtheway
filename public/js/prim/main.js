@@ -7,7 +7,7 @@ import '../common/timer.js';
 import { totalSeconds, stopTimer } from '../common/timer.js'; // Import totalSeconds
 import '../common/edgeWeights.js';
 import { addEdgeWeight, subtractEdgeWeight } from '../common/edgeWeights.js';
-
+import { updatePlayerScore } from '../common/scoreUpdater.js';
 
 
 $(document).ready(function() {
@@ -213,6 +213,22 @@ $(document).ready(function() {
 
         // Stop the timer
         stopTimer();
+
+        if (score > 0) {
+            const username = sessionStorage.getItem('username');
+            console.log(`Retrieved username from sessionStorage: ${username}`);
+            if (!username) {
+                console.error('Username is null or undefined in sessionStorage');
+                return;
+            }
+            const method = $('#gameMethod').val();
+            console.log(`Username: ${username}, Method: ${method}`);
+            updatePlayerScore(username, score, method).then(() => {
+                console.log('Score added successfully!');
+            }).catch(err => {
+                console.error('Error adding score:', err);
+            });
+        }
     }
 
     // Add this at the end of your main.js file

@@ -249,4 +249,50 @@ router.get('/main-game-kruskal', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'main-game-kruskal.html'));
 });
 
+router.post('/api/update-score', async (req, res) => {
+    const { username, score, method } = req.body;
+    const client = await connectToDb();
+
+    try {
+        console.log(`Received request to update score for user: ${username}, method: ${method}, score: ${score}`);
+
+        const column = method === 'kruskal' ? 'kruskal' : 'prim';
+        console.log(`Selected column for method ${method}: ${column}`);
+
+        // Fetch user ID and score column
+        const query = `SELECT users.id, scores.${column} FROM users JOIN scores ON users.id = scores.id WHERE username = $1`;
+        const dbRes = await client.query(query, [username]);
+
+        // Log database result
+        console.log(`Database Response: ${JSON.stringify(dbRes.rows)}`);
+
+        if (dbRes.rows.length === 0) {
+            throw new Error('User not found');
+        }
+
+        const playerId = dbRes.rows[0].id; // Extract user ID
+        console.log(`User ID retrieved from database: ${playerId}`); // Log user ID
+
+        let currentScore = dbRes.rows[0][column];
+        currentScore += score;
+
+        // Update the score
+        const updateQuery = `UPDATE scores SET ${column} = $1 WHERE id = $2`;
+        console.log(`Updating score for user ID ${playerId} to ${currentScore}`);
+        await client.query(updateQuery, [currentScore, playerId]);
+
+        res.json({ playerId, currentScore });
+    } catch (err) {
+        console.error('Error updating score:', err.message); // Error message
+        console.error('Stack Trace:', err.stack); // Full stack trace
+        res.status(500).json({ error: 'Internal Server Error', details: err.message });
+    } finally {
+        await closeDbConnection(client);
+    }
+});
+
+
+
+
+
 module.exports = router;

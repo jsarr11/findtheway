@@ -13,6 +13,8 @@ app.use(session({
     saveUninitialized: true,
 }));
 
+app.use(express.json());
+
 // Set up body parsing
 app.use(bodyParser.urlencoded({ extended: false }));
 
