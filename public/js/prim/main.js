@@ -3,6 +3,9 @@ import { primAllMSTs } from './prim-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable, hasOtherConnectedBlueEdges } from './ui-utils.js';
 import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
+import '../common/timer.js';
+import { totalSeconds, stopTimer } from '../common/timer.js'; // Import totalSeconds
+
 
 $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -103,6 +106,11 @@ $(document).ready(function() {
         $('#' + ids.submitButtonId).click(function() {
             handleSubmitAction(cy, actionHistory, allMSTs, ids);
         });
+        $('#quit-button').click(function() {
+            stopTimer();
+            window.location.href = '/play-prim';
+        });
+
     }
 
     // Function to handle edge selection
@@ -175,8 +183,31 @@ $(document).ready(function() {
             return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
         });
 
+        const totalVertices = cy.nodes().length;
+        const totalEdges = cy.edges().length;
+        console.log("Total Vertices: " + totalVertices, "Total Edges: " + totalEdges);
+        console.log('Total Time in Seconds:', totalSeconds);
+        let score = Math.floor((totalVertices * totalEdges * 100) / totalSeconds);
+        console.log(score);
+
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? "Right!" : "Wrong!");
+
+        if (popupMessage.text() === "Wrong!") {
+            score = 0;
+        }
+
+        popupMessage.append(`<br>Your Score is : ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
+
+        // Stop the timer
+        stopTimer();
     }
+
+    // Add this at the end of your main.js file
+
+    window.addEventListener('beforeunload', function() {
+        stopTimer();
+    });
+
 });

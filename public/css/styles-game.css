@@ -50,3 +50,17 @@ body {
     border-radius: 5px;
     cursor: pointer;
 }
+
+.popup-2 {
+    position: fixed;
+    top: 49%;
+    left: 50%;
+    width: 90%;
+    height: 92%;
+    background-color: white; /* or any other background color you prefer */
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    padding: 20px;
+    overflow: auto; /* Enable scrolling if content overflows */
+}
