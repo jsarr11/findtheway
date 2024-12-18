@@ -69,21 +69,68 @@ $(document).ready(function() {
 
     // Function to initialize Cytoscape
     function initializeCytoscape(nodes, edges) {
+        // Assign `alt` attribute dynamically for left/right alternation
+        edges.forEach((edge, index) => {
+            edge.data.alt = index % 2 === 0 ? 'left' : 'right';
+        });
+
         return cytoscape({
             container: document.getElementById('cy'),
             elements: { nodes, edges },
             style: [
-                { selector: 'node', style: { 'background-color': '#69b3a2', 'label': 'data(id)', 'text-valign': 'center', 'text-halign': 'center', 'color': '#ffffff', 'width': '15px', 'height': '15px', 'font-size': '8px' } },
-                { selector: 'edge', style: { 'width': 1, 'line-color': '#999', 'label': 'data(weight)', 'text-margin-y': -5, 'color': '#000000', 'font-size': '4px', 'text-wrap': 'wrap', 'text-rotation': 'none' } },
-                { selector: 'edge:selected', style: { 'width': 4, 'line-color': '#0000FF' } }
+                {
+                    selector: 'node',
+                    style: {
+                        'background-color': '#69b3a2',
+                        'background-image': 'url(../img/house.png)', // Regular node image
+                        'background-fit': 'cover',
+                        'background-opacity': 1,
+                        'label': 'data(id)',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'color': '#000000', // Set text color to black
+                        'text-outline-color': '#ffffff', // White outline around text
+                        'text-outline-width': 3, // Thickness of the white outline
+                        'width': '40px', // Larger node size for image
+                        'height': '40px',
+                        'font-size': '12px'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 1,
+                        'line-color': '#999',
+                        'label': 'data(weight)',
+                        // Conditionally shift text horizontally based on 'alt' attribute
+                        'text-margin-y': -2,
+                        'text-margin-x': 'data(alt, function(edge) { return edge.data.alt === "left" ? -6 : 6; })',
+                        'color': '#000000',
+                        'font-size': '6px',
+                        'text-wrap': 'wrap',
+                        'text-rotation': 'none'
+                    }
+                },
+                {
+                    selector: 'edge:selected',
+                    style: {
+                        'width': 4,
+                        'line-color': '#0000FF'
+                    }
+                }
             ],
-            layout: { name: 'cose', padding: 10 },
+            layout: {
+                name: 'cose',
+                padding: 10
+            },
             userZoomingEnabled: false,
             userPanningEnabled: false,
             boxSelectionEnabled: false,
             autoungrabify: true
         });
     }
+
+
 
     // Function to set up event listeners
     function setupEventListeners(cy, allMSTs, ids) {

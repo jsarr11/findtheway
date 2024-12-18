@@ -15,6 +15,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    background-color: #FFF9C4; /* Pale yellow */
 }
 
 #cy {

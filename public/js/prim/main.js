@@ -82,19 +82,73 @@ $(document).ready(function() {
             container: document.getElementById('cy'),
             elements: { nodes, edges },
             style: [
-                { selector: 'node', style: { 'background-color': '#69b3a2', 'label': 'data(id)', 'text-valign': 'center', 'text-halign': 'center', 'color': '#ffffff', 'width': '15px', 'height': '15px', 'font-size': '8px' } },
-                { selector: 'node[id="' + startingNodeId + '"]', style: { 'background-color': '#FF0000' } },
-                { selector: 'edge', style: { 'width': 1, 'line-color': '#999', 'label': 'data(weight)', 'text-margin-y': -5, 'color': '#000000', 'font-size': '4px', 'text-wrap': 'wrap', 'text-rotation': 'none' } },
-                { selector: 'edge:selected', style: { 'width': 4, 'line-color': '#0000FF' } },
-                { selector: 'node:selected', style: { 'background-color': '#0000FF' } }
+                {
+                    selector: 'node',
+                    style: {
+                        'background-color': '#69b3a2',
+                        'background-image': 'url(../img/house.png)',
+                        'background-fit': 'cover',
+                        'background-opacity': 1,
+                        'label': 'data(id)',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'color': '#000000',
+                        'text-outline-color': '#ffffff',
+                        'text-outline-width': 2,
+                        'width': '40px',
+                        'height': '40px',
+                        'font-size': '8px'
+                    }
+                },
+                {
+                    selector: `node[id="${startingNodeId}"]`,
+                    style: {
+                        'background-color': '#FF0000',
+                        'background-image': 'url(../img/house_starting_node.png)',
+                        'background-fit': 'cover',
+                        'background-opacity': 1,
+                        'width': '50px',
+                        'height': '50px'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 1,
+                        'line-color': '#999',
+                        'label': 'data(weight)',
+                        'text-margin-y': -5,
+                        'color': '#000000',
+                        'font-size': '6px',
+                        'text-wrap': 'wrap',
+                        'text-rotation': 'none'
+                    }
+                },
+                {
+                    selector: 'edge[data(alt) = "left"]', // Custom attribute for left shift
+                    style: {
+                        'text-margin-x': -8 // Shift left
+                    }
+                },
+                {
+                    selector: 'edge[data(alt) = "right"]', // Custom attribute for right shift
+                    style: {
+                        'text-margin-x': 8 // Shift right
+                    }
+                }
             ],
-            layout: { name: 'cose', padding: 10 },
+            layout: {
+                name: 'cose',
+                padding: 10
+            },
             userZoomingEnabled: false,
             userPanningEnabled: false,
             boxSelectionEnabled: false,
             autoungrabify: true
         });
     }
+
+
 
     // Function to set up event listeners
     function setupEventListeners(cy, allMSTs, ids, startingNodeId) {

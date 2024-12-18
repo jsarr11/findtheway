@@ -25,6 +25,10 @@ export function createGraph(level, vertices, edgesCount, minWeight, maxWeight) {
         });
     }
 
+    edges.forEach((edge, index) => {
+        edge.data.alt = index % 2 === 0 ? 'left' : 'right';
+    });
+
     // Add random edges until we reach required count
     while (edges.length < config.edges) {
         const source = (Math.floor(Math.random() * nodes.length) + 1).toString();
