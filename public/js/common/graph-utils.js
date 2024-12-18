@@ -1,8 +1,8 @@
 export function createGraph(level, vertices, edgesCount, minWeight, maxWeight) {
     const levelConfig = {
-        beginner: { vertices: 5, edges: 7, minWeight: 1, maxWeight: 16 },
-        intermediate: { vertices: 7, edges: 10, minWeight: 1, maxWeight: 16 },
-        expert: { vertices: 10, edges: 15, minWeight: 1, maxWeight: 16 },
+        beginner: { vertices: 5, edges: 6, minWeight: 1, maxWeight: 16 },
+        intermediate: { vertices: 7, edges: 9, minWeight: 1, maxWeight: 16 },
+        expert: { vertices: 10, edges: 14, minWeight: 1, maxWeight: 16 },
         custom: { vertices: vertices, edges: edgesCount, minWeight: minWeight, maxWeight: maxWeight }
     };
 
