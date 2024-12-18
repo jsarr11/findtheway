@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/styles.css">
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/js/language-switcher.js"></script>
+    <script src="/js/scores.js"></script>
 </head>
 <body>
 <header>
@@ -16,19 +17,27 @@
     <!-- Greek Content -->
     <div id="content-el">
         <h1>Βαθμολογίες</h1>
+        <h2>Prim</h2>
+        <table id="prim-scores-el"></table>
+        <h2>Kruskal</h2>
+        <table id="kruskal-scores-el"></table>
         <div class="button-container">
-            <!-- Unified route. On the user-page, language will be determined by the switcher -->
             <button onclick="window.location.href='/user-page'">Πίσω</button>
         </div>
     </div>
 
-    <!-- English Content (hidden by default) -->
+    <!-- English Content -->
     <div id="content-en" style="display:none;">
         <h1>Scores</h1>
+        <h2>Prim</h2>
+        <table id="prim-scores-en"></table>
+        <h2>Kruskal</h2>
+        <table id="kruskal-scores-en"></table>
         <div class="button-container">
             <button onclick="window.location.href='/user-page'">Back</button>
         </div>
     </div>
 </main>
+
 </body>
 </html>

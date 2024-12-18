@@ -214,28 +214,52 @@ router.get('/tutorial-prim', (req, res) => {
 });
 
 //////////////////////////////   SCORES PAGES   //////////////////////////////
-// Serve scores pages
+// Serve scores page
 router.get('/scores', (req, res) => {
-    // Check if user is authenticated
     if (!req.session.username) {
         return res.redirect('/login');
     }
     res.sendFile(path.join(__dirname, 'public', 'scores.html'));
 });
 
-// ///////////////////////////   BACK BUTTON ROUTES   //////////////////////////////
-// // Serve back button routes for user pages
-// router.get('/user-page-back', (req, res) => {
-//     res.redirect('/user-page');
-// });
-//
-// // Serve back button routes for play pages
-// router.get('/play-kruskal-back', (req, res) => {
-//     res.redirect('/play-kruskal.html');
-// });
-// router.get('/play-prim-back', (req, res) => {
-//     res.redirect('/play-prim.html');
-// });
+// API route to fetch top scores for Prim and Kruskal
+router.get('/api/scores', async (req, res) => {
+    const client = await connectToDb();
+
+    try {
+        // Query to fetch top 15 scores for Prim
+        const primQuery = `
+            SELECT u.username, s.prim AS score
+            FROM users u
+            JOIN scores s ON u.id = s.id
+            ORDER BY s.prim DESC
+            LIMIT 15;
+        `;
+        const primScores = await client.query(primQuery);
+
+        // Query to fetch top 15 scores for Kruskal
+        const kruskalQuery = `
+            SELECT u.username, s.kruskal AS score
+            FROM users u
+            JOIN scores s ON u.id = s.id
+            ORDER BY s.kruskal DESC
+            LIMIT 15;
+        `;
+        const kruskalScores = await client.query(kruskalQuery);
+
+        // Send the scores as response
+        res.json({
+            prim: primScores.rows,
+            kruskal: kruskalScores.rows,
+        });
+    } catch (err) {
+        console.error('Error fetching scores:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+        await closeDbConnection(client);
+    }
+});
+
 
 //////////////////////////////   SERVE GAMES   /////////////////////////////////////
 // Serve game page with session check
