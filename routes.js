@@ -49,10 +49,17 @@ const handleSignup = async (req, res) => {
                 : 'Το όνομα χρήστη υπάρχει ήδη');
         }
 
+        // Insert into the `users` table and get the returned ID
         const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const query = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3)';
-        await client.query(query, [username, name, hashedPassword]);
-        await closeDbConnection(client);
+        const userInsertQuery = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING id';
+        const userInsertResult = await client.query(userInsertQuery, [username, name, hashedPassword]);
+        const userId = userInsertResult.rows[0].id;
+        console.log(`User created with ID: ${userId}`);
+
+        // Insert into the `scores` table
+        const scoresInsertQuery = 'INSERT INTO scores (id, kruskal, prim) VALUES ($1, 0, 0)';
+        await client.query(scoresInsertQuery, [userId]);
+        console.log(`Scores entry created for User ID: ${userId}`);
 
         req.session.username = username;
         // no route created for signup-success page
@@ -249,6 +256,7 @@ router.get('/main-game-kruskal', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'main-game-kruskal.html'));
 });
 
+
 router.post('/api/update-score', async (req, res) => {
     const { username, score, method } = req.body;
     const client = await connectToDb();
@@ -256,24 +264,30 @@ router.post('/api/update-score', async (req, res) => {
     try {
         console.log(`Received request to update score for user: ${username}, method: ${method}, score: ${score}`);
 
-        const column = method === 'kruskal' ? 'kruskal' : 'prim';
-        console.log(`Selected column for method ${method}: ${column}`);
+        // Fetch the user ID based on the username
+        const userIdQuery = 'SELECT id FROM users WHERE username = $1';
+        const userIdResult = await client.query(userIdQuery, [username]);
 
-        // Fetch user ID and score column
-        const query = `SELECT users.id, scores.${column} FROM users JOIN scores ON users.id = scores.id WHERE username = $1`;
-        const dbRes = await client.query(query, [username]);
-
-        // Log database result
-        console.log(`Database Response: ${JSON.stringify(dbRes.rows)}`);
-
-        if (dbRes.rows.length === 0) {
+        if (userIdResult.rows.length === 0) {
             throw new Error('User not found');
         }
 
-        const playerId = dbRes.rows[0].id; // Extract user ID
-        console.log(`User ID retrieved from database: ${playerId}`); // Log user ID
+        const playerId = userIdResult.rows[0].id;
+        console.log(`User ID retrieved from database: ${playerId}`);
 
-        let currentScore = dbRes.rows[0][column];
+        // Determine the column to update based on the method
+        const column = method === 'kruskal' ? 'kruskal' : 'prim';
+        console.log(`Selected column for method ${method}: ${column}`);
+
+        // Fetch the current score
+        const scoreQuery = `SELECT ${column} FROM scores WHERE id = $1`;
+        const scoreResult = await client.query(scoreQuery, [playerId]);
+
+        if (scoreResult.rows.length === 0) {
+            throw new Error('Score record not found for this user');
+        }
+
+        let currentScore = scoreResult.rows[0][column];
         currentScore += score;
 
         // Update the score
@@ -283,16 +297,12 @@ router.post('/api/update-score', async (req, res) => {
 
         res.json({ playerId, currentScore });
     } catch (err) {
-        console.error('Error updating score:', err.message); // Error message
-        console.error('Stack Trace:', err.stack); // Full stack trace
+        console.error('Error updating score:', err.message);
         res.status(500).json({ error: 'Internal Server Error', details: err.message });
     } finally {
         await closeDbConnection(client);
     }
 });
-
-
-
 
 
 module.exports = router;

@@ -192,11 +192,13 @@ $(document).ready(function() {
             }
             const method = $('#gameMethod').val();
             console.log(`Username: ${username}, Method: ${method}`);
-            updatePlayerScore(username, score, method).then(() => {
-                console.log('Score added successfully!');
-            }).catch(err => {
-                console.error('Error adding score:', err);
-            });
+            updatePlayerScore(username, score, method)
+                .then((result) => {
+                    console.log('Score added successfully!', result);
+                })
+                .catch((err) => {
+                    console.error('Error adding score:', err);
+                });
         }
     }
 
