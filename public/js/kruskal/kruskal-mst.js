@@ -5,7 +5,8 @@ export function kruskalAllMSTs(adjacencyMatrix) {
 
     function find(parent, i) {
         if (parent[i] === i) return i;
-        return find(parent, parent[i]);
+        parent[i] = find(parent, parent[i]); // Path compression
+        return parent[i];
     }
 
     function union(parent, rank, x, y) {
@@ -27,15 +28,15 @@ export function kruskalAllMSTs(adjacencyMatrix) {
             // If this MST has a smaller weight sum, store it
             if (currentWeightSum < minWeightSum) {
                 minWeightSum = currentWeightSum;
-                mstResults = [ [...currentMST] ]; // Store only the best MST found so far
+                mstResults = [[...currentMST]]; // Store only the best MST found so far
             } else if (currentWeightSum === minWeightSum) {
                 // If the weight sum matches the minimum, add to the list
-                mstResults.push([ ...currentMST ]);
+                mstResults.push([...currentMST]);
             }
             return;
         }
 
-        if (edgeIndex === edges.length) return;
+        if (edgeIndex >= edges.length) return;
 
         const [u, v, weight] = edges[edgeIndex];
         const rootU = find(parent, u);
@@ -43,14 +44,38 @@ export function kruskalAllMSTs(adjacencyMatrix) {
 
         // Only add the edge if it doesn't form a cycle
         if (rootU !== rootV) {
+            const parentCopy = [...parent];
+            const rankCopy = [...rank];
+
             union(parent, rank, rootU, rootV);
             kruskalMST(edges, [...currentMST, [u, v, weight]], edgeIndex + 1, numEdgesIncluded + 1, parent, rank, currentWeightSum + weight);
-            parent[rootU] = rootU;
-            parent[rootV] = rootV;
+
+            // Restore parent and rank for backtracking
+            parent = parentCopy;
+            rank = rankCopy;
         }
 
         // Continue the recursive search without adding the current edge
         kruskalMST(edges, currentMST, edgeIndex + 1, numEdgesIncluded, parent, rank, currentWeightSum);
+
+        // Handle ties explicitly by branching on edges with the same weight
+        const tiedEdges = edges.filter((edge, idx) => edge[2] === weight && idx > edgeIndex);
+        for (const tie of tiedEdges) {
+            const [uTie, vTie, weightTie] = tie;
+            const parentCopyTie = [...parent];
+            const rankCopyTie = [...rank];
+            const rootUTie = find(parent, uTie);
+            const rootVTie = find(parent, vTie);
+
+            if (rootUTie !== rootVTie) {
+                union(parent, rank, rootUTie, rootVTie);
+                kruskalMST(edges, [...currentMST, [uTie, vTie, weightTie]], edgeIndex + 1, numEdgesIncluded + 1, parent, rank, currentWeightSum + weightTie);
+
+                // Restore parent and rank for backtracking
+                parent = parentCopyTie;
+                rank = rankCopyTie;
+            }
+        }
     }
 
     const edges = [];

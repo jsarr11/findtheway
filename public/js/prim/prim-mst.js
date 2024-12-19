@@ -11,10 +11,12 @@ export function primAllMSTs(adjacencyMatrix, startingNodeId) {
 
         // Filter edges that connect an included vertex to an excluded one
         const nextEdges = availableEdges.filter(edge => included[edge[0]] !== included[edge[1]]);
+        if (nextEdges.length === 0) return; // No more valid edges
+
         nextEdges.sort((a, b) => a[2] - b[2]); // Sort by weight
 
         // Consider edges with the smallest weight (ties included)
-        const minWeight = nextEdges[0]?.[2]; // Get the smallest weight
+        const minWeight = nextEdges[0][2]; // Get the smallest weight
         const candidateEdges = nextEdges.filter(edge => edge[2] === minWeight);
 
         for (const edge of candidateEdges) {
