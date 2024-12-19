@@ -223,11 +223,11 @@ router.get('/scores', (req, res) => {
 });
 
 // API route to fetch top scores for Prim and Kruskal
-router.get('/api/scores', async (req, res) => {
+// API route to fetch top scores for Prim and Kruskal
+router.get('/api/top-scores', async (req, res) => {
     const client = await connectToDb();
 
     try {
-        // Query to fetch top 15 scores for Prim
         const primQuery = `
             SELECT u.username, s.prim AS score
             FROM users u
@@ -235,9 +235,6 @@ router.get('/api/scores', async (req, res) => {
             ORDER BY s.prim DESC
             LIMIT 10;
         `;
-        const primScores = await client.query(primQuery);
-
-        // Query to fetch top 15 scores for Kruskal
         const kruskalQuery = `
             SELECT u.username, s.kruskal AS score
             FROM users u
@@ -245,21 +242,60 @@ router.get('/api/scores', async (req, res) => {
             ORDER BY s.kruskal DESC
             LIMIT 10;
         `;
+
+        const primScores = await client.query(primQuery);
         const kruskalScores = await client.query(kruskalQuery);
 
-        // Send the scores as response
         res.json({
             prim: primScores.rows,
             kruskal: kruskalScores.rows,
         });
     } catch (err) {
-        console.error('Error fetching scores:', err);
+        console.error('Error fetching top scores:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     } finally {
         await closeDbConnection(client);
     }
 });
 
+// API route to fetch player-specific scores
+router.get('/api/scores', async (req, res) => {
+    const username = req.query.username;
+    if (!username) {
+        return res.status(400).json({ error: 'Username is required' });
+    }
+
+    const client = await connectToDb();
+    try {
+        const userIdQuery = `SELECT id FROM users WHERE username = $1`;
+        const userIdResult = await client.query(userIdQuery, [username]);
+        if (userIdResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userId = userIdResult.rows[0].id;
+
+        const scoresQuery = `
+            SELECT prim, kruskal
+            FROM scores
+            WHERE id = $1
+        `;
+        const scoresResult = await client.query(scoresQuery, [userId]);
+
+        if (scoresResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Scores not found' });
+        }
+
+        res.json({
+            scores: scoresResult.rows[0]
+        });
+    } catch (err) {
+        console.error('Error fetching player scores:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+        await closeDbConnection(client);
+    }
+});
 
 //////////////////////////////   SERVE GAMES   /////////////////////////////////////
 // Serve game page with session check

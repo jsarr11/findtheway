@@ -1,4 +1,10 @@
 $(document).ready(() => {
+    const username = sessionStorage.getItem('username'); // Retrieve the username from sessionStorage
+    if (!username) {
+        console.error("Username not found in sessionStorage");
+        return;
+    }
+
     const currentLanguage = localStorage.getItem('language') || 'el';
 
     // Function to get table IDs based on language
@@ -11,9 +17,27 @@ $(document).ready(() => {
 
     const { primTableId, kruskalTableId } = getTableIds(currentLanguage);
 
-    // Fetch scores
+    // Fetch scores for the player's username
     $.ajax({
-        url: '/api/scores',
+        url: `/api/scores?username=${encodeURIComponent(username)}`, // Pass username as query parameter
+        method: 'GET',
+        success: (response) => {
+            console.log("API Response:", response);
+
+            if (response.scores) {
+                displayPlayerScores(response.scores, currentLanguage);
+            } else {
+                console.error("Scores data missing in response");
+            }
+        },
+        error: (err) => {
+            console.error("Failed to fetch scores:", err);
+        }
+    });
+
+    // Fetch top scores for Prim and Kruskal
+    $.ajax({
+        url: '/api/top-scores',
         method: 'GET',
         success: (response) => {
             if (response.prim && response.kruskal) {
@@ -23,11 +47,11 @@ $(document).ready(() => {
             }
         },
         error: (err) => {
-            console.error('Failed to load scores:', err);
+            console.error('Failed to load top scores:', err);
         }
     });
 
-    // Function to render scores dynamically
+    // Function to render top scores dynamically
     function renderScores(primScores, kruskalScores, primTableId, kruskalTableId, language) {
         const primTable = $(primTableId);
         const kruskalTable = $(kruskalTableId);
@@ -62,6 +86,19 @@ $(document).ready(() => {
             );
         });
     }
+
+    // Function to display player scores
+    function displayPlayerScores(scores, language) {
+        const scoresDiv = $('#player-scores');
+        const primText = language === 'en' ? "Prim Total Score:" : "Συνολικό Σκορ Prim:";
+        const kruskalText = language === 'en' ? "Kruskal Total Score:" : "Συνολικό Σκορ Kruskal:";
+
+        scoresDiv.html(`
+        <p>${primText} ${scores.prim || 0}</p>
+        <p>${kruskalText} ${scores.kruskal || 0}</p>
+    `);
+    }
+
 
     // Add event listener for language switching
     $('#switch-lang').click(() => {
