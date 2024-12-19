@@ -233,14 +233,17 @@ $(document).ready(function() {
 
     // Function to handle submit action
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
+        // Map player's solution from action history
         const playerSolution = actionHistory.map(({ edge }) => ({
             Vertex1: parseInt(edge.data('source')),
             Vertex2: parseInt(edge.data('target')),
             Weight: parseInt(edge.data('weight'))
         }));
 
+        // Normalize player's solution for comparison
         const normalizedPlayerSolution = normalizeEdges(playerSolution);
 
+        // Check if the player's solution matches any of the correct MSTs
         const isCorrect = allMSTs.some(mst => {
             const normalizedMST = normalizeEdges(
                 mst.map(([u, v, w]) => ({ Vertex1: u + 1, Vertex2: v + 1, Weight: w }))
@@ -248,8 +251,13 @@ $(document).ready(function() {
             return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
         });
 
-        hideSubmitLineOnClick('#submit-button-en, #submit-button-el');
+        // Hide the submit button's line on click
+        hideSubmitLineOnClick('#submit-line-en, #submit-line-el');
 
+        // Retrieve the language setting
+        const lang = localStorage.getItem('language') || 'el';
+
+        // Calculate score based on total vertices, edges, and time taken
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         console.log("Total Vertices: " + totalVertices, "Total Edges: " + totalEdges);
@@ -257,19 +265,46 @@ $(document).ready(function() {
         let score = Math.floor((totalVertices * totalEdges * 100) / totalSeconds);
         console.log(score);
 
+        // Prepare popup message
         const popupMessage = $('#' + ids.popupMessageId);
-        popupMessage.text(isCorrect ? "Right!" : "Wrong!");
+        popupMessage.empty(); // Clear existing content
 
-        if (popupMessage.text() === "Wrong!") {
+        // Define messages for each language
+        const messages = {
+            en: {
+                correct: "Congratulations!",
+                correct2: "Your answer was correct!",
+                incorrect: "Your answer is not correct...",
+                incorrect2: "Try again or visit the tutorial...",
+                score: "Your Score is:"
+            },
+            el: {
+                correct: "Συγχαρητήρια!",
+                correct2: "Η απάντησή σας ήταν σωστή!",
+                incorrect: "Η απάντησή σας δεν είναι σωστή...",
+                incorrect2: "Προσπαθήστε ξανά ή επισκεφθείτε τον οδηγό...",
+                score: "Το Σκορ σας είναι:"
+            }
+        };
+
+        // Update the popup message based on correctness
+        popupMessage.append(`
+        <p>${isCorrect ? messages[lang].correct : messages[lang].incorrect}</p>
+        <p>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}</p>
+    `);
+
+        // Adjust the score if the answer is incorrect
+        if (!isCorrect) {
             score = 0;
         }
 
-        popupMessage.append(`<br>Your Score is : ${score}`);
+        popupMessage.append(`<p>${messages[lang].score} ${score}</p>`);
         $('#' + ids.popupId).removeClass('hidden');
 
         // Stop the timer
         stopTimer();
 
+        // If score is positive, update the player's score in the database
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             console.log(`Retrieved username from sessionStorage: ${username}`);
@@ -287,7 +322,6 @@ $(document).ready(function() {
                     console.error('Error adding score:', err);
                 });
         }
-
     }
 
     // stop time on back button from browser

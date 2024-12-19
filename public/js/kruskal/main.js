@@ -210,7 +210,7 @@ $(document).ready(function() {
             return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
         });
 
-        hideSubmitLineOnClick('#submit-button-kruskal-en, #submit-button-kruskal-el');
+        hideSubmitLineOnClick('#submit-line-en, #submit-line-el');
 
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
@@ -219,14 +219,37 @@ $(document).ready(function() {
         let score = Math.floor((totalVertices * totalEdges * 100) / totalSeconds);
         console.log(score);
 
-        const popupMessage = $('#' + ids.popupMessageId);
-        popupMessage.text(isCorrect ? "Right!" : "Wrong!");
+        const lang = localStorage.getItem('language') || 'el';
 
-        if (popupMessage.text() === "Wrong!") {
+        const messages = {
+            en: {
+                correct: "Congratulations!",
+                correct2: "Your answer was correct!",
+                incorrect: "Your answer is not correct...",
+                incorrect2: "Try again or visit the tutorial...",
+                score: "Your Score is:"
+            },
+            el: {
+                correct: "Συγχαρητήρια!",
+                correct2: "Η απάντησή σας ήταν σωστή!",
+                incorrect: "Η απάντησή σας δεν είναι σωστή...",
+                incorrect2: "Προσπαθήστε ξανά ή επισκεφθείτε τον οδηγό...",
+                score: "Το Σκορ σας είναι:"
+            }
+        };
+
+        const popupMessage = $('#' + ids.popupMessageId);
+        popupMessage.text(
+            isCorrect ? messages[lang].correct : messages[lang].incorrect
+        );
+
+        if (!isCorrect) {
             score = 0;
         }
 
-        popupMessage.append(`<br>Your Score is : ${score}`);
+        popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
+        popupMessage.append(`<br>${messages[lang].score} ${score}`);
+        popupMessage.addClass("");
         $('#' + ids.popupId).removeClass('hidden');
 
         // Stop the timer
@@ -250,6 +273,7 @@ $(document).ready(function() {
                 });
         }
     }
+
 
     // stop time on back button from browser
     window.addEventListener('beforeunload', function() {
