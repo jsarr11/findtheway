@@ -57,25 +57,6 @@ export function kruskalAllMSTs(adjacencyMatrix) {
 
         // Continue the recursive search without adding the current edge
         kruskalMST(edges, currentMST, edgeIndex + 1, numEdgesIncluded, parent, rank, currentWeightSum);
-
-        // Handle ties explicitly by branching on edges with the same weight
-        const tiedEdges = edges.filter((edge, idx) => edge[2] === weight && idx > edgeIndex);
-        for (const tie of tiedEdges) {
-            const [uTie, vTie, weightTie] = tie;
-            const parentCopyTie = [...parent];
-            const rankCopyTie = [...rank];
-            const rootUTie = find(parent, uTie);
-            const rootVTie = find(parent, vTie);
-
-            if (rootUTie !== rootVTie) {
-                union(parent, rank, rootUTie, rootVTie);
-                kruskalMST(edges, [...currentMST, [uTie, vTie, weightTie]], edgeIndex + 1, numEdgesIncluded + 1, parent, rank, currentWeightSum + weightTie);
-
-                // Restore parent and rank for backtracking
-                parent = parentCopyTie;
-                rank = rankCopyTie;
-            }
-        }
     }
 
     const edges = [];
