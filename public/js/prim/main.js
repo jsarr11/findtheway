@@ -2,7 +2,7 @@ import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/c
 import { primAllMSTs } from './prim-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable, hasOtherConnectedBlueEdges } from './ui-utils.js';
-import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
+import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges, hideSubmitLineOnClick } from '../common/common.js';
 import '../common/timer.js';
 import { totalSeconds, stopTimer } from '../common/timer.js'; // Import totalSeconds
 import '../common/edgeWeights.js';
@@ -248,6 +248,8 @@ $(document).ready(function() {
             return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
         });
 
+        hideSubmitLineOnClick('#submit-button-en, #submit-button-el');
+
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         console.log("Total Vertices: " + totalVertices, "Total Edges: " + totalEdges);
@@ -288,8 +290,7 @@ $(document).ready(function() {
 
     }
 
-    // Add this at the end of your main.js file
-
+    // stop time on back button from browser
     window.addEventListener('beforeunload', function() {
         stopTimer();
     });

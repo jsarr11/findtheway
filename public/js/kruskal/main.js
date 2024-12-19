@@ -2,7 +2,7 @@ import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/c
 import { kruskalAllMSTs } from './kruskal-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable } from './ui-utils.js';
-import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
+import { hideSubmitLineOnClick, isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
 import '../common/timer.js';
 import { totalSeconds, stopTimer } from '../common/timer.js'; // Import totalSeconds
 import '../common/edgeWeights.js';
@@ -210,6 +210,8 @@ $(document).ready(function() {
             return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
         });
 
+        hideSubmitLineOnClick('#submit-button-kruskal-en, #submit-button-kruskal-el');
+
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         console.log("Total Vertices: " + totalVertices, "Total Edges: " + totalEdges);
@@ -249,8 +251,7 @@ $(document).ready(function() {
         }
     }
 
-    // Add this at the end of your main.js file
-
+    // stop time on back button from browser
     window.addEventListener('beforeunload', function() {
         stopTimer();
     });

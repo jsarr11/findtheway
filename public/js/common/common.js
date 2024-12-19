@@ -20,3 +20,9 @@ export function normalizeEdges(edges) {
             : { Vertex1: edge.Vertex2, Vertex2: edge.Vertex1, Weight: edge.Weight }
     ).sort((a, b) => a.Vertex1 - b.Vertex1 || a.Vertex2 - b.Vertex2);
 }
+
+export function hideSubmitLineOnClick(buttonIds) {
+    $(buttonIds).click(function () {
+        $('.submit-line').css('display', 'none');
+    });
+}
