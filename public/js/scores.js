@@ -5,51 +5,51 @@ $(document).ready(() => {
         return;
     }
 
-    const currentLanguage = localStorage.getItem('language') || 'el';
+    function updateScoresBasedOnLanguage(language) {
+        const { primTableId, kruskalTableId } = getTableIds(language);
+
+        // Fetch scores for the player's username
+        $.ajax({
+            url: `/api/scores?username=${encodeURIComponent(username)}`, // Pass username as query parameter
+            method: 'GET',
+            success: (response) => {
+                // console.log("API Response:", response);
+
+                if (response.scores) {
+                    displayPlayerScores(response.scores, language);
+                } else {
+                    console.error("Scores data missing in response");
+                }
+            },
+            error: (err) => {
+                console.error("Failed to fetch scores:", err);
+            }
+        });
+
+        // Fetch top scores for Prim and Kruskal
+        $.ajax({
+            url: '/api/top-scores',
+            method: 'GET',
+            success: (response) => {
+                if (response.prim && response.kruskal) {
+                    renderScores(response.prim, response.kruskal, primTableId, kruskalTableId, language);
+                } else {
+                    console.error('Prim or Kruskal data missing in response');
+                }
+            },
+            error: (err) => {
+                console.error('Failed to load top scores:', err);
+            }
+        });
+    }
 
     // Function to get table IDs based on language
-    const getTableIds = (language) => {
+    function getTableIds(language) {
         return {
             primTableId: language === 'en' ? '#prim-scores-en' : '#prim-scores-el',
             kruskalTableId: language === 'en' ? '#kruskal-scores-en' : '#kruskal-scores-el',
         };
-    };
-
-    const { primTableId, kruskalTableId } = getTableIds(currentLanguage);
-
-    // Fetch scores for the player's username
-    $.ajax({
-        url: `/api/scores?username=${encodeURIComponent(username)}`, // Pass username as query parameter
-        method: 'GET',
-        success: (response) => {
-            console.log("API Response:", response);
-
-            if (response.scores) {
-                displayPlayerScores(response.scores, currentLanguage);
-            } else {
-                console.error("Scores data missing in response");
-            }
-        },
-        error: (err) => {
-            console.error("Failed to fetch scores:", err);
-        }
-    });
-
-    // Fetch top scores for Prim and Kruskal
-    $.ajax({
-        url: '/api/top-scores',
-        method: 'GET',
-        success: (response) => {
-            if (response.prim && response.kruskal) {
-                renderScores(response.prim, response.kruskal, primTableId, kruskalTableId, currentLanguage);
-            } else {
-                console.error('Prim or Kruskal data missing in response');
-            }
-        },
-        error: (err) => {
-            console.error('Failed to load top scores:', err);
-        }
-    });
+    }
 
     // Function to render top scores dynamically
     function renderScores(primScores, kruskalScores, primTableId, kruskalTableId, language) {
@@ -90,20 +90,23 @@ $(document).ready(() => {
     // Function to display player scores
     function displayPlayerScores(scores, language) {
         const scoresDiv = $('#player-scores');
-        const primText = language === 'en' ? "Prim Total Score:" : "Συνολικό Σκορ Prim:";
-        const kruskalText = language === 'en' ? "Kruskal Total Score:" : "Συνολικό Σκορ Kruskal:";
+        const theText = language === 'en' ? 'Your Scores' : 'Τα σκορ σου';
+        const primText = language === 'en' ? "Prim:" : "Prim:";
+        const kruskalText = language === 'en' ? "Kruskal:" : "Kruskal:";
 
         scoresDiv.html(`
-        <p>${primText} ${scores.prim || 0}</p>
-        <p>${kruskalText} ${scores.kruskal || 0}</p>
-    `);
+            <p><strong>${theText}</strong></p>
+            <p><strong>${primText}</strong> ${scores.prim || 0}</p>
+            <p><strong>${kruskalText}</strong> ${scores.kruskal || 0}</p>
+        `);
     }
 
+    // Use your existing language switcher to detect language changes
+    const savedLanguage = localStorage.getItem('language') || 'el';
+    updateScoresBasedOnLanguage(savedLanguage);
 
-    // Add event listener for language switching
     $('#switch-lang').click(() => {
-        const newLanguage = currentLanguage === 'en' ? 'el' : 'en';
-        localStorage.setItem('language', newLanguage);
-        window.location.reload(); // Reload page to re-render content
+        const newLanguage = localStorage.getItem('language') || 'el';
+        updateScoresBasedOnLanguage(newLanguage);
     });
 });
