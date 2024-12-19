@@ -4,24 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css">
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/js/language-switcher.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Fetch username and display it
-            fetch('/get-username')
-                .then(response => response.json())
-                .then(data => {
-                    const username = data.username;
-                    sessionStorage.setItem('username', username); // Store the username in sessionStorage
-                    $('#username').text(data.username);
-                    $('#usernameEn').text(data.username);
-                    console.log('Username stored in sessionStorage:', sessionStorage.getItem('username')); // Log the username
-                })
-                .catch(err => console.error('Error fetching username', err));
-        });
-    </script>
+    <script src="/js/user-page.js"></script>
 </head>
 <body>
 <header>
@@ -31,11 +18,13 @@
 <!-- Greek Content -->
 <div id="content-el">
     <main>
-        <h1>Καλώς ήρθες, <span id="username"></span>!</h1>
+        <h1>Γειά σου <span id="username"></span>!</h1>
         <div class="button-container">
             <!-- Adjust the links as needed to single-language routes or handle them similarly -->
-            <button onclick="window.location.href='/play-prim'">Παίξε Prim</button>
-            <button onclick="window.location.href='/play-kruskal'">Παίξε Kruskal</button>
+             <div class="play-buttons-el">
+                 <button onclick="window.location.href='/play-prim'">Παίξε Prim</button>
+                 <button onclick="window.location.href='/play-kruskal'">Παίξε Kruskal</button>
+             </div>
             <button onclick="window.location.href='/scores'">Βαθμολογίες</button>
             <button onclick="window.location.href='/logout'">Αποσύνδεση</button>
         </div>
@@ -45,10 +34,12 @@
 <!-- English Content (hidden by default) -->
 <div id="content-en" style="display:none;">
     <main>
-        <h1>Welcome, <span id="usernameEn"></span>!</h1>
+        <h1>Hello <span id="usernameEn"></span>!</h1>
         <div class="button-container">
-            <button onclick="window.location.href='/play-prim'">Play Prim</button>
-            <button onclick="window.location.href='/play-kruskal'">Play Kruskal</button>
+            <div class="play-buttons-en">
+                <button onclick="window.location.href='/play-prim'">Play Prim</button>
+                <button onclick="window.location.href='/play-kruskal'">Play Kruskal</button>
+            </div>
             <button onclick="window.location.href='/scores'">Scores</button>
             <button onclick="window.location.href='/logout'">Logout</button>
         </div>

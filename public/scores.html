@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Βαθμολογίες</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css">
     <script src="../node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/js/language-switcher.js"></script>
@@ -17,10 +18,16 @@
     <!-- Greek Content -->
     <div id="content-el">
         <h1>Βαθμολογίες</h1>
-        <h2>Prim</h2>
-        <table id="prim-scores-el"></table>
-        <h2>Kruskal</h2>
-        <table id="kruskal-scores-el"></table>
+        <div class="scores-el">
+            <div class="table-left">
+                <h2>Prim</h2>
+                <table id="prim-scores-el"></table>
+            </div>
+            <div class="table-right">
+                <h2>Kruskal</h2>
+                <table id="kruskal-scores-el"></table>
+            </div>
+        </div>
         <div class="button-container">
             <button onclick="window.location.href='/user-page'">Πίσω</button>
         </div>
@@ -29,10 +36,16 @@
     <!-- English Content -->
     <div id="content-en" style="display:none;">
         <h1>Scores</h1>
-        <h2>Prim</h2>
-        <table id="prim-scores-en"></table>
-        <h2>Kruskal</h2>
-        <table id="kruskal-scores-en"></table>
+        <div class="scores-en">
+            <div class="table-left">
+                <h2>Prim</h2>
+                <table id="prim-scores-en"></table>
+            </div>
+            <div class="table-right">
+                <h2>Kruskal</h2>
+                <table id="kruskal-scores-en"></table>
+            </div>
+        </div>
         <div class="button-container">
             <button onclick="window.location.href='/user-page'">Back</button>
         </div>

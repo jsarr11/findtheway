@@ -1,7 +1,7 @@
 /*****************   Homepage   ********************/
 body {
     font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
+    background: linear-gradient(to bottom, #ffffff, #e9ecef); /* Light-to-medium gray gradient */
     margin: 0;
     padding: 0;
     display: flex;
@@ -9,6 +9,11 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
+}
+/* Apply Roboto font to headings, buttons, and other text elements */
+h1, h2, h3, h4, h5, h6, button, input, textarea, label, p, span, div {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-weight: 400; /* Regular weight for most text */
 }
 header {
     position: absolute;
@@ -31,15 +36,34 @@ main {
 h1 {
     font-size: 2.5rem;
     margin-bottom: 20px;
+    text-align: center;
 }
+/*****************   Modern Button   ********************/
 button {
-    background-color: #007bff;
+    background: linear-gradient(to bottom left, #28a745, #218838);
     color: white;
     border: none;
     padding: 10px 20px;
     margin: 10px;
     cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
+
+button:hover {
+    background: linear-gradient(to bottom left, #218838, #1e7e34);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3), 0 2px 5px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+}
+
+button:active {
+    transform: scale(1);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 .or {
     margin: 10px 0;
 }
@@ -59,15 +83,33 @@ input {
     width: 100%;
     max-width: 300px;
 }
+
 button[type="submit"], .back-to-home {
-    background-color: #007bff;
+    background: linear-gradient(to bottom left, #28a745, #218838); /* Gradient background */
     color: white;
     border: none;
     padding: 10px 20px;
     cursor: pointer;
     margin-top: 20px;
     margin-bottom: 10px; /* Additional margin for spacing */
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease; /* Smooth transition for hover and active states */
 }
+
+button[type="submit"]:hover, .back-to-home:hover {
+    background: linear-gradient(to bottom left, #218838, #1e7e34); /* Darker gradient on hover */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3), 0 2px 5px rgba(0, 0, 0, 0.2); /* Elevated shadow */
+    transform: scale(1.05); /* Slightly larger on hover */
+}
+
+button[type="submit"]:active, .back-to-home:active {
+    transform: scale(1); /* Reset scaling for pressed effect */
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1); /* Reduced shadow */
+}
+
 .error-message {
     color: red;
     font-size: 1rem;
@@ -91,4 +133,86 @@ button[type="submit"], .back-to-home {
 }
 .button-row button {
     margin: 0 10px;
+}
+.play-buttons-el, .play-buttons-en {
+    display: flex;
+}
+
+/*****************   Scores   ********************/
+/* Headings */
+h1, h2 {
+    font-family: 'Roboto', Arial, sans-serif;
+    color: #212529; /* Darker color for headings */
+    text-align: center;
+}
+
+/* Table styling */
+table {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: #f8f9fa; /* Match background color */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for modern look */
+    border-radius: 10px; /* Rounded corners */
+    overflow: hidden; /* Ensure content respects border radius */
+}
+
+/* Table headers */
+table th {
+    background-color: #28a745; /* Green accent color for headers */
+    color: white;
+    padding: 10px;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+/* Table rows */
+table td {
+    padding: 10px;
+    border: 1px solid #ddd; /* Light border between rows */
+    text-align: center;
+    font-size: 14px;
+}
+
+/* Alternate row background */
+table tr:nth-child(odd) {
+    background-color: #e9ecef; /* Slightly darker background for odd rows */
+}
+
+table tr:nth-child(even) {
+    background-color: #ffffff; /* White background for even rows */
+}
+
+/* Highlight the top 3 rows */
+table tr:nth-child(1) {
+    background-color: #8fd19e; /* Light green for 1st place */
+    font-weight: bold; /* Make text bold for emphasis */
+}
+
+table tr:nth-child(2) {
+    background-color: #a3e4b1; /* Slightly lighter green for 2nd place */
+    font-weight: bold;
+}
+
+table tr:nth-child(3) {
+    background-color: #b8eec3; /* Even lighter green for 3rd place */
+    font-weight: bold;
+}
+
+/* Hover effect on rows */
+table tr:hover {
+    background-color: #f1f1f1; /* Highlight row on hover */
+    cursor: pointer;
+}
+.scores-el, .scores-en {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+.table-left {
+    margin-right: 10px;
+}
+.table-right {
+    margin-left: 10px;
 }

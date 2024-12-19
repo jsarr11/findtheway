@@ -233,7 +233,7 @@ router.get('/api/scores', async (req, res) => {
             FROM users u
             JOIN scores s ON u.id = s.id
             ORDER BY s.prim DESC
-            LIMIT 15;
+            LIMIT 10;
         `;
         const primScores = await client.query(primQuery);
 
@@ -243,7 +243,7 @@ router.get('/api/scores', async (req, res) => {
             FROM users u
             JOIN scores s ON u.id = s.id
             ORDER BY s.kruskal DESC
-            LIMIT 15;
+            LIMIT 10;
         `;
         const kruskalScores = await client.query(kruskalQuery);
 
