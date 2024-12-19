@@ -38,7 +38,7 @@ h1 {
     margin-bottom: 20px;
     text-align: center;
 }
-/*****************   Modern Button   ********************/
+/*****************   New Button   ********************/
 button {
     background: linear-gradient(to bottom left, #28a745, #218838);
     color: white;
@@ -136,6 +136,21 @@ button[type="submit"]:active, .back-to-home:active {
 }
 .play-buttons-el, .play-buttons-en {
     display: flex;
+}
+
+.button-line-1, .button-line-2 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+.button-line-1 {
+    padding-top: 30px;
+}
+.button-line-2 {
+    padding-top: 30px;
+}
+.button-line-3 {
+    padding-bottom: 30px;
 }
 
 /*****************   Scores   ********************/

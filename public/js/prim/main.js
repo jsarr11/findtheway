@@ -85,7 +85,7 @@ $(document).ready(function() {
                 {
                     selector: 'node',
                     style: {
-                        'background-color': '#69b3a2',
+                        'background-color': '#d6dadd',
                         'background-image': 'url(../img/house.png)',
                         'background-fit': 'cover',
                         'background-opacity': 1,
@@ -94,7 +94,7 @@ $(document).ready(function() {
                         'text-halign': 'center',
                         'color': '#000000',
                         'text-outline-color': '#ffffff',
-                        'text-outline-width': 2,
+                        'text-outline-width': 1,
                         'width': '40px',
                         'height': '40px',
                         'font-size': '8px'
@@ -103,7 +103,7 @@ $(document).ready(function() {
                 {
                     selector: `node[id="${startingNodeId}"]`,
                     style: {
-                        'background-color': '#FF0000',
+                        'background-color': '#d6dadd',
                         'background-image': 'url(../img/house_starting_node.png)',
                         'background-fit': 'cover',
                         'background-opacity': 1,
@@ -221,12 +221,12 @@ $(document).ready(function() {
         if (!isNodeInTable(actionHistory, node.id())) {
             if (node.id() === startingNodeId) {
                 if (!hasOtherConnectedBlueEdges(node, cy)) {
-                    node.style('background-color', '#FF0000');
+                    node.style('background-color', '#d6dadd');
                 } else {
                     node.style('background-color', '#FF00FF');
                 }
             } else {
-                node.style('background-color', '#69b3a2');
+                node.style('background-color', '#d6dadd');
             }
         }
     }
