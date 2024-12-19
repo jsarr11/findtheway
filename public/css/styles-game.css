@@ -4,7 +4,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f0f0f0;
+    background-color: #fafbfb;
     margin: 0;
 }
 
@@ -15,7 +15,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: #d6dadd; /* Pale yellow */
+    background-color: #e9ecef;
 }
 
 #cy {
@@ -29,7 +29,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: white;
+    background-color: #e9ecef;
     padding: 20px;
     border: 2px solid #000;
     border-radius: 10px;
@@ -68,4 +68,15 @@ body {
 
 #switch-lang {
     display: none;
+}
+.flexed {
+    display: flex;
+    justify-content: center;
+}
+.flexed2 {
+    display: flex;
+    justify-content: space-between;
+}
+.submit-line {
+    padding-top: 40px;
 }

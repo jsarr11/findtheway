@@ -81,7 +81,7 @@ $(document).ready(function() {
                 {
                     selector: 'node',
                     style: {
-                        'background-color': '#69b3a2',
+                        'background-color': '#e9ecef',
                         'background-image': 'url(../img/house.png)', // Regular node image
                         'background-fit': 'cover',
                         'background-opacity': 1,
@@ -115,7 +115,7 @@ $(document).ready(function() {
                     selector: 'edge:selected',
                     style: {
                         'width': 4,
-                        'line-color': '#0000FF'
+                        'line-color': '#94d95f'
                     }
                 }
             ],
@@ -156,12 +156,12 @@ $(document).ready(function() {
         const edge = evt.target;
         if (isEdgeInTable(actionHistory, edge.id())) return;
 
-        edge.style({ 'width': 4, 'line-color': '#0000FF' });
+        edge.style({ 'width': 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
 
-        sourceNode.style('background-color', '#0000FF');
-        targetNode.style('background-color', '#0000FF');
+        sourceNode.style('background-color', '#94d95f');
+        targetNode.style('background-color', '#94d95f');
 
         actionHistory.push({ edge, sourceNode, targetNode });
         updateActionTable(actionHistory, actionTableId);
@@ -178,11 +178,11 @@ $(document).ready(function() {
             edge.style({ 'width': 1, 'line-color': '#999' });
 
             if (!isNodeInTable(actionHistory, sourceNode.id())) {
-                sourceNode.style('background-color', '#69b3a2');
+                sourceNode.style('background-color', '#e9ecef');
             }
 
             if (!isNodeInTable(actionHistory, targetNode.id())) {
-                targetNode.style('background-color', '#69b3a2');
+                targetNode.style('background-color', '#e9ecef');
             }
 
             updateActionTable(actionHistory, actionTableId);

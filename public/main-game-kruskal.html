@@ -28,7 +28,6 @@
     <!-- Greek Content -->
     <div id="content-el">
         <h1>Παίξτε Παιχνίδι</h1>
-        <button id="undo-button-el">Αναίρεση Τελευταίας Ακμής</button>
         <table id="action-table-el">
             <tr>
                 <th>Αρχική Κορυφή</th>
@@ -36,15 +35,28 @@
                 <th>Βάρος</th>
             </tr>
         </table>
-        <div id="timer-el">
-            <span>Χρόνος: </span><span id="minutes-el">00</span>:<span id="seconds-el">00</span>
-            <span>Συνολικό Βάρος: </span><span id="total-weight-el">0</span>
+        <div class="flexed">
+            <button id="undo-button-el">Αναίρεση Τελευταίας Ακμής</button>
         </div>
-        <button id="submit-button-kruskal-el">Έλεγχος Kruskal</button>
-        <button onclick="window.location.href='/play-kruskal'">Εξοδος</button>
+        <div id="timer-el" class="flexed2">
+            <div class="timer">
+                <span><strong>Χρόνος: </strong></span><span id="minutes-el">00</span>:<span id="seconds-el">00</span>
+            </div>
+            <div class="weights">
+                <span><strong>Συνολικό Βάρος: </strong></span><span id="total-weight-el">0</span>
+            </div>
+        </div>
+        <div class="flexed2 submit-line">
+            <div>
+                <button id="submit-button-kruskal-el">Έλεγχος Kruskal</button>
+            </div>
+            <div>
+                <button onclick="window.location.href='/play-kruskal'">Εξοδος</button>
+            </div>
+        </div>
         <div id="popup-el" class="popup hidden popup-2">
             <p id="popup-message-el"></p>
-            <button onclick="window.location.href='/main-game-kruskal'">Παιξε παλι</button>
+            <button onclick="location.reload()">Παιξε παλι</button>
             <button onclick="window.location.href='/play-kruskal'">Πισω</button>
             <button onclick="window.location.href='/tutorial-kruskal'">Οδηγος</button>
             <button onclick="window.location.href='/scores'">Σκορ</button>
@@ -54,7 +66,6 @@
     <!-- English Content -->
     <div id="content-en" style="display:none;">
         <h1>Play Game</h1>
-        <button id="undo-button-en">Undo Last Edge</button>
         <table id="action-table-en">
             <tr>
                 <th>Starting Vertex</th>
@@ -62,15 +73,29 @@
                 <th>Weight</th>
             </tr>
         </table>
-        <div id="timer-en">
-            <span>Time: </span><span id="minutes-en">00</span>:<span id="seconds-en">00</span>
-            <span>Total Weight: </span><span id="total-weight-en">0</span>
+        <div class="flexed">
+            <button id="undo-button-en">Undo Last Edge</button>
         </div>
-        <button id="submit-button-kruskal-en">Submit Kruskal's Solution</button>
-        <button onclick="window.location.href='/play-kruskal'">Quit game</button>
+        <div id="timer-en" class="flexed2">
+            <div class="timer">
+                <span><strong>Time: </strong></span><span id="minutes-en">00</span>:<span id="seconds-en">00</span>
+
+            </div>
+            <div class="weight">
+                <span><strong>Total Weight: </strong></span><span id="total-weight-en">0</span>
+            </div>
+        </div>
+        <div class="flexed2 submit-line">
+            <div>
+                <button id="submit-button-kruskal-en">Submit Kruskal</button>
+            </div>
+            <div>
+                <button onclick="window.location.href='/play-kruskal'">Quit</button>
+            </div>
+        </div>
         <div id="popup-en" class="popup hidden popup-2">
             <p id="popup-message-en"></p>
-            <button onclick="window.location.href='/main-game-kruskal'">Play again</button>
+            <button onclick="location.reload()">Play again</button>
             <button onclick="window.location.href='/play-kruskal'">Quit</button>
             <button onclick="window.location.href='/tutorial-kruskal'">Tutorial</button>
             <button onclick="window.location.href='/scores'">Scores</button>

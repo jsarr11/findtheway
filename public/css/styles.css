@@ -1,7 +1,8 @@
 /*****************   Homepage   ********************/
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #ffffff, #e9ecef); /* Light-to-medium gray gradient */
+    /*background: linear-gradient(to bottom, #ffffff, #e9ecef); !* Light-to-medium gray gradient *!*/
+    background-color: #e9ecef;
     margin: 0;
     padding: 0;
     display: flex;
@@ -200,17 +201,17 @@ table tr:nth-child(even) {
 }
 
 /* Highlight the top 3 rows */
-table tr:nth-child(1) {
+.score-table tr:nth-child(2) {
     background-color: #8fd19e; /* Light green for 1st place */
     font-weight: bold; /* Make text bold for emphasis */
 }
 
-table tr:nth-child(2) {
+.score-table tr:nth-child(3) {
     background-color: #a3e4b1; /* Slightly lighter green for 2nd place */
     font-weight: bold;
 }
 
-table tr:nth-child(3) {
+.score-table tr:nth-child(4) {
     background-color: #b8eec3; /* Even lighter green for 3rd place */
     font-weight: bold;
 }

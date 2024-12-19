@@ -85,7 +85,7 @@ $(document).ready(function() {
                 {
                     selector: 'node',
                     style: {
-                        'background-color': '#d6dadd',
+                        'background-color': '#e9ecef',
                         'background-image': 'url(../img/house.png)',
                         'background-fit': 'cover',
                         'background-opacity': 1,
@@ -103,7 +103,7 @@ $(document).ready(function() {
                 {
                     selector: `node[id="${startingNodeId}"]`,
                     style: {
-                        'background-color': '#d6dadd',
+                        'background-color': '#e9ecef',
                         'background-image': 'url(../img/house_starting_node.png)',
                         'background-fit': 'cover',
                         'background-opacity': 1,
@@ -175,12 +175,12 @@ $(document).ready(function() {
         const edge = evt.target;
         if (isEdgeInTable(actionHistory, edge.id())) return;
 
-        edge.style({ 'width': 4, 'line-color': '#0000FF' });
+        edge.style({ 'width': 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
 
-        setNodeStyle(sourceNode, startingNodeId, '#FF00FF', '#0000FF');
-        setNodeStyle(targetNode, startingNodeId, '#FF00FF', '#0000FF');
+        setNodeStyle(sourceNode, startingNodeId, '#459e09', '#94d95f');
+        setNodeStyle(targetNode, startingNodeId, '#459e09', '#94d95f');
 
         actionHistory.push({ edge, sourceNode, targetNode });
         updateActionTable(actionHistory, actionTableId);
@@ -221,12 +221,12 @@ $(document).ready(function() {
         if (!isNodeInTable(actionHistory, node.id())) {
             if (node.id() === startingNodeId) {
                 if (!hasOtherConnectedBlueEdges(node, cy)) {
-                    node.style('background-color', '#d6dadd');
+                    node.style('background-color', '#e9ecef');
                 } else {
-                    node.style('background-color', '#FF00FF');
+                    node.style('background-color', '#459e09');
                 }
             } else {
-                node.style('background-color', '#d6dadd');
+                node.style('background-color', '#e9ecef');
             }
         }
     }
