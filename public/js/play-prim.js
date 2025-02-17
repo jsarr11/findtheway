@@ -85,18 +85,18 @@
     const currentLanguage = localStorage.getItem('language') || 'el';
 
     if (currentLanguage === 'en') {
-    $('#popup-title').text("Create Custom Level");
-    $('#label-vertices').text("Number of Vertices:");
-    $('#label-edges').text("Number of Edges:");
-    $('#label-minWeight').text("Minimum Weight:");
-    $('#label-maxWeight').text("Maximum Weight:");
+    $('#popup-title').text("Create custom level");
+    $('#label-vertices').text("Number of vertices:");
+    $('#label-edges').text("Number of edges:");
+    $('#label-minWeight').text("Minimum weight:");
+    $('#label-maxWeight').text("Maximum weight:");
     $('#playButton').text("Play");
 } else {
-    $('#popup-title').text("Δημιουργία Προσαρμοσμένου Επιπέδου");
-    $('#label-vertices').text("Αριθμός Κορυφών:");
-    $('#label-edges').text("Αριθμός Ακμών:");
-    $('#label-minWeight').text("Ελάχιστο Βάρος:");
-    $('#label-maxWeight').text("Μέγιστο Βάρος:");
+    $('#popup-title').text("Δημιουργία προσαρμοσμένου επιπέδου");
+    $('#label-vertices').text("Αριθμός κορυφών:");
+    $('#label-edges').text("Αριθμός ακμών:");
+    $('#label-minWeight').text("Ελάχιστο βάρος:");
+    $('#label-maxWeight').text("Μέγιστο βάρος:");
     $('#playButton').text("Παίξε");
 }
 }

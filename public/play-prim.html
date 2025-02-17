@@ -25,7 +25,7 @@
 
         <!-- Greek Content -->
         <div id="content-el">
-            <h1>Παίξε Prim</h1>
+            <h1>Prim</h1>
             <div class="button-row button-line-1">
                 <button onclick="window.location.href='/theory-prim'">Θεωρία</button>
                 <button onclick="window.location.href='/tutorial-prim'">Οδηγός</button>
@@ -36,7 +36,7 @@
                 <button onclick="playGame('expert')">Προχωρημένος</button>
             </div>
             <div class="button-container button-line-3">
-                <button onclick="showCustomLevelPopup()">Δημιουργία Προσαρμοσμένου Επιπέδου</button>
+                <button onclick="showCustomLevelPopup()">Δημιουργία προσαρμοσμένου επιπέδου</button>
             </div>
             <div class="button-container button-line-4">
                 <button onclick="window.location.href='/user-page'">Πίσω</button>
@@ -45,7 +45,7 @@
 
         <!-- English Content (hidden by default) -->
         <div id="content-en" style="display:none;">
-            <h1>Play Prim</h1>
+            <h1>Prim</h1>
             <div class="button-row button-line-1">
                 <button onclick="window.location.href='/theory-prim'">Theory</button>
                 <button onclick="window.location.href='/tutorial-prim'">Tutorial</button>
@@ -56,7 +56,7 @@
                 <button onclick="playGame('expert')">Expert</button>
             </div>
             <div class="button-container button-line-3">
-                <button onclick="showCustomLevelPopup()">Create Custom Level</button>
+                <button onclick="showCustomLevelPopup()">Create custom level</button>
             </div>
             <div class="button-container button-line-4">
                 <button onclick="window.location.href='/user-page'">Back</button>
@@ -71,17 +71,17 @@
         <div class="modal-content">
             <span class="close" onclick="closeCustomLevelPopup()">&times;</span>
             <!-- We'll assume the language is determined by reading localStorage and changing labels accordingly -->
-            <h2 id="popup-title">Δημιουργία Προσαρμοσμένου Επιπέδου</h2>
-            <label for="vertices" id="label-vertices">Αριθμός Κορυφών:</label>
+            <h2 id="popup-title">Δημιουργία προσαρμοσμένου επιπέδου</h2>
+            <label for="vertices" id="label-vertices">Αριθμός κορυφών:</label>
             <input type="number" id="vertices" name="vertices" min="5" max="25" required onchange="updateEdgeConstraints()"><br>
 
-            <label for="edges" id="label-edges">Αριθμός Ακμών:</label>
+            <label for="edges" id="label-edges">Αριθμός ακμών:</label>
             <input type="number" id="edges" name="edges" min="3" required><br>
 
-            <label for="minWeight" id="label-minWeight">Ελάχιστο Βάρος:</label>
+            <label for="minWeight" id="label-minWeight">Ελάχιστο βάρος:</label>
             <input type="number" id="minWeight" name="minWeight" min="5" max="40" required><br>
 
-            <label for="maxWeight" id="label-maxWeight">Μέγιστο Βάρος:</label>
+            <label for="maxWeight" id="label-maxWeight">Μέγιστο βάρος:</label>
             <input type="number" id="maxWeight" name="maxWeight" min="5" max="40" required><br>
 
             <button id="playButton" onclick="playCustomGame()" disabled>Παίξε</button>
