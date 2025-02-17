@@ -1,12 +1,11 @@
 const { Pool } = require('pg');
 
-// Create a new pool instance
+// Use DATABASE_URL from environment variables
 const pool = new Pool({
-    user: 'db-admin',
-    host: 'localhost',
-    database: 'findtheway',
-    password: 'db-admin',
-    port: 5433, // Updated port
+    connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_EfOzC2Hi6VoF@ep-patient-smoke-a8a7j47g-pooler.eastus2.azure.neon.tech/neondb?sslmode=require',
+    ssl: {
+        rejectUnauthorized: false, // Required for cloud-hosted PostgreSQL
+    },
 });
 
 // Function to connect to the database
