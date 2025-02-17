@@ -13,7 +13,7 @@ body {
     height: 90%; /* Adjusted height */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    /*justify-content: center;*/
     align-items: center;
     background-color: #e9ecef;
 }

@@ -108,7 +108,8 @@ $(document).ready(function() {
                         'color': '#000000',
                         'font-size': '6px',
                         'text-wrap': 'wrap',
-                        'text-rotation': 'none'
+                        'text-rotation': 'none',
+                        'overlay-padding': '10px' // Larger clickable area
                     }
                 },
                 {
