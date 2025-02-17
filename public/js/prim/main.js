@@ -175,7 +175,13 @@ $(document).ready(function() {
     // Function to handle edge selection
     function handleEdgeSelection(evt, cy, actionHistory, startingNodeId, actionTableId) {
         const edge = evt.target;
-        if (isEdgeInTable(actionHistory, edge.id())) return;
+        const existingActionIndex = actionHistory.findIndex(action => action.edge.id() === edge.id());
+
+        if (existingActionIndex !== -1) {
+            // If the edge is already in history, undo it
+            handleUndoAction(cy, actionHistory, startingNodeId, actionTableId);
+            return;
+        }
 
         edge.style({ 'width': 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
@@ -191,6 +197,7 @@ $(document).ready(function() {
         const edgeWeight = parseInt(edge.data('weight'));
         addEdgeWeight(edgeWeight);
     }
+
 
     // Function to set node style
     function setNodeStyle(node, startingNodeId, startingNodeColor, otherNodeColor) {
