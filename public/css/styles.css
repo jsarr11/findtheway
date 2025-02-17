@@ -1,3 +1,13 @@
+/*****************   Header   ********************/
+.header-line {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+img.logo {
+    width: 100px;
+    height: auto;
+}
 /*****************   Homepage   ********************/
 body {
     font-family: Arial, sans-serif;
