@@ -30,13 +30,16 @@
                 <button onclick="window.location.href='/theory-prim'">Θεωρία</button>
                 <button onclick="window.location.href='/tutorial-prim'">Οδηγός</button>
             </div>
-            <div class="button-row button-line-2">
-                <button onclick="playGame('beginner')">Αρχάριος</button>
-                <button onclick="playGame('intermediate')">Μέτριος</button>
-                <button onclick="playGame('expert')">Προχωρημένος</button>
-            </div>
-            <div class="button-container button-line-3">
-                <button onclick="showCustomLevelPopup()">Δημιουργία προσαρμοσμένου επιπέδου</button>
+            <div class="level-container">
+                <h3 class="level">Διάλεξε επίπεδο δυσκολίας</h3>
+                <div class="button-row">
+                    <button onclick="playGame('beginner')">Αρχάριος</button>
+                    <button onclick="playGame('intermediate')">Μέτριος</button>
+                    <button onclick="playGame('expert')">Προχωρημένος</button>
+                </div>
+                <div class="button-container">
+                    <button onclick="showCustomLevelPopup()">Δημιουργία προσαρμοσμένου επιπέδου</button>
+                </div>
             </div>
             <div class="button-container button-line-4">
                 <button onclick="window.location.href='/user-page'">Πίσω</button>
@@ -50,13 +53,16 @@
                 <button onclick="window.location.href='/theory-prim'">Theory</button>
                 <button onclick="window.location.href='/tutorial-prim'">Tutorial</button>
             </div>
-            <div class="button-row button-line-2">
-                <button onclick="playGame('beginner')">Beginner</button>
-                <button onclick="playGame('intermediate')">Intermediate</button>
-                <button onclick="playGame('expert')">Expert</button>
-            </div>
-            <div class="button-container button-line-3">
-                <button onclick="showCustomLevelPopup()">Create custom level</button>
+            <div class="level-container">
+                <h3 class="level">Pick difficulty level</h3>
+                <div class="button-row">
+                    <button onclick="playGame('beginner')">Beginner</button>
+                    <button onclick="playGame('intermediate')">Intermediate</button>
+                    <button onclick="playGame('expert')">Expert</button>
+                </div>
+                <div class="button-container">
+                    <button onclick="showCustomLevelPopup()">Create custom level</button>
+                </div>
             </div>
             <div class="button-container button-line-4">
                 <button onclick="window.location.href='/user-page'">Back</button>

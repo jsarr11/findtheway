@@ -163,6 +163,14 @@ button[type="submit"]:active, .back-to-home:active {
 .button-line-3 {
     padding-bottom: 30px;
 }
+.level-container {
+    border: 2px solid #3A8638;
+    border-radius: 10px;
+}
+
+.level {
+    text-align: center;
+}
 
 /*****************   Scores   ********************/
 /* Headings */
