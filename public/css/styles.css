@@ -20,7 +20,14 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
+    background-image: url('../img/background2.png'); /* Replace with the image path */
+    background-size: cover;
+    background-position: center;
+    z-index: -1; /* Ensures the background stays behind other elements */
+    position: relative; /* Required for z-index to work */
 }
+
+chaonge
 /* Apply Roboto font to headings, buttons, and other text elements */
 h1, h2, h3, h4, h5, h6, button, input, textarea, label, p, span, div {
     font-family: 'Roboto', Arial, sans-serif;
