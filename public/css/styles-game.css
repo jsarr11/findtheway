@@ -91,3 +91,35 @@ body {
 .submit-line {
     padding-top: 40px;
 }
+
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 90%;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+.popup-content {
+    text-align: center;
+}
+
+.popup-buttons {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

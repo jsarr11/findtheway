@@ -4,11 +4,10 @@ import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable, hasOtherConnectedBlueEdges } from './ui-utils.js';
 import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges, hideSubmitLineOnClick } from '../common/common.js';
 import '../common/timer.js';
-import { totalSeconds, stopTimer } from '../common/timer.js'; // Import totalSeconds
+import { totalSeconds, stopTimer, startTimer, pauseTimer, resumeTimer } from '../common/timer.js';
 import '../common/edgeWeights.js';
-import { addEdgeWeight, subtractEdgeWeight } from '../common/edgeWeights.js';
+import { addEdgeWeight, subtractEdgeWeight, resetEdgeWeights } from '../common/edgeWeights.js';
 import { updatePlayerScore } from '../common/scoreUpdater.js';
-
 
 $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,27 +17,49 @@ $(document).ready(function() {
     const minWeight = parseInt(urlParams.get('minWeight')) || 1;
     const maxWeight = parseInt(urlParams.get('maxWeight')) || 16;
 
+    // Store initial parameters
+    sessionStorage.setItem('gameParams', JSON.stringify({
+        level,
+        vertices,
+        edgesCount,
+        minWeight,
+        maxWeight
+    }));
+
     let actionHistory = [];
 
     // Initialize the game
     initGame(level, vertices, edgesCount, minWeight, maxWeight);
 
-    // Function to initialize the game
-    function initGame(level, vertices, edgesCount, minWeight, maxWeight) {
+    function initGame(level, vertices, edgesCount, minWeight, maxWeight, graphData = null) {
         const currentLanguage = localStorage.getItem('language') || 'el';
         const suffix = currentLanguage === 'en' ? '-en' : '-el';
 
         const ids = {
-            undoButtonId: 'undo-button' + suffix,
-            actionTableId: 'action-table' + suffix,
-            submitButtonId: 'submit-button' + suffix,
-            popupId: 'popup' + suffix,
-            popupMessageId: 'popup-message' + suffix,
-            popupCloseId: 'popup-close' + suffix
+            undoButtonId: `undo-button${suffix}`,
+            actionTableId: `action-table${suffix}`,
+            submitButtonId: `submit-button${suffix}`,
+            popupId: `popup${suffix}`,
+            popupMessageId: `popup-message${suffix}`,
+            popupCloseId: `popup-close${suffix}`,
+            pauseButtonId: `pause-button${suffix}`,
+            pausePopupId: `pause-popup${suffix}`
         };
 
-        const { nodes, edges } = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
-        const startingNodeId = setStartingNode(nodes);
+        let nodes, edges, startingNodeId;
+        if (graphData) {
+            // Use existing graph data
+            nodes = graphData.nodes;
+            edges = graphData.edges;
+            startingNodeId = graphData.startingNodeId;
+        } else {
+            // Generate new graph
+            const graphResult = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
+            nodes = graphResult.nodes;
+            edges = graphResult.edges;
+            startingNodeId = setStartingNode(nodes);
+            sessionStorage.setItem('currentGraph', JSON.stringify({ nodes, edges, startingNodeId }));
+        }
 
         logGraphDetails(edges, startingNodeId);
 
@@ -149,27 +170,87 @@ $(document).ready(function() {
         });
     }
 
-
-
-
     // Function to set up event listeners
     function setupEventListeners(cy, allMSTs, ids, startingNodeId) {
+        // Existing edge selection functionality
         cy.on('tap', 'edge', function(evt) {
             handleEdgeSelection(evt, cy, actionHistory, startingNodeId, ids.actionTableId);
         });
 
-        $('#' + ids.undoButtonId).click(function() {
+        // Existing undo button functionality
+        $(`#${ids.undoButtonId}`).click(() => {
             handleUndoAction(cy, actionHistory, startingNodeId, ids.actionTableId);
         });
 
-        $('#' + ids.submitButtonId).click(function() {
+        // Existing submit button functionality
+        $(`#${ids.submitButtonId}`).click(() => {
             handleSubmitAction(cy, actionHistory, allMSTs, ids);
         });
-        $('#quit-button').click(function() {
+
+        // Existing quit button functionality
+        $('#quit-button').click(() => {
             stopTimer();
             window.location.href = '/play-prim';
         });
 
+        // New pause button functionality
+        $(`#${ids.pauseButtonId}`).click(() => {
+            pauseTimer();
+            $(`#${ids.pausePopupId}`).removeClass('hidden');
+        });
+
+        // New resume button functionality
+        $(`#${ids.pausePopupId} .resume-button`).click(() => {
+            resumeTimer();
+            $(`#${ids.pausePopupId}`).addClass('hidden');
+        });
+
+        // New restart button functionality
+        // New restart button functionality
+        // New restart button functionality
+        $(`#${ids.pausePopupId} .restart-button`).click(() => {
+            const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
+            const params = JSON.parse(sessionStorage.getItem('gameParams'));
+            if (graphData && params) {
+                // Destroy the current Cytoscape instance safely
+                if (cy) {
+                    cy.destroy();  // Destroy Cytoscape if it exists
+                }
+
+                actionHistory = [];  // Reset the action history
+                $("#action-table-en").empty();  // Clear the English action table
+                $("#action-table-el").empty();  // Clear the Greek action table
+                resetEdgeWeights();  // Reset edge weights
+
+                stopTimer();  // Stop the timer
+
+                let totalSeconds = 0;  // Reset the timer value
+
+                // Re-initialize the game with the provided parameters and graph data
+                initGame(params.level, params.vertices, params.edgesCount,
+                    params.minWeight, params.maxWeight, graphData);
+
+                startTimer();  // Start the timer again
+
+                $(`#${ids.pausePopupId}`).addClass('hidden');  // Hide the pause popup
+            }
+        });
+
+
+
+
+
+
+        // New quit button functionality (inside pause popup)
+        $(`#${ids.pausePopupId} .quit-button`).click(() => {
+            stopTimer();
+            window.location.href = '/play-prim';
+        });
+
+        // Existing beforeunload functionality to stop timer on page refresh/close
+        window.addEventListener('beforeunload', () => {
+            stopTimer();
+        });
     }
 
     // Function to handle edge selection

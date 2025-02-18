@@ -6,18 +6,25 @@ export function addEdgeWeight(weight) {
 }
 
 export function subtractEdgeWeight(weight) {
-    totalWeight -= weight;
+    totalWeight = Math.max(0, totalWeight - weight);
+    updateWeightDisplay();
+}
+
+export function resetEdgeWeights() { // Add this function
+    totalWeight = 0;
     updateWeightDisplay();
 }
 
 function updateWeightDisplay() {
-    const currentLanguage = localStorage.getItem('language') || 'el';
-    const weightDisplayId = currentLanguage === 'en' ? '#total-weight-en' : '#total-weight-el';
+    const currentLanguage = localStorage.getItem('language');
+    const language = currentLanguage === 'en' ? 'en' : 'el';
+    const weightDisplayId = `#total-weight-${language}`;
 
-    $(weightDisplayId).text(totalWeight);
+    if ($(weightDisplayId).length) {
+        $(weightDisplayId).text(totalWeight);
+    }
 }
 
 $(document).ready(function() {
-    // Initialize the display on page load
     updateWeightDisplay();
 });
