@@ -1,6 +1,7 @@
 export function kruskalAllMSTs(adjacencyMatrix) {
     const n = adjacencyMatrix.length;
-    // Build + sort edges by ascending weight
+
+    // 1) Build edges list
     const edges = [];
     for (let u = 0; u < n; u++) {
         for (let v = u + 1; v < n; v++) {
@@ -10,20 +11,22 @@ export function kruskalAllMSTs(adjacencyMatrix) {
             }
         }
     }
+    // 2) Sort edges by ascending weight
     edges.sort((a, b) => a[2] - b[2]);
 
     let bestWeight = Infinity;
     let allMSTs = [];
 
-    // Basic Union-Find
-    function find(parent, x) {
+    // ----- Union-Find
+    function findUF(parent, x) {
         if (parent[x] === x) return x;
-        return (parent[x] = find(parent, parent[x]));
+        parent[x] = findUF(parent, parent[x]);
+        return parent[x];
     }
 
-    function union(parent, rank, x, y) {
-        const rx = find(parent, x);
-        const ry = find(parent, y);
+    function unionUF(parent, rank, x, y) {
+        const rx = findUF(parent, x);
+        const ry = findUF(parent, y);
         if (rx !== ry) {
             if (rank[rx] < rank[ry]) {
                 parent[rx] = ry;
@@ -39,80 +42,74 @@ export function kruskalAllMSTs(adjacencyMatrix) {
     }
 
     /**
-     * backtrack
-     * @param {number} idx - index into 'edges'
+     * backtrackKruskal
+     * @param {number} idx - index of current edge in 'edges'
      * @param {Array} mstSoFar - edges chosen so far
      * @param {number} used - how many edges chosen
-     * @param {number} currWeight - sum of chosen edges
+     * @param {number} sumW - sum of chosen edges so far
      * @param {Array} parent - union-find parent
      * @param {Array} rank - union-find rank
      */
-    function backtrack(idx, mstSoFar, used, currWeight, parent, rank) {
-        // If we have a spanning tree
+    function backtrackKruskal(idx, mstSoFar, used, sumW, parent, rank) {
+        // If MST complete => used==n-1
         if (used === n - 1) {
-            // If it's better than anything so far, reset
-            if (currWeight < bestWeight) {
-                bestWeight = currWeight;
+            if (sumW < bestWeight) {
+                bestWeight = sumW;
                 allMSTs = [];
             }
-            // If it matches bestWeight, store it
-            if (currWeight === bestWeight) {
-                // Sort edges for consistent logging
-                const sortedEdges = [...mstSoFar].sort((a, b) => a[2] - b[2]);
-                allMSTs.push(sortedEdges);
+            if (sumW === bestWeight) {
+                // Sort the MST edges by ascending weight for better readability
+                const sortedMST = [...mstSoFar].sort((a, b) => a[2] - b[2]);
+                allMSTs.push(sortedMST);
             }
             return;
         }
 
-        // If no more edges, or if current weight is already >= bestWeight, no point continuing
-        if (idx >= edges.length || currWeight >= bestWeight) return;
+        // If we've consumed all edges or sumW already >= bestWeight, no need to proceed
+        if (idx >= edges.length || sumW >= bestWeight) return;
 
-        // Gather all edges of the same weight => tie
-        const w = edges[idx][2];
-        const tieGroup = [];
-        let i = idx;
-        while (i < edges.length && edges[i][2] === w) {
-            tieGroup.push(edges[i]);
-            i++;
+        // ----- 1) Try picking the current edge (if it doesn’t form a cycle)
+        const [u, v, w] = edges[idx];
+        // Copy union-find
+        const copyParent = [...parent];
+        const copyRank = [...rank];
+        if (unionUF(copyParent, copyRank, u, v)) {
+            backtrackKruskal(
+                idx + 1,
+                [...mstSoFar, [u, v, w]],
+                used + 1,
+                sumW + w,
+                copyParent,
+                copyRank
+            );
         }
 
-        // For each edge in this tie group: try picking it if no cycle
-        for (const [u, v, weight] of tieGroup) {
-            const pCopy = [...parent];
-            const rCopy = [...rank];
-            if (union(pCopy, rCopy, u, v)) {
-                backtrack(
-                    i,  // skip rest of tie group, move on
-                    [...mstSoFar, [u, v, weight]],
-                    used + 1,
-                    currWeight + weight,
-                    pCopy,
-                    rCopy
-                );
-            }
-        }
-        // Also skip entire tie group
-        backtrack(i, mstSoFar, used, currWeight, parent, rank);
+        // ----- 2) Also skip the current edge
+        backtrackKruskal(idx + 1, mstSoFar, used, sumW, parent, rank);
     }
 
-    // Initialize union-find
+    // Setup union-find
     const parent = Array(n).fill(0).map((_, i) => i);
     const rank = Array(n).fill(0);
 
-    // Start recursion
-    backtrack(0, [], 0, 0, parent, rank);
+    console.log("%cFinding all MSTs by picking or skipping each edge in ascending order...", "color: blue; font-weight: bold;");
+    backtrackKruskal(0, [], 0, 0, parent, rank);
 
-    // Log results
-    console.log("Minimal MST weight:", bestWeight);
-    console.log("Number of MSTs:", allMSTs.length);
-    allMSTs.forEach((mst, idx) => {
-        console.log(`MST #${idx + 1}`);
-        console.table(mst.map(([u, v, w]) => ({
-            Source: u + 1,
-            Target: v + 1,
-            Weight: w
-        })));
-    });
+    // Print final MST results
+    if (bestWeight === Infinity) {
+        console.log("%cNo MST found. Graph is likely disconnected.", "color: red; font-weight: bold;");
+    } else {
+        console.log(`Minimal MST weight: ${bestWeight}`);
+        console.log(`Number of MSTs: ${allMSTs.length}`);
+        allMSTs.forEach((mst, idx) => {
+            console.log(`MST #${idx + 1}`);
+            console.table(mst.map(([u, v, w]) => ({
+                Source: u + 1,
+                Target: v + 1,
+                Weight: w
+            })));
+        });
+    }
 
     return allMSTs;
 }
