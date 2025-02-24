@@ -88,9 +88,9 @@ export function primAllMSTs(adjacencyMatrix, startingNodeId) {
     const includedNodes = new Set([startIndex]);
 
     // Begin recursion
-    console.log("%cFinding all possible MSTs...", "color: blue; font-weight: bold;");
+    // console.log("%cFinding all possible MSTs...", "color: blue; font-weight: bold;");
     findAllMSTs([], includedNodes, edges);
 
-    console.log(`%cTotal MSTs found: ${mstResults.length}`, "color: red; font-weight: bold;");
+    // console.log(`%cTotal MSTs found: ${mstResults.length}`, "color: red; font-weight: bold;");
     return mstResults;
 }

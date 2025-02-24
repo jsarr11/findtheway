@@ -4,7 +4,7 @@ $(document).ready(function() {
     const contentEn = $('#content-en');
 
     function setLanguage(language) {
-        console.log('Current language:', language); // Log the current language
+        // console.log('Current language:', language); // Log the current language
 
         if (language === 'en') {
             contentEl.hide();

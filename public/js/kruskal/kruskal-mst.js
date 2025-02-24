@@ -92,15 +92,15 @@ export function kruskalAllMSTs(adjacencyMatrix) {
     const parent = Array(n).fill(0).map((_, i) => i);
     const rank = Array(n).fill(0);
 
-    console.log("%cFinding all MSTs by picking or skipping each edge in ascending order...", "color: blue; font-weight: bold;");
+    // console.log("%cFinding all MSTs by picking or skipping each edge in ascending order...", "color: blue; font-weight: bold;");
     backtrackKruskal(0, [], 0, 0, parent, rank);
 
     // Print final MST results
     if (bestWeight === Infinity) {
-        console.log("%cNo MST found. Graph is likely disconnected.", "color: red; font-weight: bold;");
+        // console.log("%cNo MST found. Graph is likely disconnected.", "color: red; font-weight: bold;");
     } else {
-        console.log(`Minimal MST weight: ${bestWeight}`);
-        console.log(`Number of MSTs: ${allMSTs.length}`);
+        // console.log(`Minimal MST weight: ${bestWeight}`);
+        // console.log(`Number of MSTs: ${allMSTs.length}`);
         allMSTs.forEach((mst, idx) => {
             console.log(`MST #${idx + 1}`);
             console.table(mst.map(([u, v, w]) => ({
