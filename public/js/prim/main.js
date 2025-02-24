@@ -207,13 +207,18 @@ $(document).ready(function() {
 
         // New restart button functionality
         $(`#${ids.pausePopupId} .restart-button`).click(() => {
+            console.log("Restart button clicked"); // Debugging
+
             const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
             const params = JSON.parse(sessionStorage.getItem('gameParams'));
 
             if (graphData && params) {
+                console.log("Restarting game..."); // Debugging
+
                 // Destroy Cytoscape instance safely
                 if (typeof window.cy !== "undefined" && window.cy !== null) {
                     if (typeof window.cy.destroy === "function") {
+                        console.log("Destroying Cytoscape instance...");
                         window.cy.destroy();
                     }
                 }
@@ -224,15 +229,13 @@ $(document).ready(function() {
                 $("#action-table-en").empty();
                 $("#action-table-el").empty();
                 resetEdgeWeights();  // Reset edge weights
-                stopTimer();  // Stop the timer
+                resetTimer();  // Fully reset the timer
 
-                // Reset the timer
-                resetTimer();
-
-                // Ensure totalSeconds is not 0 before starting timer
+                // Restart the timer properly after reset
                 setTimeout(() => {
+                    console.log("Calling startTimer() after resetTimer()");
                     startTimer();
-                }, 100);  // Small delay to ensure reset before start
+                }, 100);  // Small delay to prevent timing issues
 
                 // Reinitialize the game
                 window.cy = initGame(params.level, params.vertices, params.edgesCount,
@@ -241,8 +244,6 @@ $(document).ready(function() {
                 $(`#${ids.pausePopupId}`).addClass('hidden');  // Hide pause popup
             }
         });
-
-
 
         // New quit button functionality (inside pause popup)
         $(`#${ids.pausePopupId} .quit-button`).click(() => {
@@ -355,10 +356,12 @@ $(document).ready(function() {
         const totalEdges = cy.edges().length;
         console.log("Total Vertices: " + totalVertices, "Total Edges: " + totalEdges);
         console.log('Total Time in Seconds:', totalSeconds);
-        let score = totalSeconds > 0
-            ? Math.floor((totalVertices * totalEdges * 100) / totalSeconds)
-            : 0; // Ensure score is 0 if totalSeconds is 0
-        console.log(score);
+        console.log("Total Seconds at submission:", totalSeconds);
+        // Ensure totalSeconds is always at least 1 to prevent division by zero
+        const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
+        let score = Math.floor((totalVertices * totalEdges * 100) / timeUsed);
+        console.log("Calculated Score:", score);
+
 
         // Prepare popup message
         const popupMessage = $('#' + ids.popupMessageId);
