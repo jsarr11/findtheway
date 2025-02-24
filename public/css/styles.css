@@ -58,7 +58,8 @@ h1 {
 }
 /*****************   New Button   ********************/
 button {
-    background: linear-gradient(to bottom left, #28a745, #218838);
+    /*background: linear-gradient(to bottom left, #28a745, #218838);*/
+    background: linear-gradient(to bottom left, #4cb674, #35b263);
     color: white;
     border: none;
     padding: 10px 20px;
@@ -72,7 +73,8 @@ button {
 }
 
 button:hover {
-    background: linear-gradient(to bottom left, #218838, #1e7e34);
+    /*background: linear-gradient(to bottom left, #218838, #1e7e34);*/
+    background: linear-gradient(to bottom left, #439662, #26934e);
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3), 0 2px 5px rgba(0, 0, 0, 0.2);
     transform: scale(1.05);
 }
@@ -103,7 +105,8 @@ input {
 }
 
 button[type="submit"], .back-to-home {
-    background: linear-gradient(to bottom left, #28a745, #218838); /* Gradient background */
+    /*background: linear-gradient(to bottom left, #28a745, #218838); !* Gradient background *!*/
+    background: linear-gradient(to bottom left, #4cb674, #35b263);
     color: white;
     border: none;
     padding: 10px 20px;
@@ -118,7 +121,8 @@ button[type="submit"], .back-to-home {
 }
 
 button[type="submit"]:hover, .back-to-home:hover {
-    background: linear-gradient(to bottom left, #218838, #1e7e34); /* Darker gradient on hover */
+    /*background: linear-gradient(to bottom left, #218838, #1e7e34); !* Darker gradient on hover *!*/
+    background: linear-gradient(to bottom left, #439662, #26934e);
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3), 0 2px 5px rgba(0, 0, 0, 0.2); /* Elevated shadow */
     transform: scale(1.05); /* Slightly larger on hover */
 }
@@ -171,7 +175,7 @@ button[type="submit"]:active, .back-to-home:active {
     padding-bottom: 30px;
 }
 .level-container {
-    border: 2px solid #3A8638;
+    border: 2px solid #4cb674;
     border-radius: 10px;
 }
 
@@ -201,7 +205,7 @@ table {
 
 /* Table headers */
 table th {
-    background-color: #28a745; /* Green accent color for headers */
+    background-color: #4cb674; /* Green accent color for headers */
     color: white;
     padding: 10px;
     text-transform: uppercase;
