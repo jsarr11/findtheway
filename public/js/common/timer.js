@@ -39,6 +39,10 @@ export function resumeTimer() {
     isPaused = false;
 }
 
+export function resetTimer() {
+    totalSeconds = 0;
+}
+
 $(document).ready(function() {
     startTimer();
 });
