@@ -1,5 +1,5 @@
 import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.esm.min.js';
-import { kruskalAllMSTs } from './kruskal-mst.js';
+import { kruskalAllMSTs, generateMSTOrderingTables } from './kruskal-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable } from './ui-utils.js';
 import { hideSubmitLineOnClick, isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
@@ -27,6 +27,8 @@ $(document).ready(function() {
     }));
 
     let actionHistory = [];
+    // Global variable to hold the ordering tables generated from MSTs.
+    let orderingTables = [];
 
     // Initialize the game
     initGame(level, vertices, edgesCount, minWeight, maxWeight);
@@ -45,7 +47,6 @@ $(document).ready(function() {
             pauseButtonId: `pause-button${suffix}`,
             pausePopupId: `pause-popup${suffix}`
         };
-
 
         let nodes, edges;
         if (graphData) {
@@ -66,6 +67,9 @@ $(document).ready(function() {
         logAdjacencyMatrix(adjacencyMatrix);
 
         const allMSTs = kruskalAllMSTs(adjacencyMatrix);
+        // Generate ordering tables from the MSTs.
+        orderingTables = generateMSTOrderingTables(allMSTs);
+
         exportDataForDownload(edges);
 
         const cy = initializeCytoscape(nodes, edges);
@@ -104,16 +108,16 @@ $(document).ready(function() {
                     selector: 'node',
                     style: {
                         'background-color': '#e9ecef',
-                        'background-image': 'url(../img/house.png)', // Regular node image
+                        'background-image': 'url(../img/house.png)',
                         'background-fit': 'cover',
                         'background-opacity': 1,
                         'label': 'data(id)',
                         'text-valign': 'center',
                         'text-halign': 'center',
-                        'color': '#000000', // Set text color to black
-                        'text-outline-color': '#ffffff', // White outline around text
-                        'text-outline-width': 3, // Thickness of the white outline
-                        'width': '40px', // Larger node size for image
+                        'color': '#000000',
+                        'text-outline-color': '#ffffff',
+                        'text-outline-width': 3,
+                        'width': '40px',
                         'height': '40px',
                         'font-size': '12px'
                     }
@@ -124,14 +128,13 @@ $(document).ready(function() {
                         'width': 1,
                         'line-color': '#999',
                         'label': 'data(weight)',
-                        // Conditionally shift text horizontally based on 'alt' attribute
                         'text-margin-y': -2,
                         'text-margin-x': 'data(alt, function(edge) { return edge.data.alt === "left" ? -6 : 6; })',
                         'color': '#000000',
                         'font-size': '6px',
                         'text-wrap': 'wrap',
                         'text-rotation': 'none',
-                        'overlay-padding': '10px' // Larger clickable area
+                        'overlay-padding': '10px'
                     }
                 },
                 {
@@ -153,7 +156,24 @@ $(document).ready(function() {
         });
     }
 
+    // Helper functions for deep comparison
+    function objectsEqual(a, b) {
+        const aKeys = Object.keys(a);
+        const bKeys = Object.keys(b);
+        if (aKeys.length !== bKeys.length) return false;
+        for (let key of aKeys) {
+            if (a[key] !== b[key]) return false;
+        }
+        return true;
+    }
 
+    function arraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) return false;
+        for (let i = 0; i < arr1.length; i++) {
+            if (!objectsEqual(arr1[i], arr2[i])) return false;
+        }
+        return true;
+    }
 
     // Function to set up event listeners
     function setupEventListeners(cy, allMSTs, ids) {
@@ -167,9 +187,9 @@ $(document).ready(function() {
             handleUndoAction(cy, actionHistory, ids.actionTableId);
         });
 
-        // Submit button event - FIXED
+        // Submit button event
         $('#' + ids.submitButtonId).off('click').on('click', function() {
-            console.log("Submit button clicked!"); // Debugging
+            console.log("Submit button clicked!");
             handleSubmitAction(cy, actionHistory, allMSTs, ids);
         });
 
@@ -191,15 +211,15 @@ $(document).ready(function() {
             $(`#${ids.pausePopupId}`).addClass('hidden');
         });
 
-        // Restart button event - FIXED
+        // Restart button event
         $(`#${ids.pausePopupId} .restart-button`).off('click').on('click', () => {
-            console.log("Restart button clicked"); // Debugging
+            console.log("Restart button clicked");
 
             const savedGraph = sessionStorage.getItem('currentGraph');
             const params = JSON.parse(sessionStorage.getItem('gameParams'));
 
             if (params) {
-                console.log("Restarting game with same graph..."); // Debugging
+                console.log("Restarting game with same graph...");
 
                 if (typeof window.cy !== "undefined" && window.cy !== null) {
                     if (typeof window.cy.destroy === "function") {
@@ -208,25 +228,22 @@ $(document).ready(function() {
                     }
                 }
 
-                window.cy = null;  // Clear Cytoscape reference
-
-                actionHistory = [];  // Reset action history
+                window.cy = null;
+                actionHistory = [];
                 $("#action-table-en").empty();
                 $("#action-table-el").empty();
-                resetEdgeWeights();  // Reset edge weights
-                resetTimer();  // Fully reset the timer
+                resetEdgeWeights();
+                resetTimer();
 
-                // Restart the timer properly after reset
                 setTimeout(() => {
                     console.log("Calling startTimer() after resetTimer()");
                     startTimer();
                 }, 100);
 
-                // Reload the same graph if it exists, otherwise generate a new one
                 window.cy = initGame(params.level, params.vertices, params.edgesCount,
                     params.minWeight, params.maxWeight, savedGraph ? JSON.parse(savedGraph) : null);
 
-                $(`#${ids.pausePopupId}`).addClass('hidden');  // Hide pause popup
+                $(`#${ids.pausePopupId}`).addClass('hidden');
             }
         });
 
@@ -236,94 +253,108 @@ $(document).ready(function() {
             window.location.href = '/play-kruskal';
         });
 
-        // Stop timer when the user leaves the page
         window.addEventListener('beforeunload', function() {
             stopTimer();
         });
     }
 
-
     // Function to handle edge selection
     function handleEdgeSelection(evt, cy, actionHistory, actionTableId) {
         const edge = evt.target;
         const existingActionIndex = actionHistory.findIndex(action => action.edge.id() === edge.id());
-
         if (existingActionIndex !== -1) {
-            // If the edge is already in history, undo it
             handleUndoAction(cy, actionHistory, actionTableId);
             return;
         }
-
         edge.style({ 'width': 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
-
         sourceNode.style('background-color', '#94d95f');
         targetNode.style('background-color', '#94d95f');
-
         actionHistory.push({ edge, sourceNode, targetNode });
         updateActionTable(actionHistory, actionTableId);
-
-        // Add the weight of the selected edge
         const edgeWeight = parseInt(edge.data('weight'));
         addEdgeWeight(edgeWeight);
     }
-
 
     // Function to handle undo action
     function handleUndoAction(cy, actionHistory, actionTableId) {
         if (actionHistory.length > 0) {
             const { edge, sourceNode, targetNode } = actionHistory.pop();
             edge.style({ 'width': 1, 'line-color': '#999' });
-
             if (!isNodeInTable(actionHistory, sourceNode.id())) {
                 sourceNode.style('background-color', '#e9ecef');
             }
-
             if (!isNodeInTable(actionHistory, targetNode.id())) {
                 targetNode.style('background-color', '#e9ecef');
             }
-
             updateActionTable(actionHistory, actionTableId);
-
-            // Subtract the weight of the undone edge
             const edgeWeight = parseInt(edge.data('weight'));
             subtractEdgeWeight(edgeWeight);
         }
     }
 
-    // Function to handle submit action
+    // Function to handle submit action using deep object comparison
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
-        console.log("handleSubmitAction() function is executing!");
-        const playerSolution = actionHistory.map(({ edge }) => ({
-            Vertex1: parseInt(edge.data('source')),
-            Vertex2: parseInt(edge.data('target')),
-            Weight: parseInt(edge.data('weight'))
-        }));
-
-        const normalizedPlayerSolution = normalizeEdges(playerSolution);
-
-        const isCorrect = allMSTs.some(mst => {
-            const normalizedMST = normalizeEdges(
-                mst.map(([u, v, w]) => ({ Vertex1: u + 1, Vertex2: v + 1, Weight: w }))
-            );
-            return JSON.stringify(normalizedPlayerSolution) === JSON.stringify(normalizedMST);
+        console.log("handleSubmitAction() is executing!");
+        // Build player's solution with 1-based numbering (preserving click order)
+        const playerSolution = actionHistory.map(({ edge }) => {
+            let v1 = parseInt(edge.data('source'));
+            let v2 = parseInt(edge.data('target'));
+            const weight = parseInt(edge.data('weight'));
+            if (v1 > v2) { // swap so that smaller vertex is Vertex1
+                [v1, v2] = [v2, v1];
+            }
+            return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
+        console.log("Player's solution (canonical):", playerSolution);
+
+        // Also log the player's solution object in full detail:
+        console.log("Detailed player's object:", JSON.stringify(playerSolution, null, 2));
+
+        // Compare player's solution (without normalization) against ordering tables.
+        let isCorrect = false;
+        // Loop through each ordering table for debugging
+        orderingTables.forEach(item => {
+            console.log(`Comparing against MST #${item.mstIndex + 1} ordering(s):`);
+            item.orderings.forEach((ordering, orderIndex) => {
+                console.log(`-- Ordering ${orderIndex + 1}:`, ordering);
+                // Compare playerSolution to this ordering, with detailed logging.
+                if (playerSolution.length !== ordering.length) {
+                    console.log("Length mismatch: playerSolution has", playerSolution.length, "edges; ordering has", ordering.length, "edges.");
+                }
+                let match = true;
+                for (let i = 0; i < playerSolution.length; i++) {
+                    const pEdge = playerSolution[i];
+                    const oEdge = ordering[i];
+                    if (!objectsEqual(pEdge, oEdge)) {
+                        console.log(`Mismatch at index ${i}: Player edge:`, pEdge, "; Ordering edge:", oEdge);
+                        match = false;
+                    } else {
+                        console.log(`Match at index ${i}:`, pEdge);
+                    }
+                }
+                if (match) {
+                    console.log("Player's solution matches ordering", orderIndex + 1, "for MST #", item.mstIndex + 1);
+                    isCorrect = true;
+                }
+            });
+        });
+        if (!isCorrect) {
+            console.log("No valid ordering matched the player's solution.");
+        }
 
         hideSubmitLineOnClick('#submit-line-en, #submit-line-el');
 
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
-        console.log("Total Vertices: " + totalVertices, "Total Edges: " + totalEdges);
-        console.log('Total Time in Seconds:', totalSeconds);
-        // Ensure totalSeconds is always at least 1 to prevent division by zero
+        console.log("Total Vertices:", totalVertices, "Total Edges:", totalEdges);
+        console.log("Total Time in Seconds:", totalSeconds);
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
         let score = Math.floor((totalVertices * totalEdges * 100) / timeUsed);
         console.log("Calculated Score:", score);
 
-
         const lang = localStorage.getItem('language') || 'el';
-
         const messages = {
             en: {
                 correct: "Congratulations!",
@@ -342,20 +373,16 @@ $(document).ready(function() {
         };
 
         const popupMessage = $('#' + ids.popupMessageId);
-        popupMessage.text(
-            isCorrect ? messages[lang].correct : messages[lang].incorrect
-        );
-
+        popupMessage.text(isCorrect ? messages[lang].correct : messages[lang].incorrect);
         if (!isCorrect) {
             score = 0;
+            console.log("No ordering table matched the player's solution.");
         }
-
         popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         popupMessage.addClass("");
         $('#' + ids.popupId).removeClass('hidden');
 
-        // Stop the timer
         stopTimer();
 
         if (score > 0) {
@@ -377,10 +404,7 @@ $(document).ready(function() {
         }
     }
 
-
-    // stop time on back button from browser
     window.addEventListener('beforeunload', function() {
         stopTimer();
     });
-
 });
