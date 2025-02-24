@@ -5,7 +5,7 @@
     align-items: center;
 }
 img.logo {
-    width: 100px;
+    width: 90px;
     height: auto;
 }
 /*****************   Homepage   ********************/
@@ -56,6 +56,10 @@ h1 {
     margin-bottom: 20px;
     text-align: center;
 }
+.centered {
+    text-align: center;
+}
+
 /*****************   New Button   ********************/
 button {
     /*background: linear-gradient(to bottom left, #28a745, #218838);*/
@@ -137,6 +141,9 @@ button[type="submit"]:active, .back-to-home:active {
     font-size: 1rem;
     display: none;
 }
+.signup-success {
+    text-align: center;
+}
 
 /*****************   User Page & Play Page   ********************/
 .button-container {
@@ -177,9 +184,13 @@ button[type="submit"]:active, .back-to-home:active {
 .level-container {
     border: 2px solid #4cb674;
     border-radius: 10px;
+    padding: 5px;
 }
 
 .level {
+    text-align: center;
+}
+.play-buttons-title {
     text-align: center;
 }
 
