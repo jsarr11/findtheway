@@ -46,18 +46,18 @@
                 <span><strong>Συνολικό βάρος: </strong></span><span id="total-weight-el">0</span>
             </div>
         </div>
-        <button id="pause-button-el" class="btn pause-button">Παύση</button>
-        <div id="pause-popup-el" class="popup hidden">
-            <div class="popup-content">
-                <h2>Παύση Παιχνιδιού</h2>
-                <div class="popup-buttons">
-                    <button class="btn popup-button resume-button">Συνέχεια</button>
-                    <button class="btn popup-button restart-button">Ξεκινήστε ξανά</button>
-                    <button class="btn popup-button quit-button">Έξοδος</button>
+        <div id="submit-line-el" class="flexed2 submit-line">
+            <button id="pause-button-el" class="btn pause-button">Παύση</button>
+            <div id="pause-popup-el" class="popup hidden">
+                <div class="popup-content">
+                    <h2>Παύση Παιχνιδιού</h2>
+                    <div class="popup-buttons">
+                        <button class="btn popup-button resume-button">Συνέχεια</button>
+                        <button class="btn popup-button restart-button">Ξεκινήστε ξανά</button>
+                        <button class="btn popup-button quit-button">Έξοδος</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div id="submit-line-el" class="flexed2 submit-line">
             <div>
                 <button id="submit-button-kruskal-el">Έλεγχος</button>
             </div>
@@ -69,7 +69,7 @@
             <div class="popup2-content">
                 <p id="popup-message-el"></p>
                 <div>
-                    <button onclick="location.reload()">Παιξε παλι</button>
+                    <button onclick="location.reload()">Νεο παιχνίδι</button>
                     <button onclick="window.location.href='/play-kruskal'">Πισω</button>
                 </div>
                 <div>
@@ -102,18 +102,18 @@
                 <span><strong>Total weight: </strong></span><span id="total-weight-en">0</span>
             </div>
         </div>
-        <button id="pause-button-en" class="btn pause-button">Pause</button>
-        <div id="pause-popup-en" class="popup hidden">
-            <div class="popup-content">
-                <h2>Game Paused</h2>
-                <div class="popup-buttons">
-                    <button class="btn popup-button resume-button">Resume</button>
-                    <button class="btn popup-button restart-button">Start Again</button>
-                    <button class="btn popup-button quit-button">Quit</button>
+        <div id="submit-line-en" class="flexed2 submit-line">
+            <button id="pause-button-en" class="btn pause-button">Pause</button>
+            <div id="pause-popup-en" class="popup hidden">
+                <div class="popup-content">
+                    <h2>Game Paused</h2>
+                    <div class="popup-buttons">
+                        <button class="btn popup-button resume-button">Resume</button>
+                        <button class="btn popup-button restart-button">Start Again</button>
+                        <button class="btn popup-button quit-button">Quit</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div id="submit-line-en" class="flexed2 submit-line">
             <div>
                 <button id="submit-button-kruskal-en">Submit</button>
             </div>
@@ -125,7 +125,7 @@
             <div class="popup2-content">
                 <p id="popup-message-en"></p>
                 <div>
-                    <button onclick="location.reload()">Play again</button>
+                    <button onclick="location.reload()">New game</button>
                     <button onclick="window.location.href='/play-kruskal'">Quit</button>
                 </div>
                 <div>
