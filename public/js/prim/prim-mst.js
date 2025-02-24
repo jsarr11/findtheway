@@ -94,3 +94,84 @@ export function primAllMSTs(adjacencyMatrix, startingNodeId) {
     // console.log(`%cTotal MSTs found: ${mstResults.length}`, "color: red; font-weight: bold;");
     return mstResults;
 }
+
+/**
+ * For Prim MSTs, generate ordering tables that preserve the original Prim order.
+ * Each MST (an array of [u, v, w] edges) is converted into an array of objects:
+ * { Vertex1, Vertex2, Weight } where Vertex1 is the smaller of the two.
+ * Then, consecutive edges with equal weight are permuted.
+ */
+export function generateMSTOrderingTables(allMSTs) {
+    // Helper: generate all permutations of an array.
+    function permute(arr) {
+        if (arr.length <= 1) return [arr];
+        let results = [];
+        for (let i = 0; i < arr.length; i++) {
+            const rest = arr.slice(0, i).concat(arr.slice(i + 1));
+            for (let perm of permute(rest)) {
+                results.push([arr[i]].concat(perm));
+            }
+        }
+        return results;
+    }
+
+    // For a given MST, generate ordering tables while preserving the given order.
+    function generateOrderingsFromMST(mst) {
+        // Convert each edge [u, v, w] into an object.
+        // For Prim, we assume the MST is already in the order that Prim would add edges.
+        // Do NOT sort the edges here.
+        // For Prim, preserve the order in which edges were produced by primAllMSTs
+        let edges = mst.map(([u, v, w]) => {
+            let v1 = u + 1, v2 = v + 1;
+            // Ensure canonical order per edge (smaller vertex first)
+            if (v1 > v2) {
+                [v1, v2] = [v2, v1];
+            }
+            return { Vertex1: v1, Vertex2: v2, Weight: w };
+        });
+// Do NOT sort—preserve the original Prim order!
+
+
+        // Group consecutive edges that have the same weight.
+        const groups = [];
+        let currentGroup = [];
+        for (let edge of edges) {
+            if (currentGroup.length === 0 || currentGroup[0].Weight === edge.Weight) {
+                currentGroup.push(edge);
+            } else {
+                groups.push(currentGroup);
+                currentGroup = [edge];
+            }
+        }
+        if (currentGroup.length > 0) groups.push(currentGroup);
+
+        // For each group, generate all permutations.
+        const groupPermutations = groups.map(group => permute(group));
+
+        // Compute the cartesian product of the groups’ permutations.
+        function cartesianProduct(arrays) {
+            return arrays.reduce((acc, curr) => {
+                const temp = [];
+                acc.forEach(a => {
+                    curr.forEach(b => {
+                        temp.push(a.concat(b));
+                    });
+                });
+                return temp;
+            }, [[]]);
+        }
+        return cartesianProduct(groupPermutations);
+    }
+
+    // Generate ordering tables for each MST.
+    const result = [];
+    allMSTs.forEach((mst, idx) => {
+        const orderings = generateOrderingsFromMST(mst);
+        console.log(`Prim MST #${idx + 1} produces ${orderings.length} ordering table(s):`);
+        orderings.forEach((table, i) => {
+            console.table(table);
+        });
+        result.push({ mstIndex: idx, orderings });
+    });
+    return result;
+}
