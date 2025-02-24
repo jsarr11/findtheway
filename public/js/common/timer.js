@@ -22,7 +22,7 @@ export function startTimer() {
 export function updateTimer() {
     if (!isPaused) {
         totalSeconds++;
-        console.log("updateTimer() running. Total Seconds:", totalSeconds); // Debugging
+        // console.log("updateTimer() running. Total Seconds:", totalSeconds); // Debugging
 
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;

@@ -4,7 +4,7 @@ import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable } from './ui-utils.js';
 import { hideSubmitLineOnClick, isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
 import '../common/timer.js';
-import { totalSeconds, stopTimer, startTimer, pauseTimer, resumeTimer } from '../common/timer.js';
+import { totalSeconds, stopTimer, startTimer, pauseTimer, resumeTimer, resetTimer } from '../common/timer.js';
 import '../common/edgeWeights.js';
 import { addEdgeWeight, subtractEdgeWeight, resetEdgeWeights } from '../common/edgeWeights.js';
 import { updatePlayerScore } from '../common/scoreUpdater.js';
@@ -38,7 +38,7 @@ $(document).ready(function() {
         const ids = {
             undoButtonId: `undo-button${suffix}`,
             actionTableId: `action-table${suffix}`,
-            submitButtonId: `submit-button${suffix}`,
+            submitButtonId: `submit-button-kruskal${suffix}`,
             popupId: `popup${suffix}`,
             popupMessageId: `popup-message${suffix}`,
             popupCloseId: `popup-close${suffix}`,
@@ -46,7 +46,19 @@ $(document).ready(function() {
             pausePopupId: `pause-popup${suffix}`
         };
 
-        const { nodes, edges } = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
+
+        let nodes, edges;
+        if (graphData) {
+            // Use the existing graph from sessionStorage
+            nodes = graphData.nodes;
+            edges = graphData.edges;
+        } else {
+            // Generate a new graph if none is saved
+            const graphResult = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
+            nodes = graphResult.nodes;
+            edges = graphResult.edges;
+            sessionStorage.setItem('currentGraph', JSON.stringify({ nodes, edges }));
+        }
 
         logGraphDetails(edges);
 
@@ -145,78 +157,91 @@ $(document).ready(function() {
 
     // Function to set up event listeners
     function setupEventListeners(cy, allMSTs, ids) {
-        cy.on('tap', 'edge', function(evt) {
+        // Edge selection event
+        cy.off('tap', 'edge').on('tap', 'edge', function(evt) {
             handleEdgeSelection(evt, cy, actionHistory, ids.actionTableId);
         });
 
-        $('#' + ids.undoButtonId).click(function() {
+        // Undo button event
+        $('#' + ids.undoButtonId).off('click').on('click', function() {
             handleUndoAction(cy, actionHistory, ids.actionTableId);
         });
 
-        $('#' + ids.submitButtonId).click(function() {
+        // Submit button event - FIXED
+        $('#' + ids.submitButtonId).off('click').on('click', function() {
+            console.log("Submit button clicked!"); // Debugging
             handleSubmitAction(cy, actionHistory, allMSTs, ids);
         });
 
-        // Existing quit button functionality
-        $('#quit-button').click(() => {
+        // Quit button event
+        $('#quit-button').off('click').on('click', () => {
             stopTimer();
-            window.location.href = '/play-prim';
+            window.location.href = '/play-kruskal';
         });
 
-        // New pause button functionality
-        $(`#${ids.pauseButtonId}`).click(() => {
+        // Pause button event
+        $(`#${ids.pauseButtonId}`).off('click').on('click', () => {
             pauseTimer();
             $(`#${ids.pausePopupId}`).removeClass('hidden');
         });
 
-        // New resume button functionality
-        $(`#${ids.pausePopupId} .resume-button`).click(() => {
+        // Resume button event
+        $(`#${ids.pausePopupId} .resume-button`).off('click').on('click', () => {
             resumeTimer();
             $(`#${ids.pausePopupId}`).addClass('hidden');
         });
 
-        // New restart button functionality
-        // New restart button functionality
-        // New restart button functionality
-        $(`#${ids.pausePopupId} .restart-button`).click(() => {
-            const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
+        // Restart button event - FIXED
+        $(`#${ids.pausePopupId} .restart-button`).off('click').on('click', () => {
+            console.log("Restart button clicked"); // Debugging
+
+            const savedGraph = sessionStorage.getItem('currentGraph');
             const params = JSON.parse(sessionStorage.getItem('gameParams'));
-            if (graphData && params) {
-                // Destroy the current Cytoscape instance safely
-                if (cy) {
-                    cy.destroy();  // Destroy Cytoscape if it exists
+
+            if (params) {
+                console.log("Restarting game with same graph..."); // Debugging
+
+                if (typeof window.cy !== "undefined" && window.cy !== null) {
+                    if (typeof window.cy.destroy === "function") {
+                        console.log("Destroying Cytoscape instance...");
+                        window.cy.destroy();
+                    }
                 }
 
-                actionHistory = [];  // Reset the action history
-                $("#action-table-en").empty();  // Clear the English action table
-                $("#action-table-el").empty();  // Clear the Greek action table
+                window.cy = null;  // Clear Cytoscape reference
+
+                actionHistory = [];  // Reset action history
+                $("#action-table-en").empty();
+                $("#action-table-el").empty();
                 resetEdgeWeights();  // Reset edge weights
+                resetTimer();  // Fully reset the timer
 
-                stopTimer();  // Stop the timer
+                // Restart the timer properly after reset
+                setTimeout(() => {
+                    console.log("Calling startTimer() after resetTimer()");
+                    startTimer();
+                }, 100);
 
-                let totalSeconds = 0;  // Reset the timer value
+                // Reload the same graph if it exists, otherwise generate a new one
+                window.cy = initGame(params.level, params.vertices, params.edgesCount,
+                    params.minWeight, params.maxWeight, savedGraph ? JSON.parse(savedGraph) : null);
 
-                // Re-initialize the game with the provided parameters and graph data
-                initGame(params.level, params.vertices, params.edgesCount,
-                    params.minWeight, params.maxWeight, graphData);
-
-                startTimer();  // Start the timer again
-
-                $(`#${ids.pausePopupId}`).addClass('hidden');  // Hide the pause popup
+                $(`#${ids.pausePopupId}`).addClass('hidden');  // Hide pause popup
             }
         });
 
-
-
-
-
-
-        // New quit button functionality (inside pause popup)
-        $(`#${ids.pausePopupId} .quit-button`).click(() => {
+        // Quit button inside pause popup
+        $(`#${ids.pausePopupId} .quit-button`).off('click').on('click', () => {
             stopTimer();
             window.location.href = '/play-kruskal';
         });
+
+        // Stop timer when the user leaves the page
+        window.addEventListener('beforeunload', function() {
+            stopTimer();
+        });
     }
+
 
     // Function to handle edge selection
     function handleEdgeSelection(evt, cy, actionHistory, actionTableId) {
@@ -269,6 +294,7 @@ $(document).ready(function() {
 
     // Function to handle submit action
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
+        console.log("handleSubmitAction() function is executing!");
         const playerSolution = actionHistory.map(({ edge }) => ({
             Vertex1: parseInt(edge.data('source')),
             Vertex2: parseInt(edge.data('target')),
@@ -290,8 +316,11 @@ $(document).ready(function() {
         const totalEdges = cy.edges().length;
         console.log("Total Vertices: " + totalVertices, "Total Edges: " + totalEdges);
         console.log('Total Time in Seconds:', totalSeconds);
-        let score = Math.floor((totalVertices * totalEdges * 100) / totalSeconds);
-        console.log(score);
+        // Ensure totalSeconds is always at least 1 to prevent division by zero
+        const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
+        let score = Math.floor((totalVertices * totalEdges * 100) / timeUsed);
+        console.log("Calculated Score:", score);
+
 
         const lang = localStorage.getItem('language') || 'el';
 
