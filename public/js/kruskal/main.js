@@ -127,13 +127,15 @@ $(document).ready(function() {
                     style: {
                         'width': 1,
                         'line-color': '#999',
-                        'label': 'data(weight)',
-                        'text-margin-y': -2,
-                        'text-margin-x': 'data(alt, function(edge) { return edge.data.alt === "left" ? -6 : 6; })',
+                        'source-label': 'data(weight)',
+                        'edge-distances': 'intersection',
+                        'text-rotation': 'autorotate',
+                        'source-text-offset': 40,
+                        'source-text-margin-x': 5,
+                        'source-text-margin-y': 5,
                         'color': '#000000',
                         'font-size': '6px',
                         'text-wrap': 'wrap',
-                        'text-rotation': 'none',
                         'overlay-padding': '10px'
                     }
                 },
