@@ -335,6 +335,7 @@ $(document).ready(function() {
     // Function to handle submit action using deep object comparison
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() is executing!");
+
         // Build player's solution with 1-based numbering (preserving click order)
         const playerSolution = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
@@ -345,39 +346,46 @@ $(document).ready(function() {
             }
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
+
         console.log("Player's solution (canonical):", playerSolution);
 
-        // Also log the player's solution object in full detail:
-        console.log("Detailed player's object:", JSON.stringify(playerSolution, null, 2));
+        // **FIX: Prevent empty solutions from being considered correct**
+        if (playerSolution.length === 0) {
+            console.log("No edges selected. Submission is invalid.");
+            const lang = localStorage.getItem('language') || 'el';
+            const messages = {
+                en: {
+                    incorrect: "Your answer is not correct...",
+                    incorrect2: "You didn't select any edges! Try again.",
+                    score: "Your Score is: 0"
+                },
+                el: {
+                    incorrect: "Η απάντησή σας δεν είναι σωστή...",
+                    incorrect2: "Δεν επιλέξατε καμία ακμή! Προσπαθήστε ξανά.",
+                    score: "Το Σκορ σας είναι: 0"
+                }
+            };
+
+            const popupMessage = $('#' + ids.popupMessageId);
+            popupMessage.text(messages[lang].incorrect);
+            popupMessage.append(`<br>${messages[lang].incorrect2}`);
+            popupMessage.append(`<br>${messages[lang].score}`);
+            $('#' + ids.popupId).removeClass('hidden');
+
+            stopTimer();
+            return;
+        }
 
         // Compare player's solution (without normalization) against ordering tables.
         let isCorrect = false;
-        // Loop through each ordering table for debugging
         orderingTables.forEach(item => {
-            console.log(`Comparing against MST #${item.mstIndex + 1} ordering(s):`);
-            item.orderings.forEach((ordering, orderIndex) => {
-                console.log(`-- Ordering ${orderIndex + 1}:`, ordering);
-                // Compare playerSolution to this ordering, with detailed logging.
-                if (playerSolution.length !== ordering.length) {
-                    console.log("Length mismatch: playerSolution has", playerSolution.length, "edges; ordering has", ordering.length, "edges.");
-                }
-                let match = true;
-                for (let i = 0; i < playerSolution.length; i++) {
-                    const pEdge = playerSolution[i];
-                    const oEdge = ordering[i];
-                    if (!objectsEqual(pEdge, oEdge)) {
-                        console.log(`Mismatch at index ${i}: Player edge:`, pEdge, "; Ordering edge:", oEdge);
-                        match = false;
-                    } else {
-                        console.log(`Match at index ${i}:`, pEdge);
-                    }
-                }
-                if (match) {
-                    console.log("Player's solution matches ordering", orderIndex + 1, "for MST #", item.mstIndex + 1);
+            item.orderings.forEach(ordering => {
+                if (arraysEqual(playerSolution, ordering)) {
                     isCorrect = true;
                 }
             });
         });
+
         if (!isCorrect) {
             console.log("No valid ordering matched the player's solution.");
         }
@@ -389,7 +397,7 @@ $(document).ready(function() {
         console.log("Total Vertices:", totalVertices, "Total Edges:", totalEdges);
         console.log("Total Time in Seconds:", totalSeconds);
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
-        let score = Math.floor((totalVertices * totalEdges * 100) / timeUsed);
+        let score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
         console.log("Calculated Score:", score);
 
         const lang = localStorage.getItem('language') || 'el';
@@ -412,13 +420,8 @@ $(document).ready(function() {
 
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? messages[lang].correct : messages[lang].incorrect);
-        if (!isCorrect) {
-            score = 0;
-            console.log("No ordering table matched the player's solution.");
-        }
         popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
-        popupMessage.addClass("");
         $('#' + ids.popupId).removeClass('hidden');
 
         stopTimer();
