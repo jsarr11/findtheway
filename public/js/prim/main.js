@@ -281,6 +281,21 @@ $(document).ready(function() {
         $("#close-scores-popup-en").on("click", function() {
             $("#scores-popup-en").addClass("hidden");
         });
+        // Greek tutorial popup
+        $("#tutorial-button-el").on("click", function() {
+            $("#tutorial-popup-el").removeClass("hidden");
+        });
+        $("#close-tutorial-popup-el").on("click", function() {
+            $("#tutorial-popup-el").addClass("hidden");
+        });
+
+        // English tutorial popup
+        $("#tutorial-button-en").on("click", function() {
+            $("#tutorial-popup-en").removeClass("hidden");
+        });
+        $("#close-tutorial-popup-en").on("click", function() {
+            $("#tutorial-popup-en").addClass("hidden");
+        });
 
 
         // Existing beforeunload functionality to stop timer on page refresh/close

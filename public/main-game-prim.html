@@ -70,7 +70,7 @@
                     <button onclick="window.location.href='/play-prim'">Πισω</button>
                 </div>
                 <div>
-                    <button onclick="window.location.href='/tutorial-prim'">Οδηγος</button>
+                    <button id="tutorial-button-el">Οδηγος</button>
                     <button id="scores-button-el">Σκορ</button>
                 </div>
             </div>
@@ -107,6 +107,16 @@
             </div>
         </div>
         <!-- END Greek SCORES POPUP -->
+
+        <!-- Greek Tutorial Popup -->
+        <div id="tutorial-popup-el" class="popup hidden popup-2">
+            <h1>Οδηγος Prim</h1>
+            <!-- Close button at bottom -->
+            <div style="text-align: center; margin-top: 10px;">
+                <button id="close-tutorial-popup-el">Κλείσιμο</button>
+            </div>
+        </div>
+
     </div>
 
     <!-- English Content -->
@@ -157,7 +167,7 @@
                     <button onclick="window.location.href='/play-prim'">Quit</button>
                 </div>
                 <div>
-                    <button onclick="window.location.href='/tutorial-prim'">Tutorial</button>
+                    <button id="tutorial-button-en">Tutorial</button>
                     <button id="scores-button-en">Scores</button>
                 </div>
             </div>
@@ -194,6 +204,16 @@
             </div>
         </div>
         <!-- END English SCORES POPUP -->
+
+        <!-- English Tutorial Popup -->
+        <div id="tutorial-popup-en" class="popup hidden popup-2">
+            <h1>Tutorial Prim</h1>
+            <!-- Close button at bottom -->
+            <div style="text-align: center; margin-top: 10px;">
+                <button id="close-tutorial-popup-en">Close</button>
+            </div>
+        </div>
+
     </div>
 </div>
 </body>
