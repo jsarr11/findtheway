@@ -150,7 +150,6 @@ $(document).ready(function() {
                         'source-text-offset': 40,
                         'source-text-margin-x': 5,
                         'source-text-margin-y': 5,
-                        'label': 'data(weight)',
                         'text-margin-y': -5,
                         'color': '#000000',
                         'font-size': '6px',
