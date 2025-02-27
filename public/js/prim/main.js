@@ -262,6 +262,27 @@ $(document).ready(function() {
             window.location.href = '/play-prim';
         });
 
+        // 1) Attach click events for open/close of Greek popup
+        $("#scores-button-el").on("click", function() {
+            // Show Greek popup
+            $("#scores-popup-el").removeClass("hidden");
+            // Then load the Greek scores
+        });
+        $("#close-scores-popup-el").on("click", function() {
+            $("#scores-popup-el").addClass("hidden");
+        });
+
+        // 2) Attach click events for open/close of English popup
+        $("#scores-button-en").on("click", function() {
+            // Show English popup
+            $("#scores-popup-en").removeClass("hidden");
+            // Then load the English scores
+        });
+        $("#close-scores-popup-en").on("click", function() {
+            $("#scores-popup-en").addClass("hidden");
+        });
+
+
         // Existing beforeunload functionality to stop timer on page refresh/close
         window.addEventListener('beforeunload', () => {
             stopTimer();

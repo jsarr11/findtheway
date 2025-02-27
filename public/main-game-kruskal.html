@@ -13,12 +13,12 @@
     <!-- Cytoscape and Kruskal JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.min.js"></script>
     <script type="module" src="/js/kruskal/main.js" defer></script>
+    <script type="module" src="../js/scores.js" defer></script>
 </head>
 <body>
 <header>
     <button id="switch-lang">English</button>
     <input type="hidden" id="gameMethod" value="kruskal">
-
 </header>
 
 <div class="game-container">
@@ -74,10 +74,42 @@
                 </div>
                 <div>
                     <button onclick="window.location.href='/tutorial-kruskal'">Οδηγος</button>
-                    <button onclick="window.location.href='/scores'">Σκορ</button>
+                    <button id="scores-button-el">Σκορ</button>
                 </div>
             </div>
         </div>
+
+        <!-- Greek SCORES POPUP -->
+        <div id="scores-popup-el" class="popup hidden popup-2">
+            <h1>Βαθμολογίες</h1>
+            <div class="scores-el">
+                <div class="table-left">
+                    <h2>Prim</h2>
+                    <table id="prim-scores-el" class="score-table"></table>
+                </div>
+                <div class="table-right">
+                    <h2>Kruskal</h2>
+                    <table id="kruskal-scores-el" class="score-table"></table>
+                </div>
+            </div>
+            <div id="player-scores-el" class="player-scores">
+                <h2>Τα σκορ σου</h2>
+                <table id="player-scores-table-el" class="score-table">
+                    <tr>
+                        <th>Prim</th>
+                        <th>Kruskal</th>
+                    </tr>
+                    <tr>
+                        <td id="player-prim-el">0</td>
+                        <td id="player-kruskal-el">0</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+                <button id="close-scores-popup-el">Κλείσιμο</button>
+            </div>
+        </div>
+        <!-- END Greek SCORES POPUP -->
     </div>
 
     <!-- English Content -->
@@ -96,7 +128,6 @@
         <div id="timer-en" class="flexed2">
             <div class="timer">
                 <span><strong>Time: </strong></span><span id="minutes-en">00</span>:<span id="seconds-en">00</span>
-
             </div>
             <div class="weight">
                 <span><strong>Total weight: </strong></span><span id="total-weight-en">0</span>
@@ -130,13 +161,43 @@
                 </div>
                 <div>
                     <button onclick="window.location.href='/tutorial-kruskal'">Tutorial</button>
-                    <button onclick="window.location.href='/scores'">Scores</button>
+                    <button id="scores-button-en">Scores</button>
                 </div>
             </div>
         </div>
+
+        <!-- English SCORES POPUP -->
+        <div id="scores-popup-en" class="popup hidden popup-2">
+            <h1>Scores</h1>
+            <div class="scores-en">
+                <div class="table-left">
+                    <h2>Prim</h2>
+                    <table id="prim-scores-en" class="score-table"></table>
+                </div>
+                <div class="table-right">
+                    <h2>Kruskal</h2>
+                    <table id="kruskal-scores-en" class="score-table"></table>
+                </div>
+            </div>
+            <div id="player-scores-en" class="player-scores">
+                <h2>Your Scores</h2>
+                <table id="player-scores-table-en" class="score-table">
+                    <tr>
+                        <th>Prim</th>
+                        <th>Kruskal</th>
+                    </tr>
+                    <tr>
+                        <td id="player-prim-en">0</td>
+                        <td id="player-kruskal-en">0</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+                <button id="close-scores-popup-en">Close</button>
+            </div>
+        </div>
+        <!-- END English SCORES POPUP -->
     </div>
-
-
 </div>
 </body>
 </html>
