@@ -23,7 +23,29 @@
         <div class="centered">
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
-        <h1>Οδηγός Prim</h1>
+        <div class="info">
+            <h1>Prim - οδηγός παιχνιδιού</h1>
+            <h3>Ο στόχος του παιχνιδιού είναι να δημιουργήσετε το Ελάχιστο Καλυπτικό Δέντρο (MST)
+                ξεκινώντας από έναν αρχικό κόμβο και επιλέγοντας τις ακμές με το μικρότερο βάρος που
+                συνδέουν το MST με νέα κορυφές.</h3>
+            <h2>Βήματα για να παίξετε:</h2>
+            <ol>
+                <li><strong>Ξεκινήστε το παιχνίδι</strong> – Θα δείτε έναν γράφο με κόμβους και ακμές. Ένας κόμβος είναι
+                    επιλεγμένος ως το αρχικό σημείο (σηματοδοτημένος διαφορετικά).</li>
+                <li><strong>Επιλογή ακμών</strong> – Πατήστε σε μία ακμή που συνδέει τον επιλεγμένο κόμβο με έναν νέο κόμβο.</li>
+                <li><strong>Συνέχιση της διαδικασίας</strong> – Συνεχίστε να προσθέτετε ακμές ακολουθώντας τον αλγόριθμο Prim
+                    μέχρι να συμπεριληφθούν όλοι οι κόμβοι.</li>
+                <li><strong>Έλεγχος απάντησης</strong> – Πατήστε το κουμπί Έλεγχος για να ελέγξετε αν η λύση σας είναι σωστή.</li>
+            </ol>
+            <h2>Χρήσιμα κουμπιά στο παιχνίδι</h2>
+            <ul>
+                <li><strong>Αναίρεση (Undo)</strong> – Μπορείτε να αφαιρέσετε την τελευταία ακμή που προσθέσατε είτε
+                    πατώντας το κουμπί αναίρεσης είτε επιλέγοντας μια ήδη επιλεγμένη ακμή.</li>
+                <li><strong>Παύση (Pause)</strong> – Μπορείτε να πατήσετε παύση για να διακόψετε προσωρινά το παιχνίδι.</li>
+                <li><strong>Επανεκκίνηση (Start again)</strong> - Αν θέλετε να ξεκινήσετε από την αρχή, μπορείτε να πατήσετε το κουμπί επανεκκίνησης.</li>
+                <li><strong>Σκορ (Scores)</strong> – Μπορείτε να δείτε τη βαθμολογία σας και τη βαθμολογία άλλων παικτών.</li>
+            </ul>
+        </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
             <button id="back-button-el" onclick="window.location.href='/play-prim'">Πίσω</button>
@@ -35,7 +57,28 @@
         <div class="centered">
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
-        <h1>Tutorial Prim</h1>
+        <div class="info">
+            <h1>Prim - game tutorial</h1>
+            <h3>The goal of the game is to create the Minimum Spanning Tree (MST) by starting from a selected
+                node and adding the lowest-weight edges that connect new vertices.</h3>
+            <h2>Steps to Play:</h2>
+            <ol>
+                <li><strong>Start the game</strong> – You will see a graph with nodes and edges. One node is
+                    preselected as the starting point (highlighted differently).</li>
+                <li><strong>Select edges</strong> – Click on an edge that connects a selected node to a new node.</li>
+                <li><strong>Continue</strong> – Keep adding edges following Prim’s algorithm until all nodes are included.</li>
+                <li><strong>Check your solution</strong> – Click Submit to verify if your solution is correct.</li>
+
+            </ol>
+            <h2>Useful Buttons in the Game</h2>
+            <ul>
+                <li><strong>Undo</strong> - You can remove the last selected edge either by clicking the undo
+                    button or by selecting an already chosen edge.</li>
+                <li><strong>Pause </strong> - You can pause the game at any time.</li>
+                <li><strong>Restart</strong> - If you want to restart, click the 'start again' button.</li>
+                <li><strong>Scores</strong> – View your score and the leaderboard.</li>
+            </ul>
+        </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
             <button id="back-button-en" onclick="window.location.href='/play-prim'">Back</button>
