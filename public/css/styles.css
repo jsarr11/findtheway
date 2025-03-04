@@ -272,3 +272,9 @@ table tr:hover {
 .table-right {
     margin-left: 10px;
 }
+
+/*****************   Info   ********************/
+.info {
+    margin-left: 10px;
+    margin-right: 10px;
+}
