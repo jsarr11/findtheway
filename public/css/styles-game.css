@@ -9,13 +9,14 @@ body {
 }
 
 .game-container {
-    width: 90%; /* Adjusted width */
-    height: 90%; /* Adjusted height */
+    width: 100%; /* Adjusted width */
+    height: 100%; /* Adjusted height */
     display: flex;
     flex-direction: column;
     /*justify-content: center;*/
     align-items: center;
-    background-color: #e9ecef;
+    /*background-color: #e9ecef;*/
+    background: url("../img/background3.jpg");
 }
 
 #cy {
