@@ -123,3 +123,8 @@ body {
     flex-direction: column;
     gap: 10px;
 }
+
+#scores-popup-el, #scores-popup-en,
+#tutorial-popup-el, #tutorial-popup-en {
+    flex-direction: column;
+}
