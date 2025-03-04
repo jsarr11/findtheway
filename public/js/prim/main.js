@@ -2,7 +2,7 @@ import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/c
 import { primAllMSTs, generateMSTOrderingTables  } from './prim-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable, hasOtherConnectedBlueEdges } from './ui-utils.js';
-import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges, hideSubmitLineOnClick } from '../common/common.js';
+import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix } from '../common/common.js';
 import '../common/timer.js';
 import { totalSeconds, stopTimer, startTimer, pauseTimer, resumeTimer, resetTimer } from '../common/timer.js';
 import '../common/edgeWeights.js';
@@ -217,15 +217,13 @@ $(document).ready(function() {
         });
 
         // New restart button functionality
-        $(`#${ids.pausePopupId} .restart-button`).click(() => {
-            console.log("Restart button clicked"); // Debugging
+        $(`#${ids.popupId} .restart-button`).click(() => {
+            console.log("Restart button clicked (from SUBMIT popup)");
 
             const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
             const params = JSON.parse(sessionStorage.getItem('gameParams'));
 
             if (graphData && params) {
-                console.log("Restarting game..."); // Debugging
-
                 // Destroy Cytoscape instance safely
                 if (typeof window.cy !== "undefined" && window.cy !== null) {
                     if (typeof window.cy.destroy === "function") {
@@ -233,29 +231,34 @@ $(document).ready(function() {
                         window.cy.destroy();
                     }
                 }
-
                 window.cy = null;  // Clear Cytoscape reference
 
-                actionHistory = [];  // Reset action history
+                // Reset or clear relevant items
+                actionHistory = [];
                 $("#action-table-en").empty();
                 $("#action-table-el").empty();
-                resetEdgeWeights();  // Reset edge weights
-                resetTimer();  // Fully reset the timer
+                resetEdgeWeights();
+                resetTimer();
 
                 // Restart the timer properly after reset
                 setTimeout(() => {
-                    console.log("Calling startTimer() after resetTimer()");
                     startTimer();
-                }, 100);  // Small delay to prevent timing issues
+                }, 100);
 
                 // Reinitialize the game
-                window.cy = initGame(params.level, params.vertices, params.edgesCount,
-                    params.minWeight, params.maxWeight, graphData);
+                window.cy = initGame(
+                    params.level,
+                    params.vertices,
+                    params.edgesCount,
+                    params.minWeight,
+                    params.maxWeight,
+                    graphData
+                );
 
-                $(`#${ids.pausePopupId}`).addClass('hidden');  // Hide pause popup
+                // Hide the SUBMIT popup
+                $(`#${ids.popupId}`).addClass('hidden');
             }
         });
-
         // New quit button functionality (inside pause popup)
         $(`#${ids.pausePopupId} .quit-button`).click(() => {
             stopTimer();
@@ -460,7 +463,7 @@ $(document).ready(function() {
             console.log("No valid ordering matched the player's solution.");
         }
 
-        hideSubmitLineOnClick('#submit-line-en, #submit-line-el');
+        // hideSubmitLineOnClick('#submit-line-en, #submit-line-el');
 
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;

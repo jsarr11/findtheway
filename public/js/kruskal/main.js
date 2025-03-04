@@ -2,7 +2,7 @@ import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/c
 import { kruskalAllMSTs, generateMSTOrderingTables } from './kruskal-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable } from './ui-utils.js';
-import { hideSubmitLineOnClick, isEdgeInTable, isNodeInTable, logAdjacencyMatrix, normalizeEdges } from '../common/common.js';
+import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix } from '../common/common.js';
 import '../common/timer.js';
 import { totalSeconds, stopTimer, startTimer, pauseTimer, resumeTimer, resetTimer } from '../common/timer.js';
 import '../common/edgeWeights.js';
@@ -214,41 +214,43 @@ $(document).ready(function() {
         });
 
         // Restart button event
-        $(`#${ids.pausePopupId} .restart-button`).off('click').on('click', () => {
-            console.log("Restart button clicked");
-
-            const savedGraph = sessionStorage.getItem('currentGraph');
+        $(`#${ids.popupId} .restart-button`).click(() => {
+            console.log("Restart button clicked (from SUBMIT popup)");
+            const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
             const params = JSON.parse(sessionStorage.getItem('gameParams'));
 
-            if (params) {
-                console.log("Restarting game with same graph...");
-
+            if (graphData && params) {
                 if (typeof window.cy !== "undefined" && window.cy !== null) {
                     if (typeof window.cy.destroy === "function") {
                         console.log("Destroying Cytoscape instance...");
                         window.cy.destroy();
                     }
                 }
-
                 window.cy = null;
+
                 actionHistory = [];
                 $("#action-table-en").empty();
                 $("#action-table-el").empty();
                 resetEdgeWeights();
                 resetTimer();
 
+                // Restart the timer after a short delay
                 setTimeout(() => {
-                    console.log("Calling startTimer() after resetTimer()");
                     startTimer();
                 }, 100);
 
-                window.cy = initGame(params.level, params.vertices, params.edgesCount,
-                    params.minWeight, params.maxWeight, savedGraph ? JSON.parse(savedGraph) : null);
+                window.cy = initGame(
+                    params.level,
+                    params.vertices,
+                    params.edgesCount,
+                    params.minWeight,
+                    params.maxWeight,
+                    graphData
+                );
 
-                $(`#${ids.pausePopupId}`).addClass('hidden');
+                $(`#${ids.popupId}`).addClass('hidden');
             }
         });
-
         // Quit button inside pause popup
         $(`#${ids.pausePopupId} .quit-button`).off('click').on('click', () => {
             stopTimer();

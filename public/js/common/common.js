@@ -21,8 +21,8 @@ export function normalizeEdges(edges) {
     ).sort((a, b) => a.Vertex1 - b.Vertex1 || a.Vertex2 - b.Vertex2);
 }
 
-export function hideSubmitLineOnClick(buttonIds) {
-    $(buttonIds).click(function () {
-        $('.submit-line').css('display', 'none');
-    });
-}
+// export function hideSubmitLineOnClick(buttonIds) {
+//     $(buttonIds).click(function () {
+//         $('.submit-line').css('display', 'none');
+//     });
+// }
