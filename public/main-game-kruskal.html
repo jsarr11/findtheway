@@ -27,7 +27,7 @@
 
     <!-- Greek Content -->
     <div id="content-el">
-        <h1>Παίξτε</h1>
+        <h2>Το παιχνίδι ξεκίνησε!</h2>
         <table id="action-table-el">
             <tr>
                 <th>Αρχική κορυφή</th>
@@ -82,6 +82,9 @@
 
         <!-- Greek SCORES POPUP -->
         <div id="scores-popup-el" class="popup hidden popup-2">
+            <div class="centered">
+                <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
+            </div>
             <h1>Βαθμολογίες</h1>
             <div class="scores-el">
                 <div class="table-left">
@@ -114,7 +117,32 @@
 
         <!-- Greek Tutorial Popup -->
         <div id="tutorial-popup-el" class="popup hidden popup-2">
-            <h1>Οδηγος Kruskal</h1>
+            <div class="centered">
+                <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
+            </div>
+            <div class="info info-popup">
+                <h1>Kruskal - οδηγός παιχνιδιού</h1>
+                <h3>Ο στόχος είναι να δημιουργήσετε το Ελάχιστο Καλυπτικό Δέντρο (MST) επιλέγοντας τις ακμές με
+                    τη μικρότερη τιμή χωρίς να δημιουργείτε κύκλους.</h3>
+                <h2>Βήματα για να παίξετε:</h2>
+                <ol>
+                    <li><strong>Ξεκινήστε το παιχνίδι</strong> – Ο γράφος εμφανίζεται με κόμβους και ακμές που
+                        έχουν διαφορετικά βάρη.</li>
+                    <li><strong>Επιλογή ακμών</strong> – Πατήστε στις ακμές με το μικρότερο βάρος πρώτα.</li>
+                    <li><strong>Αποφυγή κύκλων</strong> – Αν μία ακμή δημιουργεί κύκλο, μην την επιλέξετε.</li>
+                    <li><strong>Συνέχιση της διαδικασίας</strong> – Επιλέξτε ακμές μέχρι να έχετε Ν-1 ακμές, όπου Ν
+                        είναι ο αριθμός των κόμβων.</li>
+                    <li><strong>Έλεγχος απάντησης</strong> – Πατήστε το κουμπί Έλεγχος για να ελέγξετε αν η λύση σας είναι σωστή.</li>
+                </ol>
+                <h2>Χρήσιμα κουμπιά στο παιχνίδι</h2>
+                <ul>
+                    <li><strong>Αναίρεση (Undo)</strong> – Μπορείτε να αφαιρέσετε την τελευταία ακμή που προσθέσατε είτε
+                        πατώντας το κουμπί αναίρεσης είτε επιλέγοντας μια ήδη επιλεγμένη ακμή.</li>
+                    <li><strong>Παύση (Pause)</strong> – Μπορείτε να διακόψετε το παιχνίδι προσωρινά.</li>
+                    <li><strong>Επανεκκίνηση (Start again)</strong> – Μπορείτε να ξεκινήσετε από την αρχή.</li>
+                    <li><strong>Σκορ (Scores)</strong> – Δείτε τις βαθμολογίες σας και των κορυφαίων παικτών.</li>
+                </ul>
+            </div>
             <!-- Close button at bottom -->
             <div style="text-align: center; margin-top: 10px;">
                 <button id="close-tutorial-popup-el">Κλείσιμο</button>
@@ -124,7 +152,7 @@
 
     <!-- English Content -->
     <div id="content-en" style="display:none;">
-        <h1>Play Game</h1>
+        <h2>Game has started!</h2>
         <table id="action-table-en">
             <tr>
                 <th>Starting vertex</th>
@@ -179,6 +207,9 @@
 
         <!-- English SCORES POPUP -->
         <div id="scores-popup-en" class="popup hidden popup-2">
+            <div class="centered">
+                <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
+            </div>
             <h1>Scores</h1>
             <div class="scores-en">
                 <div class="table-left">
@@ -211,7 +242,31 @@
 
         <!-- English Tutorial Popup -->
         <div id="tutorial-popup-en" class="popup hidden popup-2">
-            <h1>Tutorial Kruskal</h1>
+            <div class="centered">
+                <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
+            </div>
+            <div class="info info-popup">
+                <h1>Kruskal - game tutorial</h1>
+                <h3>The goal is to create the Minimum Spanning Tree (MST) by selecting the smallest-weight edges
+                    while avoiding cycles.</h3>
+                <h2>Steps to Play:</h2>
+                <ol>
+                    <li><strong>Start the game</strong> – The graph appears with nodes and weighted edges.</li>
+                    <li><strong>Select edges</strong> – Click on the edges with the lowest weight first.</li>
+                    <li><strong>Avoid cycles</strong> – If an edge forms a cycle, do not select it.</li>
+                    <li><strong>Continue </strong> – Keep selecting edges until you have exactly N-1 edges, where N
+                        is the number of nodes.</li>
+                    <li><strong>Check your solution</strong> – Click Submit to verify your answer.</li>
+                </ol>
+                <h2>Useful Buttons in the Game</h2>
+                <ul>
+                    <li><strong>Undo</strong> – You can remove the last selected edge either by clicking the undo
+                        button or by selecting an already chosen edge.</li>
+                    <li><strong>Pause</strong> – Pause the game at any time.</li>
+                    <li><strong>Restart</strong> – Restart the game from the beginning.</li>
+                    <li><strong>Scores</strong> – View your score and top players' scores.</li>
+                </ul>
+            </div>
             <!-- Close button at bottom -->
             <div style="text-align: center; margin-top: 10px;">
                 <button id="close-tutorial-popup-en">Close</button>

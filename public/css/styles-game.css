@@ -99,7 +99,8 @@ body {
     transform: translate(-50%, -50%);
     width: 92%;
     height: 95%;
-    background: rgba(239, 239, 240, 0.95);
+    /*background: rgba(239, 239, 240, 0.95);*/
+    background: url("../img/background3.jpg");
     border: 2px solid #ccc;
     border-radius: 10px;
     padding: 20px;
@@ -127,4 +128,8 @@ body {
 #scores-popup-el, #scores-popup-en,
 #tutorial-popup-el, #tutorial-popup-en {
     flex-direction: column;
+}
+
+.info-popup {
+    text-align: left;
 }
