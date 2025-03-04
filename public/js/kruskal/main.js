@@ -4,9 +4,14 @@ import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable } from './ui-utils.js';
 import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix } from '../common/common.js';
 import '../common/timer.js';
-import { totalSeconds, stopTimer, startTimer, pauseTimer, resumeTimer, resetTimer } from '../common/timer.js';
+import {
+    totalSeconds, stopTimer, startTimer,
+    pauseTimer, resumeTimer, resetTimer
+} from '../common/timer.js';
 import '../common/edgeWeights.js';
-import { addEdgeWeight, subtractEdgeWeight, resetEdgeWeights } from '../common/edgeWeights.js';
+import {
+    addEdgeWeight, subtractEdgeWeight, resetEdgeWeights
+} from '../common/edgeWeights.js';
 import { updatePlayerScore } from '../common/scoreUpdater.js';
 
 $(document).ready(function() {
@@ -26,14 +31,28 @@ $(document).ready(function() {
         maxWeight
     }));
 
-    let actionHistory = [];
-    // Global variable to hold the ordering tables generated from MSTs.
-    let orderingTables = [];
+    // Make these global so we can use them in our global button listeners
+    window.actionHistory = [];
+    window.orderingTables = [];
 
-    // Initialize the game
-    initGame(level, vertices, edgesCount, minWeight, maxWeight);
+    // 1) Initialize the game once, storing the new Cytoscape instance in window.cy
+    window.cy = initGame(level, vertices, edgesCount, minWeight, maxWeight);
 
-    function initGame(level, vertices, edgesCount, minWeight, maxWeight, graphData = null) {
+    // 2) Set up all the jQuery button listeners exactly once
+    setupGlobalButtonListeners();
+
+    //-------------------------------------------------------------------------
+    //  A) initGame(...) => sets up the Cytoscape instance & MST logic
+    //-------------------------------------------------------------------------
+    function initGame(
+        level,
+        vertices,
+        edgesCount,
+        minWeight,
+        maxWeight,
+        graphData = null
+    ) {
+        // Pick language suffix for ID references
         const currentLanguage = localStorage.getItem('language') || 'el';
         const suffix = currentLanguage === 'en' ? '-en' : '-el';
 
@@ -43,7 +62,6 @@ $(document).ready(function() {
             submitButtonId: `submit-button-kruskal${suffix}`,
             popupId: `popup${suffix}`,
             popupMessageId: `popup-message${suffix}`,
-            popupCloseId: `popup-close${suffix}`,
             pauseButtonId: `pause-button${suffix}`,
             pausePopupId: `pause-popup${suffix}`
         };
@@ -63,21 +81,147 @@ $(document).ready(function() {
 
         logGraphDetails(edges);
 
+        // Build adjacency & find MSTs
         const adjacencyMatrix = buildAdjacencyMatrix(nodes, edges);
         logAdjacencyMatrix(adjacencyMatrix);
-
         const allMSTs = kruskalAllMSTs(adjacencyMatrix);
-        // Generate ordering tables from the MSTs.
-        orderingTables = generateMSTOrderingTables(allMSTs);
+        // Generate all ordering tables from MSTs
+        window.orderingTables = generateMSTOrderingTables(allMSTs);
 
         exportDataForDownload(edges);
 
-        const cy = initializeCytoscape(nodes, edges);
+        // 1) Create Cytoscape
+        const newCy = initializeCytoscape(nodes, edges);
 
-        setupEventListeners(cy, allMSTs, ids);
+        // 2) Only the Cytoscape event for edge selection goes here (Approach B)
+        newCy.on('tap', 'edge', evt => {
+            handleEdgeSelection(evt, newCy, window.actionHistory, ids.actionTableId);
+        });
+
+        // Return the new Cytoscape instance
+        return newCy;
     }
 
-    // Function to log graph details
+    //-------------------------------------------------------------------------
+    //  B) Attach global jQuery event listeners exactly once (Approach B)
+    //-------------------------------------------------------------------------
+    function setupGlobalButtonListeners() {
+        // We'll attach all the button events for both English/Greek IDs here
+
+        // 1) Undo button
+        $('#undo-button-en, #undo-button-el').on('click', function() {
+            // We'll call handleUndoAction for both possible language tables
+            handleUndoAction(window.cy, window.actionHistory, 'action-table-en');
+            handleUndoAction(window.cy, window.actionHistory, 'action-table-el');
+        });
+
+        // 2) Submit button
+        $('#submit-button-kruskal-en, #submit-button-kruskal-el').on('click', function() {
+            const currentLanguage = localStorage.getItem('language') || 'el';
+            const suffix = currentLanguage === 'en' ? '-en' : '-el';
+            const ids = {
+                popupId: `popup${suffix}`,
+                popupMessageId: `popup-message${suffix}`
+            };
+            handleSubmitAction(window.cy, window.actionHistory, window.orderingTables, ids);
+        });
+
+        // 3) Quit button (outside popups)
+        $('#quit-button').on('click', function() {
+            stopTimer();
+            window.location.href = '/play-kruskal';
+        });
+
+        // 4) Pause button
+        $('#pause-button-en, #pause-button-el').on('click', function() {
+            pauseTimer();
+            const currentLanguage = localStorage.getItem('language') || 'el';
+            const suffix = currentLanguage === 'en' ? '-en' : '-el';
+            $(`#pause-popup${suffix}`).removeClass('hidden');
+        });
+
+        // 5) Resume & quit inside pause popup (both languages)
+        $('.resume-button').on('click', function() {
+            resumeTimer();
+            $(this).closest('.popup').addClass('hidden');
+        });
+        $('.quit-button').on('click', function() {
+            stopTimer();
+            window.location.href = '/play-kruskal';
+        });
+
+        // 6) Restart button in the SUBMIT popup
+        $('.restart-button').on('click', function() {
+            console.log("Restart button clicked (Approach B for Kruskal).");
+            const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
+            const params = JSON.parse(sessionStorage.getItem('gameParams'));
+            if (!graphData || !params) return;
+
+            // Destroy old Cytoscape instance
+            if (window.cy && typeof window.cy.destroy === 'function') {
+                window.cy.destroy();
+            }
+            window.cy = null;
+
+            window.actionHistory = [];
+            $('#action-table-en').empty();
+            $('#action-table-el').empty();
+            resetEdgeWeights();
+            resetTimer();
+
+            setTimeout(() => startTimer(), 100);
+
+            // Re-init the game with the same graph
+            window.cy = initGame(
+                params.level,
+                params.vertices,
+                params.edgesCount,
+                params.minWeight,
+                params.maxWeight,
+                graphData
+            );
+
+            // Hide the SUBMIT popup
+            $(this).closest('.popup').addClass('hidden');
+        });
+
+        // 7) Scores buttons
+        $("#scores-button-el").on("click", function() {
+            $("#scores-popup-el").removeClass("hidden");
+        });
+        $("#close-scores-popup-el").on("click", function() {
+            $("#scores-popup-el").addClass("hidden");
+        });
+        $("#scores-button-en").on("click", function() {
+            $("#scores-popup-en").removeClass("hidden");
+        });
+        $("#close-scores-popup-en").on("click", function() {
+            $("#scores-popup-en").addClass("hidden");
+        });
+
+        // 8) Tutorial buttons
+        $("#tutorial-button-el").on("click", function() {
+            $("#tutorial-popup-el").removeClass("hidden");
+        });
+        $("#close-tutorial-popup-el").on("click", function() {
+            $("#tutorial-popup-el").addClass("hidden");
+        });
+        $("#tutorial-button-en").on("click", function() {
+            $("#tutorial-popup-en").removeClass("hidden");
+        });
+        $("#close-tutorial-popup-en").on("click", function() {
+            $("#tutorial-popup-en").addClass("hidden");
+        });
+
+        // 9) Stop timer on page refresh/close
+        window.addEventListener('beforeunload', () => {
+            stopTimer();
+        });
+    }
+
+    //-------------------------------------------------------------------------
+    //  C) Support / Utility functions
+    //-------------------------------------------------------------------------
     function logGraphDetails(edges) {
         const edgeTable = edges.map(edge => ({
             Vertex1: edge.data.source,
@@ -88,12 +232,10 @@ $(document).ready(function() {
         console.table(edgeTable);
     }
 
-    // Function to export data for download
     function exportDataForDownload(edgeTable) {
         window.exportData = { table: edgeTable };
     }
 
-    // Function to initialize Cytoscape
     function initializeCytoscape(nodes, edges) {
         // Assign `alt` attribute dynamically for left/right alternation
         edges.forEach((edge, index) => {
@@ -158,7 +300,6 @@ $(document).ready(function() {
         });
     }
 
-    // Helper functions for deep comparison
     function objectsEqual(a, b) {
         const aKeys = Object.keys(a);
         const bKeys = Object.keys(b);
@@ -177,151 +318,34 @@ $(document).ready(function() {
         return true;
     }
 
-    // Function to set up event listeners
-    function setupEventListeners(cy, allMSTs, ids) {
-        // Edge selection event
-        cy.off('tap', 'edge').on('tap', 'edge', function(evt) {
-            handleEdgeSelection(evt, cy, actionHistory, ids.actionTableId);
-        });
-
-        // Undo button event
-        $('#' + ids.undoButtonId).off('click').on('click', function() {
-            handleUndoAction(cy, actionHistory, ids.actionTableId);
-        });
-
-        // Submit button event
-        $('#' + ids.submitButtonId).off('click').on('click', function() {
-            console.log("Submit button clicked!");
-            handleSubmitAction(cy, actionHistory, allMSTs, ids);
-        });
-
-        // Quit button event
-        $('#quit-button').off('click').on('click', () => {
-            stopTimer();
-            window.location.href = '/play-kruskal';
-        });
-
-        // Pause button event
-        $(`#${ids.pauseButtonId}`).off('click').on('click', () => {
-            pauseTimer();
-            $(`#${ids.pausePopupId}`).removeClass('hidden');
-        });
-
-        // Resume button event
-        $(`#${ids.pausePopupId} .resume-button`).off('click').on('click', () => {
-            resumeTimer();
-            $(`#${ids.pausePopupId}`).addClass('hidden');
-        });
-
-        // Restart button event
-        $(`#${ids.popupId} .restart-button`).click(() => {
-            console.log("Restart button clicked (from SUBMIT popup)");
-            const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
-            const params = JSON.parse(sessionStorage.getItem('gameParams'));
-
-            if (graphData && params) {
-                if (typeof window.cy !== "undefined" && window.cy !== null) {
-                    if (typeof window.cy.destroy === "function") {
-                        console.log("Destroying Cytoscape instance...");
-                        window.cy.destroy();
-                    }
-                }
-                window.cy = null;
-
-                actionHistory = [];
-                $("#action-table-en").empty();
-                $("#action-table-el").empty();
-                resetEdgeWeights();
-                resetTimer();
-
-                // Restart the timer after a short delay
-                setTimeout(() => {
-                    startTimer();
-                }, 100);
-
-                window.cy = initGame(
-                    params.level,
-                    params.vertices,
-                    params.edgesCount,
-                    params.minWeight,
-                    params.maxWeight,
-                    graphData
-                );
-
-                $(`#${ids.popupId}`).addClass('hidden');
-            }
-        });
-        // Quit button inside pause popup
-        $(`#${ids.pausePopupId} .quit-button`).off('click').on('click', () => {
-            stopTimer();
-            window.location.href = '/play-kruskal';
-        });
-
-        // 1) Attach click events for open/close of Greek popup
-        $("#scores-button-el").on("click", function() {
-            // Show Greek popup
-            $("#scores-popup-el").removeClass("hidden");
-            // Then load the Greek scores
-        });
-        $("#close-scores-popup-el").on("click", function() {
-            $("#scores-popup-el").addClass("hidden");
-        });
-
-        // 2) Attach click events for open/close of English popup
-        $("#scores-button-en").on("click", function() {
-            // Show English popup
-            $("#scores-popup-en").removeClass("hidden");
-            // Then load the English scores
-        });
-        $("#close-scores-popup-en").on("click", function() {
-            $("#scores-popup-en").addClass("hidden");
-        });
-        // Greek tutorial popup
-        $("#tutorial-button-el").on("click", function() {
-            $("#tutorial-popup-el").removeClass("hidden");
-        });
-        $("#close-tutorial-popup-el").on("click", function() {
-            $("#tutorial-popup-el").addClass("hidden");
-        });
-
-        // English tutorial popup
-        $("#tutorial-button-en").on("click", function() {
-            $("#tutorial-popup-en").removeClass("hidden");
-        });
-        $("#close-tutorial-popup-en").on("click", function() {
-            $("#tutorial-popup-en").addClass("hidden");
-        });
-
-
-        window.addEventListener('beforeunload', function() {
-            stopTimer();
-        });
-    }
-
-    // Function to handle edge selection
+    // Edge selection
     function handleEdgeSelection(evt, cy, actionHistory, actionTableId) {
         const edge = evt.target;
-        const existingActionIndex = actionHistory.findIndex(action => action.edge.id() === edge.id());
+        const existingActionIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
         if (existingActionIndex !== -1) {
             handleUndoAction(cy, actionHistory, actionTableId);
             return;
         }
+
         edge.style({ 'width': 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
         sourceNode.style('background-color', '#94d95f');
         targetNode.style('background-color', '#94d95f');
+
         actionHistory.push({ edge, sourceNode, targetNode });
         updateActionTable(actionHistory, actionTableId);
+
         const edgeWeight = parseInt(edge.data('weight'));
         addEdgeWeight(edgeWeight);
     }
 
-    // Function to handle undo action
+    // Undo
     function handleUndoAction(cy, actionHistory, actionTableId) {
         if (actionHistory.length > 0) {
             const { edge, sourceNode, targetNode } = actionHistory.pop();
             edge.style({ 'width': 1, 'line-color': '#999' });
+
             if (!isNodeInTable(actionHistory, sourceNode.id())) {
                 sourceNode.style('background-color', '#e9ecef');
             }
@@ -329,58 +353,31 @@ $(document).ready(function() {
                 targetNode.style('background-color', '#e9ecef');
             }
             updateActionTable(actionHistory, actionTableId);
+
             const edgeWeight = parseInt(edge.data('weight'));
             subtractEdgeWeight(edgeWeight);
         }
     }
 
-    // Function to handle submit action using deep object comparison
+    // Submit
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() is executing!");
 
-        // Build player's solution with 1-based numbering (preserving click order)
         const playerSolution = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
             const weight = parseInt(edge.data('weight'));
-            if (v1 > v2) { // swap so that smaller vertex is Vertex1
-                [v1, v2] = [v2, v1];
-            }
+            if (v1 > v2) [v1, v2] = [v2, v1];
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
-
         console.log("Player's solution (canonical):", playerSolution);
 
-        // **FIX: Prevent empty solutions from being considered correct**
-        if (playerSolution.length === 0) {
-            console.log("No edges selected. Submission is invalid.");
-            const lang = localStorage.getItem('language') || 'el';
-            const messages = {
-                en: {
-                    incorrect: "Your answer is not correct...",
-                    incorrect2: "You didn't select any edges! Try again.",
-                    score: "Your Score is: 0"
-                },
-                el: {
-                    incorrect: "Η απάντησή σας δεν είναι σωστή...",
-                    incorrect2: "Δεν επιλέξατε καμία ακμή! Προσπαθήστε ξανά.",
-                    score: "Το Σκορ σας είναι: 0"
-                }
-            };
-
-            const popupMessage = $('#' + ids.popupMessageId);
-            popupMessage.text(messages[lang].incorrect);
-            popupMessage.append(`<br>${messages[lang].incorrect2}`);
-            popupMessage.append(`<br>${messages[lang].score}`);
-            $('#' + ids.popupId).removeClass('hidden');
-
-            stopTimer();
-            return;
-        }
-
-        // Compare player's solution (without normalization) against ordering tables.
+        // Compare player's solution
         let isCorrect = false;
-        orderingTables.forEach(item => {
+        allMSTs.forEach(mst => {
+            // ...
+        });
+        window.orderingTables.forEach(item => {
             item.orderings.forEach(ordering => {
                 if (arraysEqual(playerSolution, ordering)) {
                     isCorrect = true;
@@ -392,15 +389,12 @@ $(document).ready(function() {
             console.log("No valid ordering matched the player's solution.");
         }
 
-        hideSubmitLineOnClick('#submit-line-en, #submit-line-el');
+        stopTimer();
 
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
-        console.log("Total Vertices:", totalVertices, "Total Edges:", totalEdges);
-        console.log("Total Time in Seconds:", totalSeconds);
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
         let score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
-        console.log("Calculated Score:", score);
 
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
@@ -426,27 +420,22 @@ $(document).ready(function() {
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        stopTimer();
-
         if (score > 0) {
             const username = sessionStorage.getItem('username');
-            console.log(`Retrieved username from sessionStorage: ${username}`);
-            if (!username) {
-                console.error('Username is null or undefined in sessionStorage');
-                return;
+            if (username) {
+                const method = $('#gameMethod').val(); // "kruskal"
+                updatePlayerScore(username, score, method)
+                    .then((result) => {
+                        console.log('Score added successfully!', result);
+                    })
+                    .catch((err) => {
+                        console.error('Error adding score:', err);
+                    });
             }
-            const method = $('#gameMethod').val();
-            console.log(`Username: ${username}, Method: ${method}`);
-            updatePlayerScore(username, score, method)
-                .then((result) => {
-                    console.log('Score added successfully!', result);
-                })
-                .catch((err) => {
-                    console.error('Error adding score:', err);
-                });
         }
     }
 
+    // On page refresh/close
     window.addEventListener('beforeunload', function() {
         stopTimer();
     });

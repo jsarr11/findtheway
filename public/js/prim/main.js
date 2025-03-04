@@ -1,15 +1,21 @@
 import cytoscape from 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.20.0/cytoscape.esm.min.js';
-import { primAllMSTs, generateMSTOrderingTables  } from './prim-mst.js';
+import { primAllMSTs, generateMSTOrderingTables } from './prim-mst.js';
 import { createGraph, buildAdjacencyMatrix } from '../common/graph-utils.js';
 import { updateActionTable, hasOtherConnectedBlueEdges } from './ui-utils.js';
 import { isEdgeInTable, isNodeInTable, logAdjacencyMatrix } from '../common/common.js';
 import '../common/timer.js';
-import { totalSeconds, stopTimer, startTimer, pauseTimer, resumeTimer, resetTimer } from '../common/timer.js';
+import {
+    totalSeconds, stopTimer, startTimer,
+    pauseTimer, resumeTimer, resetTimer
+} from '../common/timer.js';
 import '../common/edgeWeights.js';
-import { addEdgeWeight, subtractEdgeWeight, resetEdgeWeights } from '../common/edgeWeights.js';
+import {
+    addEdgeWeight, subtractEdgeWeight, resetEdgeWeights
+} from '../common/edgeWeights.js';
 import { updatePlayerScore } from '../common/scoreUpdater.js';
 
 $(document).ready(function() {
+
     const urlParams = new URLSearchParams(window.location.search);
     const level = urlParams.get('level') || 'beginner';
     const vertices = parseInt(urlParams.get('vertices')) || 5;
@@ -26,14 +32,28 @@ $(document).ready(function() {
         maxWeight
     }));
 
-    let actionHistory = [];
-    let orderingTables = [];
-    let primStartingNodeId;
+    // Global variables
+    window.actionHistory = [];
+    window.orderingTables = [];
+    window.primStartingNodeId = null;
 
-    // Initialize the game
-    initGame(level, vertices, edgesCount, minWeight, maxWeight);
+    // 1) Only call initGame once initially, storing the new Cytoscape instance in window.cy
+    window.cy = initGame(level, vertices, edgesCount, minWeight, maxWeight);
 
-    function initGame(level, vertices, edgesCount, minWeight, maxWeight, graphData = null) {
+    // 2) Now attach all the jQuery button listeners *once*
+    setupGlobalButtonListeners();
+
+    //----------------------------------------------------------------
+    //  initGame(...) => create the graph & set up *Cytoscape* listeners
+    //----------------------------------------------------------------
+    function initGame(
+        level,
+        vertices,
+        edgesCount,
+        minWeight,
+        maxWeight,
+        graphData = null
+    ) {
         const currentLanguage = localStorage.getItem('language') || 'el';
         const suffix = currentLanguage === 'en' ? '-en' : '-el';
 
@@ -43,28 +63,29 @@ $(document).ready(function() {
             submitButtonId: `submit-button${suffix}`,
             popupId: `popup${suffix}`,
             popupMessageId: `popup-message${suffix}`,
-            popupCloseId: `popup-close${suffix}`,
             pauseButtonId: `pause-button${suffix}`,
             pausePopupId: `pause-popup${suffix}`
         };
 
         let nodes, edges, startingNodeId;
         if (graphData) {
-            // Use existing graph data
+            // Use existing graph data on restart
             nodes = graphData.nodes;
             edges = graphData.edges;
             startingNodeId = graphData.startingNodeId;
+            window.primStartingNodeId = startingNodeId;
         } else {
-            // Generate new graph
+            // Create brand new graph
             const graphResult = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
             nodes = graphResult.nodes;
             edges = graphResult.edges;
             startingNodeId = setStartingNode(nodes);
-            primStartingNodeId = startingNodeId;
-            sessionStorage.setItem('currentGraph', JSON.stringify({ nodes, edges, startingNodeId }));
+            window.primStartingNodeId = startingNodeId;
+            sessionStorage.setItem(
+                'currentGraph',
+                JSON.stringify({ nodes, edges, startingNodeId })
+            );
         }
-
-
 
         logGraphDetails(edges, startingNodeId);
 
@@ -72,39 +93,184 @@ $(document).ready(function() {
         logAdjacencyMatrix(adjacencyMatrix);
 
         const allMSTs = primAllMSTs(adjacencyMatrix, startingNodeId);
-        orderingTables = generateMSTOrderingTables(allMSTs);
+        window.orderingTables = generateMSTOrderingTables(allMSTs);
 
         exportDataForDownload(edges, startingNodeId);
 
-        const cy = initializeCytoscape(nodes, edges, startingNodeId);
+        const newCy = initializeCytoscape(nodes, edges, startingNodeId);
 
-        setupEventListeners(cy, allMSTs, ids, startingNodeId);
+        // Set up Cytoscape event => each time we create a new graph, we rebind these
+        newCy.on('tap', 'edge', evt => {
+            handleEdgeSelection(evt, newCy, window.actionHistory, startingNodeId, ids.actionTableId);
+        });
+
+        // Because "undo" & "submit" buttons are handled globally, we *don't* re-bind them here
+
+        return newCy; // Return the new Cytoscape instance
     }
 
-    // Function to set starting node randomly
+    //-------------------------------------------------------------------------------------------------
+    //  Setup all jQuery listeners exactly once, referencing window.cy / window.actionHistory as needed
+    //-------------------------------------------------------------------------------------------------
+    function setupGlobalButtonListeners() {
+
+        // The "undo" button
+        $('#undo-button-en, #undo-button-el').on('click', function() {
+            // We don't know which language is current, so listening on both
+            handleUndoAction(
+                window.cy,
+                window.actionHistory,
+                window.primStartingNodeId,
+                'action-table-en' // or we can detect the current one if needed
+            );
+            handleUndoAction(
+                window.cy,
+                window.actionHistory,
+                window.primStartingNodeId,
+                'action-table-el'
+            );
+        });
+
+        // The "submit" button
+        $('#submit-button-en, #submit-button-el').on('click', function() {
+            const currentLanguage = localStorage.getItem('language') || 'el';
+            const suffix = currentLanguage === 'en' ? '-en' : '-el';
+            const ids = {
+                popupId: `popup${suffix}`,
+                popupMessageId: `popup-message${suffix}`
+            };
+
+            handleSubmitAction(
+                window.cy,
+                window.actionHistory,
+                window.orderingTables,
+                ids
+            );
+        });
+
+        // The "quit" button
+        $('#quit-button').on('click', function() {
+            stopTimer();
+            window.location.href = '/play-prim';
+        });
+
+        // The "pause" button
+        $('#pause-button-en, #pause-button-el').on('click', function() {
+            pauseTimer();
+            // We show whichever language's pause popup is currently in use
+            const currentLanguage = localStorage.getItem('language') || 'el';
+            const suffix = currentLanguage === 'en' ? '-en' : '-el';
+            $(`#pause-popup${suffix}`).removeClass('hidden');
+        });
+
+        // "resume" inside the pause popup
+        $('.resume-button').on('click', function() {
+            resumeTimer();
+            $(this).closest('.popup').addClass('hidden');
+        });
+
+        // "quit" inside the pause popup
+        $('.quit-button').on('click', function() {
+            stopTimer();
+            window.location.href = '/play-prim';
+        });
+
+        // "restart" inside the SUBMIT popup
+        $('.restart-button').on('click', function() {
+            console.log("Restart button clicked (Approach B) — global listener.");
+
+            const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
+            const params = JSON.parse(sessionStorage.getItem('gameParams'));
+            if (!graphData || !params) return;
+
+            // 1) Destroy old Cytoscape instance
+            if (window.cy && typeof window.cy.destroy === 'function') {
+                console.log("Destroying old Cytoscape instance...");
+                window.cy.destroy();
+            }
+            window.cy = null;
+
+            // 2) Clear relevant items
+            window.actionHistory = [];
+            $("#action-table-en").empty();
+            $("#action-table-el").empty();
+            resetEdgeWeights();
+            resetTimer();
+
+            // 3) Start fresh
+            setTimeout(() => startTimer(), 100);
+
+            // 4) Re-init the game with same graph
+            window.cy = initGame(
+                params.level,
+                params.vertices,
+                params.edgesCount,
+                params.minWeight,
+                params.maxWeight,
+                graphData
+            );
+
+            // Hide the SUBMIT popup
+            $(this).closest('.popup').addClass('hidden');
+        });
+
+        // Scores popups
+        $("#scores-button-el").on("click", function() {
+            $("#scores-popup-el").removeClass("hidden");
+        });
+        $("#close-scores-popup-el").on("click", function() {
+            $("#scores-popup-el").addClass("hidden");
+        });
+        $("#scores-button-en").on("click", function() {
+            $("#scores-popup-en").removeClass("hidden");
+        });
+        $("#close-scores-popup-en").on("click", function() {
+            $("#scores-popup-en").addClass("hidden");
+        });
+
+        // Tutorial popups
+        $("#tutorial-button-el").on("click", function() {
+            $("#tutorial-popup-el").removeClass("hidden");
+        });
+        $("#close-tutorial-popup-el").on("click", function() {
+            $("#tutorial-popup-el").addClass("hidden");
+        });
+        $("#tutorial-button-en").on("click", function() {
+            $("#tutorial-popup-en").removeClass("hidden");
+        });
+        $("#close-tutorial-popup-en").on("click", function() {
+            $("#tutorial-popup-en").addClass("hidden");
+        });
+
+        // Stop timer on page refresh/close
+        window.addEventListener('beforeunload', function() {
+            stopTimer();
+        });
+    }
+
+    //---------------------------
+    //  Helper / Utility methods
+    //---------------------------
     function setStartingNode(nodes) {
-        const startingNodeIndex = Math.floor(Math.random() * nodes.length);
-        return nodes[startingNodeIndex].data.id;
+        const idx = Math.floor(Math.random() * nodes.length);
+        return nodes[idx].data.id;
     }
 
-    // Function to log graph details
     function logGraphDetails(edges, startingNodeId) {
         const edgeTable = edges.map(edge => ({
             Vertex1: edge.data.source,
             Vertex2: edge.data.target,
             Weight: edge.data.weight
         }));
-        console.log("Vertices and Edges with Weights:");
+        console.log("Edges with Weights:");
         console.table(edgeTable);
         console.log("Starting Vertex:", startingNodeId);
     }
 
-    // Function to export data for download
     function exportDataForDownload(edgeTable, startingNodeId) {
         window.exportData = { table: edgeTable, startingVertex: startingNodeId };
     }
 
-    // Function to initialize Cytoscape
     function initializeCytoscape(nodes, edges, startingNodeId) {
         return cytoscape({
             container: document.getElementById('cy'),
@@ -123,8 +289,8 @@ $(document).ready(function() {
                         'color': '#000000',
                         'text-outline-color': '#ffffff',
                         'text-outline-width': 1,
-                        'width': '40px',
-                        'height': '40px',
+                        width: '40px',
+                        height: '40px',
                         'font-size': '8px'
                     }
                 },
@@ -135,14 +301,14 @@ $(document).ready(function() {
                         'background-image': 'url(../img/house_starting_node.png)',
                         'background-fit': 'cover',
                         'background-opacity': 1,
-                        'width': '50px',
-                        'height': '50px'
+                        width: '50px',
+                        height: '50px'
                     }
                 },
                 {
                     selector: 'edge',
                     style: {
-                        'width': 1,
+                        width: 1,
                         'line-color': '#999',
                         'source-label': 'data(weight)',
                         'edge-distances': 'intersection',
@@ -151,22 +317,22 @@ $(document).ready(function() {
                         'source-text-margin-x': 5,
                         'source-text-margin-y': 5,
                         'text-margin-y': -5,
-                        'color': '#000000',
+                        color: '#000000',
                         'font-size': '6px',
                         'text-wrap': 'wrap',
-                        'overlay-padding': '10px' // Larger clickable area
+                        'overlay-padding': '10px'
                     }
                 },
                 {
-                    selector: 'edge[data(alt) = "left"]', // Custom attribute for left shift
+                    selector: 'edge[data(alt) = "left"]',
                     style: {
-                        'text-margin-x': -8 // Shift left
+                        'text-margin-x': -8
                     }
                 },
                 {
-                    selector: 'edge[data(alt) = "right"]', // Custom attribute for right shift
+                    selector: 'edge[data(alt) = "right"]',
                     style: {
-                        'text-margin-x': 8 // Shift right
+                        'text-margin-x': 8
                     }
                 }
             ],
@@ -181,144 +347,17 @@ $(document).ready(function() {
         });
     }
 
-    // Function to set up event listeners
-    function setupEventListeners(cy, allMSTs, ids, startingNodeId) {
-        // Existing edge selection functionality
-        cy.on('tap', 'edge', function(evt) {
-            handleEdgeSelection(evt, cy, actionHistory, startingNodeId, ids.actionTableId);
-        });
-
-        // Existing undo button functionality
-        $(`#${ids.undoButtonId}`).click(() => {
-            handleUndoAction(cy, actionHistory, startingNodeId, ids.actionTableId);
-        });
-
-        // Existing submit button functionality
-        $(`#${ids.submitButtonId}`).click(() => {
-            handleSubmitAction(cy, actionHistory, allMSTs, ids);
-        });
-
-        // Existing quit button functionality
-        $('#quit-button').click(() => {
-            stopTimer();
-            window.location.href = '/play-prim';
-        });
-
-        // New pause button functionality
-        $(`#${ids.pauseButtonId}`).click(() => {
-            pauseTimer();
-            $(`#${ids.pausePopupId}`).removeClass('hidden');
-        });
-
-        // New resume button functionality
-        $(`#${ids.pausePopupId} .resume-button`).click(() => {
-            resumeTimer();
-            $(`#${ids.pausePopupId}`).addClass('hidden');
-        });
-
-        // New restart button functionality
-        $(`#${ids.popupId} .restart-button`).click(() => {
-            console.log("Restart button clicked (from SUBMIT popup)");
-
-            const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
-            const params = JSON.parse(sessionStorage.getItem('gameParams'));
-
-            if (graphData && params) {
-                // Destroy Cytoscape instance safely
-                if (typeof window.cy !== "undefined" && window.cy !== null) {
-                    if (typeof window.cy.destroy === "function") {
-                        console.log("Destroying Cytoscape instance...");
-                        window.cy.destroy();
-                    }
-                }
-                window.cy = null;  // Clear Cytoscape reference
-
-                // Reset or clear relevant items
-                actionHistory = [];
-                $("#action-table-en").empty();
-                $("#action-table-el").empty();
-                resetEdgeWeights();
-                resetTimer();
-
-                // Restart the timer properly after reset
-                setTimeout(() => {
-                    startTimer();
-                }, 100);
-
-                // Reinitialize the game
-                window.cy = initGame(
-                    params.level,
-                    params.vertices,
-                    params.edgesCount,
-                    params.minWeight,
-                    params.maxWeight,
-                    graphData
-                );
-
-                // Hide the SUBMIT popup
-                $(`#${ids.popupId}`).addClass('hidden');
-            }
-        });
-        // New quit button functionality (inside pause popup)
-        $(`#${ids.pausePopupId} .quit-button`).click(() => {
-            stopTimer();
-            window.location.href = '/play-prim';
-        });
-
-        // 1) Attach click events for open/close of Greek popup
-        $("#scores-button-el").on("click", function() {
-            // Show Greek popup
-            $("#scores-popup-el").removeClass("hidden");
-            // Then load the Greek scores
-        });
-        $("#close-scores-popup-el").on("click", function() {
-            $("#scores-popup-el").addClass("hidden");
-        });
-
-        // 2) Attach click events for open/close of English popup
-        $("#scores-button-en").on("click", function() {
-            // Show English popup
-            $("#scores-popup-en").removeClass("hidden");
-            // Then load the English scores
-        });
-        $("#close-scores-popup-en").on("click", function() {
-            $("#scores-popup-en").addClass("hidden");
-        });
-        // Greek tutorial popup
-        $("#tutorial-button-el").on("click", function() {
-            $("#tutorial-popup-el").removeClass("hidden");
-        });
-        $("#close-tutorial-popup-el").on("click", function() {
-            $("#tutorial-popup-el").addClass("hidden");
-        });
-
-        // English tutorial popup
-        $("#tutorial-button-en").on("click", function() {
-            $("#tutorial-popup-en").removeClass("hidden");
-        });
-        $("#close-tutorial-popup-en").on("click", function() {
-            $("#tutorial-popup-en").addClass("hidden");
-        });
-
-
-        // Existing beforeunload functionality to stop timer on page refresh/close
-        window.addEventListener('beforeunload', () => {
-            stopTimer();
-        });
-    }
-
-    // Function to handle edge selection
+    //---------------------------
+    //  In-game event handlers
+    //---------------------------
     function handleEdgeSelection(evt, cy, actionHistory, startingNodeId, actionTableId) {
         const edge = evt.target;
-        const existingActionIndex = actionHistory.findIndex(action => action.edge.id() === edge.id());
-
+        const existingActionIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
         if (existingActionIndex !== -1) {
-            // If the edge is already in history, undo it
             handleUndoAction(cy, actionHistory, startingNodeId, actionTableId);
             return;
         }
-
-        edge.style({ 'width': 4, 'line-color': '#94d95f' });
+        edge.style({ width: 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
 
@@ -328,13 +367,25 @@ $(document).ready(function() {
         actionHistory.push({ edge, sourceNode, targetNode });
         updateActionTable(actionHistory, actionTableId);
 
-        // Add the weight of the selected edge
-        const edgeWeight = parseInt(edge.data('weight'));
-        addEdgeWeight(edgeWeight);
+        const w = parseInt(edge.data('weight'));
+        addEdgeWeight(w);
     }
 
+    function handleUndoAction(cy, actionHistory, startingNodeId, actionTableId) {
+        if (actionHistory.length > 0) {
+            const { edge, sourceNode, targetNode } = actionHistory.pop();
+            edge.style({ width: 1, 'line-color': '#999' });
 
-    // Function to set node style
+            resetNodeStyle(sourceNode, startingNodeId, cy);
+            resetNodeStyle(targetNode, startingNodeId, cy);
+
+            updateActionTable(actionHistory, actionTableId);
+
+            const w = parseInt(edge.data('weight'));
+            subtractEdgeWeight(w);
+        }
+    }
+
     function setNodeStyle(node, startingNodeId, startingNodeColor, otherNodeColor) {
         if (node.id() === startingNodeId) {
             node.style('background-color', startingNodeColor);
@@ -343,24 +394,6 @@ $(document).ready(function() {
         }
     }
 
-    // Function to handle undo action
-    function handleUndoAction(cy, actionHistory, startingNodeId, actionTableId) {
-        if (actionHistory.length > 0) {
-            const { edge, sourceNode, targetNode } = actionHistory.pop();
-            edge.style({ 'width': 1, 'line-color': '#999' });
-
-            resetNodeStyle(sourceNode, startingNodeId, cy);
-            resetNodeStyle(targetNode, startingNodeId, cy);
-
-            updateActionTable(actionHistory, actionTableId);
-
-            // Subtract the weight of the undone edge
-            const edgeWeight = parseInt(edge.data('weight'));
-            subtractEdgeWeight(edgeWeight);
-        }
-    }
-
-    // Function to reset node style
     function resetNodeStyle(node, startingNodeId, cy) {
         if (!isNodeInTable(actionHistory, node.id())) {
             if (node.id() === startingNodeId) {
@@ -379,7 +412,6 @@ $(document).ready(function() {
         return a.Vertex1 === b.Vertex1 && a.Vertex2 === b.Vertex2 && a.Weight === b.Weight;
     }
 
-
     function arraysEqual(arr1, arr2) {
         if (arr1.length !== arr2.length) return false;
         for (let i = 0; i < arr1.length; i++) {
@@ -388,17 +420,13 @@ $(document).ready(function() {
         return true;
     }
 
-
-    // Function to handle submit action
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() is executing!");
 
-        // Build player's solution (assume vertices are already 1-based in Prim)
         const playerSolution = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
             const weight = parseInt(edge.data('weight'));
-            // Ensure canonical edge ordering: smaller vertex first.
             if (v1 > v2) {
                 [v1, v2] = [v2, v1];
             }
@@ -406,51 +434,33 @@ $(document).ready(function() {
         });
         console.log("Player's solution (canonical):", JSON.stringify(playerSolution, null, 2));
 
-        /**
-         * Checks if an ordering (array of edge objects) is valid for Prim,
-         * given a starting node.
-         * The ordering is assumed to be in the order in which edges are added.
-         * Each edge must connect a vertex in the tree to one not in the tree.
-         */
         function isValidPrimOrdering(ordering, startingNode) {
-            // Initialize the tree with the starting node.
             const tree = new Set();
             tree.add(startingNode);
-
             for (let edge of ordering) {
-                // For each edge, check if one vertex is already in tree and the other is not.
                 const { Vertex1, Vertex2 } = edge;
                 const inTree1 = tree.has(Vertex1);
                 const inTree2 = tree.has(Vertex2);
-
-                // Valid if exactly one vertex is in the tree.
                 if ((inTree1 && !inTree2) || (inTree2 && !inTree1)) {
-                    // Add the new vertex.
                     tree.add(inTree1 ? Vertex2 : Vertex1);
                 } else {
-                    // Either both are in the tree (cycle) or both are not (disconnected).
                     return false;
                 }
             }
             return true;
         }
 
-
-        // Instead of normalizing (which might reorder the solution), use the raw array.
         let isCorrect = false;
-        // Compare player's solution against every ordering table generated by Prim.
-        orderingTables.forEach(item => {
+        allMSTs.forEach(item => {
+            // item is a single MST
+        });
+        window.orderingTables.forEach(item => {
             console.log(`Comparing against Prim MST #${item.mstIndex + 1} ordering(s):`);
             item.orderings.forEach((ordering, orderIndex) => {
-                // Only consider ordering tables that are valid per Prim's rules:
-                if (!isValidPrimOrdering(ordering, parseInt(primStartingNodeId))) {
+                if (!isValidPrimOrdering(ordering, parseInt(window.primStartingNodeId))) {
                     console.log(`-- Ordering ${orderIndex + 1} is invalid per Prim rules; skipping.`);
                     return;
                 }
-
-                console.log(`-- Ordering ${orderIndex + 1} (valid):`, JSON.stringify(ordering, null, 2));
-                console.log("-- Player solution:", JSON.stringify(playerSolution, null, 2));
-                console.log("Comparison result (JSON):", JSON.stringify(playerSolution) === JSON.stringify(ordering));
                 if (arraysEqual(playerSolution, ordering)) {
                     console.log("Player's solution matches ordering", orderIndex + 1, "for Prim MST #", item.mstIndex + 1);
                     isCorrect = true;
@@ -458,16 +468,14 @@ $(document).ready(function() {
             });
         });
 
-
         if (!isCorrect) {
             console.log("No valid ordering matched the player's solution.");
         }
 
-        // hideSubmitLineOnClick('#submit-line-en, #submit-line-el');
+        stopTimer();
 
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
-        console.log("Total Vertices:", totalVertices, "Total Edges:", totalEdges);
         console.log("Total Time in Seconds:", totalSeconds);
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
         let score = Math.floor((totalVertices * totalEdges * 100) / timeUsed);
@@ -491,40 +499,30 @@ $(document).ready(function() {
             }
         };
 
+        if (!isCorrect) score = 0;
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? messages[lang].correct : messages[lang].incorrect);
-        if (!isCorrect) {
-            score = 0;
-        }
         popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         popupMessage.addClass("");
         $('#' + ids.popupId).removeClass('hidden');
 
-        stopTimer();
-
         if (score > 0) {
             const username = sessionStorage.getItem('username');
-            console.log(`Retrieved username from sessionStorage: ${username}`);
-            if (!username) {
-                console.error('Username is null or undefined in sessionStorage');
-                return;
+            if (username) {
+                const method = $('#gameMethod').val();
+                updatePlayerScore(username, score, method)
+                    .then(result => {
+                        console.log('Score added successfully!', result);
+                    })
+                    .catch(err => {
+                        console.error('Error adding score:', err);
+                    });
             }
-            const method = $('#gameMethod').val();
-            console.log(`Username: ${username}, Method: ${method}`);
-            updatePlayerScore(username, score, method)
-                .then((result) => {
-                    console.log('Score added successfully!', result);
-                })
-                .catch((err) => {
-                    console.error('Error adding score:', err);
-                });
         }
     }
 
-    // stop time on back button from browser
     window.addEventListener('beforeunload', function() {
         stopTimer();
     });
-
 });
