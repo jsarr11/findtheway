@@ -420,23 +420,90 @@ $(document).ready(function() {
         return true;
     }
 
+    function buildComparisonTableHTML(correctSol, playerSol, mismatchIndex) {
+        // mismatchIndex = the row where they first differ, or -1 if none
+        // We'll produce an HTML table with two columns: "Correct" and "Player"
+        // We show the entire length of both solutions, row by row.
+
+        const maxLen = Math.max(correctSol.length, playerSol.length);
+
+        let html = `
+      <table style="border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="padding: 4px; border: 1px solid #ccc;">Correct MST</th>
+            <th style="padding: 4px; border: 1px solid #ccc;">Your MST</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+        for (let i = 0; i < maxLen; i++) {
+            const correctEdge = correctSol[i];
+            const playerEdge = playerSol[i];
+
+            // Convert edge to text or show blank if no edge
+            const correctText = correctEdge
+                ? `${correctEdge.Vertex1} - ${correctEdge.Vertex2} (w=${correctEdge.Weight})`
+                : '—';
+            const playerText = playerEdge
+                ? `${playerEdge.Vertex1} - ${playerEdge.Vertex2} (w=${playerEdge.Weight})`
+                : '—';
+
+            // If i == mismatchIndex => color the row red
+            const rowStyle = (i === mismatchIndex) ? 'background-color: #fdd;' : '';
+
+            html += `
+          <tr style="${rowStyle}">
+            <td style="padding:4px; border:1px solid #ccc;">${correctText}</td>
+            <td style="padding:4px; border:1px solid #ccc;">${playerText}</td>
+          </tr>
+        `;
+        }
+
+        html += `</tbody></table>`;
+        return html;
+    }
+
+
+    function findMismatchIndex(playerSol, correctSol) {
+        // We'll compare each edge in order, until they differ
+        const len = Math.min(playerSol.length, correctSol.length);
+        for (let i = 0; i < len; i++) {
+            if (
+                playerSol[i].Vertex1 !== correctSol[i].Vertex1 ||
+                playerSol[i].Vertex2 !== correctSol[i].Vertex2 ||
+                playerSol[i].Weight  !== correctSol[i].Weight
+            ) {
+                return i; // first mismatch
+            }
+        }
+        // If we get here, it means all matched up to 'len'
+        // Possible mismatch if lengths differ
+        if (playerSol.length !== correctSol.length) {
+            return len;
+        }
+        // Otherwise they are fully equal
+        return -1; // indicates no mismatch
+    }
+
+
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() is executing!");
 
+        // 1) Build playerSolution
         const playerSolution = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
             const weight = parseInt(edge.data('weight'));
-            if (v1 > v2) {
-                [v1, v2] = [v2, v1];
-            }
+            if (v1 > v2) [v1, v2] = [v2, v1];
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
         console.log("Player's solution (canonical):", JSON.stringify(playerSolution, null, 2));
 
+        // 2) Check if ordering is valid
         function isValidPrimOrdering(ordering, startingNode) {
-            const tree = new Set();
-            tree.add(startingNode);
+            const tree = new Set([ startingNode ]);
             for (let edge of ordering) {
                 const { Vertex1, Vertex2 } = edge;
                 const inTree1 = tree.has(Vertex1);
@@ -450,37 +517,44 @@ $(document).ready(function() {
             return true;
         }
 
+        // 3) See if the player's solution matches at least one correct MST ordering
         let isCorrect = false;
-        allMSTs.forEach(item => {
-            // item is a single MST
-        });
-        window.orderingTables.forEach(item => {
-            console.log(`Comparing against Prim MST #${item.mstIndex + 1} ordering(s):`);
-            item.orderings.forEach((ordering, orderIndex) => {
-                if (!isValidPrimOrdering(ordering, parseInt(window.primStartingNodeId))) {
-                    console.log(`-- Ordering ${orderIndex + 1} is invalid per Prim rules; skipping.`);
-                    return;
-                }
-                if (arraysEqual(playerSolution, ordering)) {
-                    console.log("Player's solution matches ordering", orderIndex + 1, "for Prim MST #", item.mstIndex + 1);
-                    isCorrect = true;
-                }
-            });
+        let correctOrderingFound = null;   // We'll store the correct ordering that we compare against
+        allMSTs.forEach(oneMST => {
+            // oneMST is an array of [u, v, w], but we've also got orderingTables for actual permutations
         });
 
-        if (!isCorrect) {
-            console.log("No valid ordering matched the player's solution.");
+        // We'll search in window.orderingTables for a valid ordering
+        for (let tableObj of window.orderingTables) {
+            for (let ordering of tableObj.orderings) {
+                // ordering is an array of {Vertex1, Vertex2, Weight} already 1-based
+                if (!isValidPrimOrdering(ordering, parseInt(window.primStartingNodeId))) {
+                    continue;
+                }
+                // Compare in full
+                if (arraysEqual(playerSolution, ordering)) {
+                    isCorrect = true;
+                    correctOrderingFound = ordering;
+                    break;
+                }
+                // If correct so far, store for partial comparison
+                if (!correctOrderingFound) {
+                    // We'll keep the first valid MST ordering (in case we want partial compare)
+                    correctOrderingFound = ordering;
+                }
+            }
+            if (isCorrect) break;
         }
 
+        // 4) Stop timer, compute score, etc. (unchanged)
         stopTimer();
-
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
-        console.log("Total Time in Seconds:", totalSeconds);
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
         let score = Math.floor((totalVertices * totalEdges * 100) / timeUsed);
         console.log("Calculated Score:", score);
 
+        // Language messages
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -499,28 +573,46 @@ $(document).ready(function() {
             }
         };
 
+        // 5) Show message in popup
         if (!isCorrect) score = 0;
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? messages[lang].correct : messages[lang].incorrect);
         popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
-        popupMessage.addClass("");
         $('#' + ids.popupId).removeClass('hidden');
 
+        // NEW: clear any old comparison table
+        const compareContainerId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
+        $(compareContainerId).empty();
+
+        // 6) If the user is incorrect, build the “where you messed up” table
+        if (!isCorrect && correctOrderingFound) {
+            const mismatchIndex = findMismatchIndex(playerSolution, correctOrderingFound);
+            console.log("Mismatch index found at:", mismatchIndex);
+
+            // Build an HTML table to show them side by side
+            const compareHTML = buildComparisonTableHTML(
+                correctOrderingFound,
+                playerSolution,
+                mismatchIndex
+            );
+
+            // Insert into the popup
+            $(compareContainerId).html(compareHTML);
+        }
+
+        // 7) If correct, update the player's score
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
                 const method = $('#gameMethod').val();
                 updatePlayerScore(username, score, method)
-                    .then(result => {
-                        console.log('Score added successfully!', result);
-                    })
-                    .catch(err => {
-                        console.error('Error adding score:', err);
-                    });
+                    .then((result) => { console.log('Score added successfully!', result); })
+                    .catch((err) => { console.error('Error adding score:', err); });
             }
         }
     }
+
 
     window.addEventListener('beforeunload', function() {
         stopTimer();

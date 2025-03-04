@@ -359,10 +359,79 @@ $(document).ready(function() {
         }
     }
 
-    // Submit
+    function measureSimilarity(playerSol, correctSol) {
+        const minLen = Math.min(playerSol.length, correctSol.length);
+        let score = 0;
+        for (let i = 0; i < minLen; i++) {
+            if (
+                playerSol[i].Vertex1 === correctSol[i].Vertex1 &&
+                playerSol[i].Vertex2 === correctSol[i].Vertex2 &&
+                playerSol[i].Weight  === correctSol[i].Weight
+            ) {
+                score++;
+            } else {
+                break; // If you only want consecutive matches from the start
+            }
+        }
+        return score;
+    }
+
+// Or if you want total matches in any index position, you’d do something else,
+// but consecutive order matching is typical for an MST edge sequence.
+
+    function findMismatchIndex(playerSol, correctSol) {
+        const len = Math.min(playerSol.length, correctSol.length);
+        for (let i = 0; i < len; i++) {
+            if (
+                playerSol[i].Vertex1 !== correctSol[i].Vertex1 ||
+                playerSol[i].Vertex2 !== correctSol[i].Vertex2 ||
+                playerSol[i].Weight  !== correctSol[i].Weight
+            ) {
+                return i; // Return first mismatch
+            }
+        }
+        if (playerSol.length !== correctSol.length) {
+            return len;
+        }
+        return -1; // means fully match
+    }
+
+    function buildComparisonTableHTML(correctSol, playerSol, mismatchIndex) {
+        // same as before
+        const maxLen = Math.max(correctSol.length, playerSol.length);
+        let html = `
+    <table style="border-collapse: collapse; margin-top: 10px;">
+      <thead>
+        <tr>
+          <th style="padding:4px; border:1px solid #ccc;">Correct MST</th>
+          <th style="padding:4px; border:1px solid #ccc;">Your MST</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+        for (let i = 0; i < maxLen; i++) {
+            const c = correctSol[i];
+            const p = playerSol[i];
+            const cText = c ? `${c.Vertex1}-${c.Vertex2} (w=${c.Weight})` : '—';
+            const pText = p ? `${p.Vertex1}-${p.Vertex2} (w=${p.Weight})` : '—';
+            const rowStyle = (i === mismatchIndex) ? 'background-color:#fdd;' : '';
+            html += `
+      <tr style="${rowStyle}">
+        <td style="padding:4px; border:1px solid #ccc;">${cText}</td>
+        <td style="padding:4px; border:1px solid #ccc;">${pText}</td>
+      </tr>
+    `;
+        }
+
+        html += `</tbody></table>`;
+        return html;
+    }
+
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() is executing!");
 
+        // 1) Build player's solution
         const playerSolution = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
@@ -370,32 +439,33 @@ $(document).ready(function() {
             if (v1 > v2) [v1, v2] = [v2, v1];
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
-        console.log("Player's solution (canonical):", playerSolution);
+        console.log("Player's solution:", playerSolution);
 
-        // Compare player's solution
-        let isCorrect = false;
-        allMSTs.forEach(mst => {
-            // ...
-        });
-        window.orderingTables.forEach(item => {
-            item.orderings.forEach(ordering => {
-                if (arraysEqual(playerSolution, ordering)) {
-                    isCorrect = true;
+        // 2) We'll measure similarity with each MST ordering in `window.orderingTables`.
+        let bestOrdering = null;
+        let bestScore = -1;
+
+        for (let tableObj of window.orderingTables) {
+            for (let ordering of tableObj.orderings) {
+                const similarity = measureSimilarity(playerSolution, ordering);
+                if (similarity > bestScore) {
+                    bestScore = similarity;
+                    bestOrdering = ordering;
                 }
-            });
-        });
-
-        if (!isCorrect) {
-            console.log("No valid ordering matched the player's solution.");
+            }
         }
 
-        stopTimer();
+        // If bestOrdering is fully identical, that means isCorrect = true
+        const isCorrect = bestScore === playerSolution.length && playerSolution.length === (bestOrdering?.length || 0);
 
+        // 3) Score logic
+        stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
         let score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
 
+        // 4) Show messages
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -420,6 +490,18 @@ $(document).ready(function() {
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
+        // 5) Clear old comparison table from the popup
+        const compareDivId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
+        $(compareDivId).empty();
+
+        // 6) If not correct, show side-by-side MST comparison with bestOrdering
+        if (!isCorrect && bestOrdering) {
+            const mismatchIndex = findMismatchIndex(playerSolution, bestOrdering);
+            const compareHTML = buildComparisonTableHTML(bestOrdering, playerSolution, mismatchIndex);
+            $(compareDivId).html(compareHTML);
+        }
+
+        // 7) If correct, update player’s score
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
@@ -434,6 +516,7 @@ $(document).ready(function() {
             }
         }
     }
+
 
     // On page refresh/close
     window.addEventListener('beforeunload', function() {
