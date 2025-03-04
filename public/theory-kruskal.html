@@ -23,7 +23,39 @@
         <div class="centered">
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
-        <h1>Θεωρια Kruskal</h1>
+        <div class="info">
+            <h1>Αλγόριθμος Kruskal</h1>
+            <h3>Ο αλγόριθμος Kruskal είναι ένας άπληστος αλγόριθμος για την εύρεση του Ελαχίστου
+                Καλυπτικού Δέντρου (MST) ενός γράφου, επιλέγοντας τις ακμές με τη μικρότερη δυνατή
+                τιμή και διασφαλίζοντας ότι δεν δημιουργούνται κύκλοι.</h3>
+            <h2>Βασική Ιδέα</h2>
+            <ul>
+                <li>Ταξινομούμε όλες τις ακμές του γράφου κατά αύξουσα σειρά βάρους.</li>
+                <li>Ξεκινώντας από την ελαφρύτερη ακμή, προσθέτουμε ακμές στο MST χωρίς να δημιουργούμε
+                    κύκλους.</li>
+                <li>Συνεχίζουμε μέχρι να συμπεριληφθούν Ν-1 ακμές, όπου Ν είναι ο αριθμός των κόμβων.</li>
+            </ul>
+            <h2>Περιγραφή Βημάτων</h2>
+            <ol>
+                <li>Ταξινομούμε τις ακμές κατά αύξουσα σειρά βάρους.</li>
+                <li>
+                    Ξεκινάμε με ένα κενό MST και ελέγχουμε κάθε ακμή:
+                    <ul>
+                        <li>Αν δεν δημιουργεί κύκλο, την προσθέτουμε στο MST.</li>
+                        <li>Αν δημιουργεί κύκλο, την απορρίπτουμε.</li>
+                    </ul>
+                </li>
+                <li>Επαναλαμβάνουμε το βήμα 2 μέχρι να έχουμε Ν-1 ακμές</li>
+            </ol>
+            <h2>Χαρακτηριστικά</h2>
+            <ul>
+                <li>Ο αλγόριθμος Kruskal επιλέγει πρώτα τις ελαφρύτερες ακμές, σε αντίθεση με τον Prim
+                    που ξεκινά από έναν κόμβο.</li>
+                <li>Είναι πιο αποδοτικός για αραιούς γράφους.
+                </li>
+                <li>Χρησιμοποιεί συχνά τη δομή Disjoint Set (Union-Find) για την ανίχνευση κύκλων.</li>
+            </ul>
+        </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-kruskal) -->
             <button id="back-button-el" onclick="window.location.href='/play-kruskal'">Πίσω</button>
@@ -35,7 +67,36 @@
         <div class="centered">
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
-        <h1>Theory Kruskal</h1>
+        <div class="info">
+            <h1>Kruskal algorithm</h1>
+            <h3>The Kruskal’s algorithm is a greedy algorithm used to find the Minimum Spanning Tree
+                (MST) by always choosing the smallest available edge while ensuring no cycles are formed.</h3>
+            <h2>Basic Idea</h2>
+            <ul>
+                <li>Sort all edges in increasing order of weight.</li>
+                <li>Start with the smallest edge and keep adding edges to the MST as long as they do not form a cycle.</li>
+                <li>Stop when exactly N-1 edges are included, where N is the number of vertices.</li>
+            </ul>
+            <h2>Steps of the Algorithm</h2>
+            <ol>
+                <li>Sort all edges in ascending order of weight.</li>
+                <li>
+                    Start with an empty MST and process each edge:
+                    <ul>
+                        <li>If it does not form a cycle, add it to the MST.</li>
+                        <li>If it forms a cycle, discard it.</li>
+                    </ul>
+                </li>
+                <li>Repeat step 2 until the MST contains N-1 edges.</li>
+            </ol>
+            <h2>Characteristics</h2>
+            <ul>
+                <li>Kruskal’s algorithm picks the lightest edges first, unlike Prim’s, which
+                    starts from a single vertex.</li>
+                <li>It is more efficient for sparse graphs.</li>
+                <li>It often uses Disjoint Set (Union-Find) to efficiently detect cycles.</li>
+            </ul>
+        </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-kruskal) -->
             <button id="back-button-en" onclick="window.location.href='/play-kruskal'">Back</button>

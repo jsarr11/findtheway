@@ -23,7 +23,34 @@
         <div class="centered">
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
-        <h1>Θεωρια Prim</h1>
+        <div class="info">
+            <h1>Αλγόριθμος Prim</h1>
+            <h3>Ο αλγόριθμος Prim είναι ένας αλγόριθμος που χρησιμοποιείται για την εύρεση του
+                Ελαχίστου Καλυπτικού Δέντρου (Minimum Spanning Tree - MST) ενός συνεκτικού,
+                βαρύνομενου και μη κατευθυνόμενου γράφου.</h3>
+            <h2>Βασική Ιδέα</h2>
+            <ul>
+                <li>Ξεκινάμε από τον αρχικό κόμβο του γράφου.</li>
+                <li>Σε κάθε βήμα, προσθέτουμε την ελάχιστη ακμή που συνδέει έναν κόμβο μέσα
+                    στο MST με έναν κόμβο έξω από το MST.</li>
+                <li>Επαναλαμβάνουμε τη διαδικασία μέχρι να συμπεριληφθούν όλοι οι κόμβοι.</li>
+            </ul>
+            <h2>Περιγραφή Βημάτων</h2>
+                <ol>
+                    <li>Αρχικοποιούμε το σύνολο του MST με τον αρχικό κόμβο.</li>
+                    <li>Βρίσκουμε την ακμή με το μικρότερο βάρος που συνδέει έναν κόμβο του
+                        MST με έναν κόμβο εκτός MST.</li>
+                    <li>Προσθέτουμε την ακμή στο MST και επαναλαμβάνουμε το βήμα 2 μέχρι να
+                        συμπεριληφθούν όλοι οι κόμβοι.</li>
+                </ol>
+            <h2>Χαρακτηριστικά</h2>
+            <ul>
+                <li>Ο αλγόριθμος Prim λειτουργεί τοπικά, χτίζοντας το MST βήμα-βήμα από έναν αρχικό κόμβο.</li>
+                <li>Είναι πιο αποδοτικός για πυκνούς γράφους.</li>
+                <li>Συγκριτικά με τον αλγόριθμο Kruskal, ο Prim’s επεκτείνει το MST προσθέτοντας κορυφές μία-μία,
+                    ενώ ο Kruskal επιλέγει ακμές με αύξουσα σειρά βάρους.</li>
+            </ul>
+        </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
             <button id="back-button-el" onclick="window.location.href='/play-prim'">Πίσω</button>
@@ -35,7 +62,31 @@
         <div class="centered">
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
-        <h1>Theory Prim</h1>
+        <div class="info">
+            <h1>Prim algorithm</h1>
+            <h3>The Prim’s algorithm is used to find the Minimum Spanning Tree (MST) of a connected,
+                weighted, undirected graph.</h3>
+            <h2>Basic Idea</h2>
+            <ul>
+                <li>We start from the starting vertex in the graph.</li>
+                <li>At each step, we add the minimum-weight edge that connects a vertex inside the
+                    MST to a vertex outside the MST.</li>
+                <li>We repeat the process until all vertices are included.</li>
+            </ul>
+            <h2>Steps of the Algorithm</h2>
+            <ol>
+                <li>Initialize the MST with the starting vertex.</li>
+                <li>Find the smallest weight edge that connects a vertex inside the MST with a vertex outside.</li>
+                <li>Add this edge to the MST and repeat step 2 until all vertices are included.</li>
+            </ol>
+            <h2>Characteristics</h2>
+            <ul>
+                <li>Prim’s algorithm works locally, growing the MST step by step from an initial vertex.</li>
+                <li>It is more efficient for dense graphs.</li>
+                <li>Compared to Kruskal’s algorithm, Prim’s grows the MST by adding vertices, while
+                    Kruskal’s picks edges in increasing weight order.</li>
+            </ul>
+        </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
             <button id="back-button-en" onclick="window.location.href='/play-prim'">Back</button>
