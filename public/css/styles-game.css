@@ -17,6 +17,10 @@ body {
     align-items: center;
     /*background-color: #e9ecef;*/
     background: url("../img/background3.jpg");
+    background-size: cover;
+    overflow-y: auto; /* ← Allows scrolling within game-container */
+    box-sizing: border-box;
+    position: relative;
 }
 
 #cy {
