@@ -507,19 +507,213 @@ $(document).ready(function() {
         return -1; // indicates no mismatch
     }
 
+    /**************************************
+     *  1) A utility to highlight edges & take a screenshot
+     **************************************/
+    function highlightEdgesAndScreenshot(cy, correctSol, playerSol) {
+        // We'll store original styles so we can revert after taking the screenshot
+        const oldStyles = {};
+
+        // Convert arrays to sets of "canonical" strings for easy membership checks
+        // e.g. an edge with (Vertex1=2, Vertex2=5, Weight=7) => "2-5-7"
+        function canonical(e) {
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a,b] = [b,a];
+            return `${a}-${b}-${e.Weight}`;
+        }
+        const correctSet = new Set(correctSol.map(canonical));
+        const playerSet  = new Set(playerSol.map(canonical));
+
+        // For *all edges in the graph*, we decide how to color them:
+        // - If in player's MST and in correctSet => green
+        // - If in player's MST and NOT in correctSet => red
+        // - Otherwise => revert to default (#999)
+        cy.edges().forEach(ed => {
+            const edgeId = ed.id();
+            oldStyles[edgeId] = {
+                width: ed.style('width'),
+                lineColor: ed.style('line-color')
+            };
+
+            // Check if this edge is in the player's MST
+            const eObj = {
+                Vertex1: parseInt(ed.data('source')),
+                Vertex2: parseInt(ed.data('target')),
+                Weight: parseInt(ed.data('weight'))
+            };
+            const str = canonical(eObj);
+
+            if (playerSet.has(str)) {
+                if (correctSet.has(str)) {
+                    // Correct edge
+                    ed.style({
+                        width: 4,
+                        'line-color': '#00b300'
+                    });
+                } else {
+                    // Player-chosen but wrong
+                    ed.style({
+                        width: 4,
+                        'line-color': 'red'
+                    });
+                }
+            } else {
+                // Not chosen by player => gray or something
+                ed.style({
+                    width: 1,
+                    'line-color': '#999'
+                });
+            }
+        });
+
+        // Take the screenshot
+        const dataUrl = cy.png({ bg: 'white' });
+
+        // Revert styles
+        cy.edges().forEach(ed => {
+            const edgeId = ed.id();
+            const old = oldStyles[edgeId];
+            ed.style({
+                width: old.width,
+                'line-color': old.lineColor
+            });
+        });
+
+        return dataUrl;
+    }
+
+    /**************************************
+     *  2) Build a more detailed comparison table
+     **************************************/
+    /**************************************
+     *  Bilingual Detailed Comparison Table
+     **************************************/
+    function buildDetailedComparisonHTML(lang, correctSol, playerSol) {
+        // Simple bilingual texts:
+        const i18n = {
+            en: {
+                correctMST: "Indicative solution",
+                yourMST: "Your answer",
+                start: "Start",
+                target: "Target",
+                weight: "Weight",
+                status: "Status",
+                correct: "Correct",
+                mistake: "Mistake",
+                ok: "OK",
+                dash: "—"
+            },
+            el: {
+                correctMST: "Ενδεικτική λύση",
+                yourMST: "Η λύση σου",
+                start: "Αρχή",
+                target: "Στόχος",
+                weight: "Βάρος",
+                status: "Κατάσταση",
+                correct: "Σωστό",
+                mistake: "Λάθος",
+                ok: "ΟΚ",
+                dash: "—"
+            }
+        };
+
+        // For convenience, pick the right texts
+        const t = (lang === 'en') ? i18n.en : i18n.el;
+
+        // We'll compare correctSol & playerSol index-by-index
+        const maxLen = Math.max(correctSol.length, playerSol.length);
+
+        let html = `
+    <table style="border-collapse: collapse; margin-top: 10px;">
+      <thead>
+        <tr>
+          <th colspan="4" style="border:1px solid #ccc;">${t.correctMST}</th>
+          <th colspan="4" style="border:1px solid #ccc;">${t.yourMST}</th>
+        </tr>
+        <tr>
+          <!-- Correct MST columns -->
+          <th style="padding:4px; border:1px solid #ccc;">${t.start}</th>
+          <th style="padding:4px; border:1px solid #ccc;">${t.target}</th>
+          <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+          <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+
+          <!-- Player MST columns -->
+          <th style="padding:4px; border:1px solid #ccc;">${t.start}</th>
+          <th style="padding:4px; border:1px solid #ccc;">${t.target}</th>
+          <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+          <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+        for (let i = 0; i < maxLen; i++) {
+            const cEdge = correctSol[i];
+            const pEdge = playerSol[i];
+
+            // Convert edge to text or show dash if no edge
+            let cStart  = cEdge ? cEdge.Vertex1 : t.dash;
+            let cTarget = cEdge ? cEdge.Vertex2 : t.dash;
+            let cWeight = cEdge ? cEdge.Weight  : t.dash;
+
+            let pStart  = pEdge ? pEdge.Vertex1 : t.dash;
+            let pTarget = pEdge ? pEdge.Vertex2 : t.dash;
+            let pWeight = pEdge ? pEdge.Weight  : t.dash;
+
+            // If we want a simple “OK” if both edges match exactly,
+            // otherwise "Correct"/"Mistake" or nothing:
+            let cStatus = '';
+            let pStatus = '';
+
+            if (cEdge && pEdge &&
+                cEdge.Vertex1 === pEdge.Vertex1 &&
+                cEdge.Vertex2 === pEdge.Vertex2 &&
+                cEdge.Weight  === pEdge.Weight
+            ) {
+                // They match exactly
+                cStatus = t.ok;
+                pStatus = t.ok;
+            } else {
+                if (cEdge) cStatus = t.correct;   // Means "This is the correct edge"
+                if (pEdge) pStatus = t.mistake;   // Means "Player selected this incorrectly"
+            }
+
+            html += `
+      <tr>
+        <!-- Correct MST columns -->
+        <td style="padding:4px; border:1px solid #ccc;">${cStart}</td>
+        <td style="padding:4px; border:1px solid #ccc;">${cTarget}</td>
+        <td style="padding:4px; border:1px solid #ccc;">${cWeight}</td>
+        <td style="padding:4px; border:1px solid #ccc;">${cStatus}</td>
+
+        <!-- Player MST columns -->
+        <td style="padding:4px; border:1px solid #ccc;">${pStart}</td>
+        <td style="padding:4px; border:1px solid #ccc;">${pTarget}</td>
+        <td style="padding:4px; border:1px solid #ccc;">${pWeight}</td>
+        <td style="padding:4px; border:1px solid #ccc;">${pStatus}</td>
+      </tr>
+    `;
+        }
+
+        html += `</tbody></table>`;
+        return html;
+    }
+
+
+
 
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() is executing!");
 
         // 1) Build playerSolution
-        const playerSolution = actionHistory.map(({ edge }) => {
+        const playerSolutionFull = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
             const weight = parseInt(edge.data('weight'));
             if (v1 > v2) [v1, v2] = [v2, v1];
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
-        console.log("Player's solution (canonical):", JSON.stringify(playerSolution, null, 2));
+        console.log("Player's solution (canonical):", JSON.stringify(playerSolutionFull, null, 2));
 
         // 2) Check if ordering is valid
         function isValidPrimOrdering(ordering, startingNode) {
@@ -528,6 +722,7 @@ $(document).ready(function() {
                 const { Vertex1, Vertex2 } = edge;
                 const inTree1 = tree.has(Vertex1);
                 const inTree2 = tree.has(Vertex2);
+                // Must connect exactly one new node each time
                 if ((inTree1 && !inTree2) || (inTree2 && !inTree1)) {
                     tree.add(inTree1 ? Vertex2 : Vertex1);
                 } else {
@@ -537,36 +732,29 @@ $(document).ready(function() {
             return true;
         }
 
-        // 3) See if the player's solution matches at least one correct MST ordering
+        // 3) Determine whether the player’s solution fully matches a correct MST
         let isCorrect = false;
-        let correctOrderingFound = null;   // We'll store the correct ordering that we compare against
-        allMSTs.forEach(oneMST => {
-            // oneMST is an array of [u, v, w], but we've also got orderingTables for actual permutations
-        });
+        let correctOrderingFound = null; // We'll store one correct MST ordering for comparison
 
-        // We'll search in window.orderingTables for a valid ordering
+        // If "allMSTs" is the final array or you rely on "window.orderingTables," adapt accordingly:
         for (let tableObj of window.orderingTables) {
             for (let ordering of tableObj.orderings) {
-                // ordering is an array of {Vertex1, Vertex2, Weight} already 1-based
                 if (!isValidPrimOrdering(ordering, parseInt(window.primStartingNodeId))) {
                     continue;
                 }
-                // Compare in full
-                if (arraysEqual(playerSolution, ordering)) {
+                if (arraysEqual(playerSolutionFull, ordering)) {
                     isCorrect = true;
                     correctOrderingFound = ordering;
                     break;
                 }
-                // If correct so far, store for partial comparison
                 if (!correctOrderingFound) {
-                    // We'll keep the first valid MST ordering (in case we want partial compare)
                     correctOrderingFound = ordering;
                 }
             }
             if (isCorrect) break;
         }
 
-        // 4) Stop timer, compute score, etc. (unchanged)
+        // 4) Stop timer, compute final score
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
@@ -574,7 +762,10 @@ $(document).ready(function() {
         let score = Math.floor((totalVertices * totalEdges * 100) / timeUsed);
         console.log("Calculated Score:", score);
 
-        // Language messages
+        // If user is wrong, zero out the score
+        if (!isCorrect) score = 0;
+
+        // 5) Show result message
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -593,42 +784,71 @@ $(document).ready(function() {
             }
         };
 
-        // 5) Show message in popup
-        if (!isCorrect) score = 0;
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? messages[lang].correct : messages[lang].incorrect);
         popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // NEW: clear any old comparison table
+        // Clear old table content
         const compareContainerId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareContainerId).empty();
 
-        // 6) If the user is incorrect, build the “where you messed up” table
+        // 6) If wrong & we have a correct MST to compare => show partial screenshot + full table
         if (!isCorrect && correctOrderingFound) {
-            const mismatchIndex = findMismatchIndex(playerSolution, correctOrderingFound);
+            // (A) Take a screenshot up to mismatch (so we don't reveal full correct MST in the image)
+            const mismatchIndex = findMismatchIndex(playerSolutionFull, correctOrderingFound);
             console.log("Mismatch index found at:", mismatchIndex);
 
-            // Build an HTML table to show them side by side
-            const compareHTML = buildComparisonTableHTML(
-                correctOrderingFound,
-                playerSolution,
-                mismatchIndex
-            );
+            // Make truncated copies for the screenshot only
+            const truncatedCorrect = mismatchIndex >= 0
+                ? correctOrderingFound.slice(0, mismatchIndex + 1)
+                : correctOrderingFound; // if mismatchIndex == -1 or no mismatch, use entire
+            const truncatedPlayer  = mismatchIndex >= 0
+                ? playerSolutionFull.slice(0, mismatchIndex + 1)
+                : playerSolutionFull;
 
-            // Insert into the popup
-            $(compareContainerId).html(compareHTML);
+            // 1) Screenshot only shows partial
+            const screenshotData = highlightEdgesAndScreenshot(
+                cy,
+                truncatedCorrect,
+                truncatedPlayer
+            );
+            // Insert the screenshot
+            $(compareContainerId).append(`
+            <div style="text-align:center; margin-bottom:10px;">
+              <img src="${screenshotData}" 
+                   alt="Comparison Graph"
+                   style="max-width:100%; border:1px solid #ccc;" />
+            </div>
+        `);
+
+            // (B) Show the **full** bilingual table (all edges) under the screenshot
+            // i.e. do NOT truncate for the final table, so the user sees the entire MST
+            const fullTableHtml = buildDetailedComparisonHTML(
+                lang,
+                correctOrderingFound,   // entire correct MST
+                playerSolutionFull      // entire player solution
+            );
+            $(compareContainerId).append(fullTableHtml);
+
+        } else if (!isCorrect) {
+            // If we are missing correctOrderingFound for some reason, you can just do something simpler
+            // e.g. "No MST found?" or fallback
         }
 
-        // 7) If correct, update the player's score
+        // 7) If correct, update the DB score
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
-                const method = $('#gameMethod').val();
+                const method = $('#gameMethod').val(); // e.g. "prim"
                 updatePlayerScore(username, score, method)
-                    .then((result) => { console.log('Score added successfully!', result); })
-                    .catch((err) => { console.error('Error adding score:', err); });
+                    .then((result) => {
+                        console.log('Score added successfully!', result);
+                    })
+                    .catch((err) => {
+                        console.error('Error adding score:', err);
+                    });
             }
         }
     }

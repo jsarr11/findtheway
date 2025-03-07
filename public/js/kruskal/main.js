@@ -31,19 +31,19 @@ $(document).ready(function() {
         maxWeight
     }));
 
-    // Make these global so we can use them in our global button listeners
+    // Global
     window.actionHistory = [];
     window.orderingTables = [];
 
-    // 1) Initialize the game once, storing the new Cytoscape instance in window.cy
+    // 1) Create the graph & MST logic
     window.cy = initGame(level, vertices, edgesCount, minWeight, maxWeight);
 
-    // 2) Set up all the jQuery button listeners exactly once
+    // 2) Set up button listeners
     setupGlobalButtonListeners();
 
-    //-------------------------------------------------------------------------
-    //  A) initGame(...) => sets up the Cytoscape instance & MST logic
-    //-------------------------------------------------------------------------
+    /********************************************************************
+     *  initGame(...) => sets up the Cytoscape instance & MST logic
+     ********************************************************************/
     function initGame(
         level,
         vertices,
@@ -68,14 +68,12 @@ $(document).ready(function() {
 
         let nodes, edges;
         if (graphData) {
-            // Use the existing graph from sessionStorage
             nodes = graphData.nodes;
             edges = graphData.edges;
         } else {
-            // Generate a new graph if none is saved
-            const graphResult = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
-            nodes = graphResult.nodes;
-            edges = graphResult.edges;
+            const result = createGraph(level, vertices, edgesCount, minWeight, maxWeight);
+            nodes = result.nodes;
+            edges = result.edges;
             sessionStorage.setItem('currentGraph', JSON.stringify({ nodes, edges }));
         }
 
@@ -84,42 +82,36 @@ $(document).ready(function() {
         // Build adjacency & find MSTs
         const adjacencyMatrix = buildAdjacencyMatrix(nodes, edges);
         logAdjacencyMatrix(adjacencyMatrix);
+
         const allMSTs = kruskalAllMSTs(adjacencyMatrix);
-        // Generate all ordering tables from MSTs
         window.orderingTables = generateMSTOrderingTables(allMSTs);
 
         exportDataForDownload(edges);
 
-        // 1) Create Cytoscape
+        // Create Cytoscape
         const newCy = initializeCytoscape(nodes, edges);
 
-        // 2) Only the Cytoscape event for edge selection goes here (Approach B)
+        // Hook up edge selection
         newCy.on('tap', 'edge', evt => {
             handleEdgeSelection(evt, newCy, window.actionHistory, ids.actionTableId);
         });
 
-        // Return the new Cytoscape instance
         return newCy;
     }
 
-    //-------------------------------------------------------------------------
-    //  B) Attach global jQuery event listeners exactly once (Approach B)
-    //-------------------------------------------------------------------------
+    /********************************************************************
+     *  Setup jQuery event listeners exactly once
+     ********************************************************************/
     function setupGlobalButtonListeners() {
-        // We'll attach all the button events for both English/Greek IDs here
-
-        // 1) Undo button
+        // Undo
         $('#undo-button-en').on('click', function() {
-            // We'll call handleUndoAction for both possible language tables
             handleUndoAction(window.cy, window.actionHistory, 'action-table-en');
         });
-
         $('#undo-button-el').on('click', function() {
-            // We'll call handleUndoAction for both possible language tables
             handleUndoAction(window.cy, window.actionHistory, 'action-table-el');
         });
 
-        // 2) Submit button
+        // Submit
         $('#submit-button-kruskal-en, #submit-button-kruskal-el').on('click', function() {
             const currentLanguage = localStorage.getItem('language') || 'el';
             const suffix = currentLanguage === 'en' ? '-en' : '-el';
@@ -130,13 +122,13 @@ $(document).ready(function() {
             handleSubmitAction(window.cy, window.actionHistory, window.orderingTables, ids);
         });
 
-        // 3) Quit button (outside popups)
+        // Quit
         $('#quit-button').on('click', function() {
             stopTimer();
             window.location.href = '/play-kruskal';
         });
 
-        // 4) Pause button
+        // Pause
         $('#pause-button-en, #pause-button-el').on('click', function() {
             pauseTimer();
             const currentLanguage = localStorage.getItem('language') || 'el';
@@ -144,7 +136,6 @@ $(document).ready(function() {
             $(`#pause-popup${suffix}`).removeClass('hidden');
         });
 
-        // 5) Resume & quit inside pause popup (both languages)
         $('.resume-button').on('click', function() {
             resumeTimer();
             $(this).closest('.popup').addClass('hidden');
@@ -154,14 +145,12 @@ $(document).ready(function() {
             window.location.href = '/play-kruskal';
         });
 
-        // 6) Restart button in the SUBMIT popup
+        // Restart
         $('.restart-button').on('click', function() {
-            console.log("Restart button clicked (Approach B for Kruskal).");
             const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
             const params = JSON.parse(sessionStorage.getItem('gameParams'));
             if (!graphData || !params) return;
 
-            // Destroy old Cytoscape instance
             if (window.cy && typeof window.cy.destroy === 'function') {
                 window.cy.destroy();
             }
@@ -175,7 +164,7 @@ $(document).ready(function() {
 
             setTimeout(() => startTimer(), 100);
 
-            // Re-init the game with the same graph
+            // Re-init
             window.cy = initGame(
                 params.level,
                 params.vertices,
@@ -185,11 +174,10 @@ $(document).ready(function() {
                 graphData
             );
 
-            // Hide the SUBMIT popup
             $(this).closest('.popup').addClass('hidden');
         });
 
-        // 7) Scores buttons
+        // Scores
         $("#scores-button-el").on("click", function() {
             $("#scores-popup-el").removeClass("hidden");
         });
@@ -203,7 +191,7 @@ $(document).ready(function() {
             $("#scores-popup-en").addClass("hidden");
         });
 
-        // 8) Tutorial buttons
+        // Tutorials
         $("#tutorial-button-el").on("click", function() {
             $("#tutorial-popup-el").removeClass("hidden");
         });
@@ -217,23 +205,22 @@ $(document).ready(function() {
             $("#tutorial-popup-en").addClass("hidden");
         });
 
-        // 9) Stop timer on page refresh/close
+        // Stop timer on unload
         window.addEventListener('beforeunload', () => {
             stopTimer();
         });
     }
 
-    //-------------------------------------------------------------------------
-    //  C) Support / Utility functions
-    //-------------------------------------------------------------------------
+    /********************************************************************
+     *  Helper / Utility
+     ********************************************************************/
     function logGraphDetails(edges) {
         const edgeTable = edges.map(edge => ({
             Vertex1: edge.data.source,
             Vertex2: edge.data.target,
             Weight: edge.data.weight
         }));
-        console.log("Vertices and Edges with Weights:");
-        console.table(edgeTable);
+        console.log("Kruskal edges:", edgeTable);
     }
 
     function exportDataForDownload(edgeTable) {
@@ -241,7 +228,7 @@ $(document).ready(function() {
     }
 
     function initializeCytoscape(nodes, edges) {
-        // Assign `alt` attribute dynamically for left/right alternation
+        // Assign alt for left/right
         edges.forEach((edge, index) => {
             edge.data.alt = index % 2 === 0 ? 'left' : 'right';
         });
@@ -304,6 +291,7 @@ $(document).ready(function() {
         });
     }
 
+    // Compare objects
     function objectsEqual(a, b) {
         const aKeys = Object.keys(a);
         const bKeys = Object.keys(b);
@@ -314,6 +302,7 @@ $(document).ready(function() {
         return true;
     }
 
+    // Compare arrays
     function arraysEqual(arr1, arr2) {
         if (arr1.length !== arr2.length) return false;
         for (let i = 0; i < arr1.length; i++) {
@@ -322,173 +311,319 @@ $(document).ready(function() {
         return true;
     }
 
-    // Edge selection
+    // Check if a node is still in the MST
+    function isNodeInTable(actionHistory, nodeId) {
+        return actionHistory.some(a => {
+            return a.sourceNode?.id() === nodeId || a.targetNode?.id() === nodeId;
+        });
+    }
+
+    /********************************************************************
+     *  Edge selection & Undo
+     ********************************************************************/
     function handleEdgeSelection(evt, cy, actionHistory, actionTableId) {
         const edge = evt.target;
-        const existingActionIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
-        if (existingActionIndex !== -1) {
+        const existingIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
+        if (existingIndex !== -1) {
             handleUndoAction(cy, actionHistory, actionTableId);
             return;
         }
 
-        edge.style({ 'width': 4, 'line-color': '#94d95f' });
+        edge.style({ width: 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
 
         sourceNode.style({
-                  'background-color': '#94d95f',
-                  'background-opacity': 1
-          });
-          targetNode.style({
-                  'background-color': '#94d95f',
-                  'background-opacity': 1
-          });
+            'background-color': '#94d95f',
+            'background-opacity': 1
+        });
+        targetNode.style({
+            'background-color': '#94d95f',
+            'background-opacity': 1
+        });
 
         actionHistory.push({ edge, sourceNode, targetNode });
         updateActionTable(actionHistory, actionTableId);
 
-        const edgeWeight = parseInt(edge.data('weight'));
-        addEdgeWeight(edgeWeight);
+        const w = parseInt(edge.data('weight'));
+        addEdgeWeight(w);
     }
 
-    // Undo
     function handleUndoAction(cy, actionHistory, actionTableId) {
         if (actionHistory.length > 0) {
             const { edge, sourceNode, targetNode } = actionHistory.pop();
-            edge.style({ 'width': 1, 'line-color': '#999' });
+            edge.style({ width: 1, 'line-color': '#999' });
 
-            // For each node, check if it's still in the MST
+            // Check if sourceNode is still used
             if (!isNodeInTable(actionHistory, sourceNode.id())) {
-                          sourceNode.style({
-                                  'background-color': '#e9ecef',
-                                  'background-opacity': 0
-                          });
+                sourceNode.style({
+                    'background-color': '#e9ecef',
+                    'background-opacity': 0
+                });
             } else {
-                          sourceNode.style({
-                                  'background-color': '#94d95f',
-                                  'background-opacity': 1
-                          });
+                sourceNode.style({
+                    'background-color': '#94d95f',
+                    'background-opacity': 1
+                });
             }
 
+            // Check if targetNode is still used
             if (!isNodeInTable(actionHistory, targetNode.id())) {
-                          targetNode.style({
-                                  'background-color': '#e9ecef',
-                                  'background-opacity': 0
-                          });
+                targetNode.style({
+                    'background-color': '#e9ecef',
+                    'background-opacity': 0
+                });
             } else {
-                          targetNode.style({
-                                  'background-color': '#94d95f',
-                                  'background-opacity': 1
-                          });
+                targetNode.style({
+                    'background-color': '#94d95f',
+                    'background-opacity': 1
+                });
             }
 
             updateActionTable(actionHistory, actionTableId);
 
-            const edgeWeight = parseInt(edge.data('weight'));
-            subtractEdgeWeight(edgeWeight);
+            const w = parseInt(edge.data('weight'));
+            subtractEdgeWeight(w);
         }
     }
 
-    function measureSimilarity(playerSol, correctSol) {
-        const minLen = Math.min(playerSol.length, correctSol.length);
-        let score = 0;
-        for (let i = 0; i < minLen; i++) {
-            if (
-                playerSol[i].Vertex1 === correctSol[i].Vertex1 &&
-                playerSol[i].Vertex2 === correctSol[i].Vertex2 &&
-                playerSol[i].Weight  === correctSol[i].Weight
-            ) {
-                score++;
+    /********************************************************************
+     *  1) Screenshot up to mismatch
+     ********************************************************************/
+    function highlightEdgesAndScreenshot(cy, correctSol, playerSol) {
+        const oldStyles = {};
+
+        // Convert edges to canonical string
+        function canonical(e) {
+            let [a,b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a,b] = [b,a];
+            return `${a}-${b}-${e.Weight}`;
+        }
+
+        const correctSet = new Set(correctSol.map(canonical));
+        const playerSet  = new Set(playerSol.map(canonical));
+
+        // Color edges
+        cy.edges().forEach(ed => {
+            const edgeId = ed.id();
+            oldStyles[edgeId] = {
+                width: ed.style('width'),
+                lineColor: ed.style('line-color')
+            };
+
+            const eObj = {
+                Vertex1: parseInt(ed.data('source')),
+                Vertex2: parseInt(ed.data('target')),
+                Weight: parseInt(ed.data('weight'))
+            };
+            const str = canonical(eObj);
+
+            if (playerSet.has(str)) {
+                if (correctSet.has(str)) {
+                    // correct
+                    ed.style({ width: 4, 'line-color': '#00b300' });
+                } else {
+                    // chosen but incorrect
+                    ed.style({ width: 4, 'line-color': 'red' });
+                }
             } else {
-                break; // If you only want consecutive matches from the start
+                // not chosen => gray
+                ed.style({ width: 1, 'line-color': '#999' });
             }
-        }
-        return score;
+        });
+
+        // Screenshot
+        const dataUrl = cy.png({ bg: 'white' });
+
+        // revert
+        cy.edges().forEach(ed => {
+            const edgeId = ed.id();
+            ed.style({
+                width: oldStyles[edgeId].width,
+                'line-color': oldStyles[edgeId].lineColor
+            });
+        });
+
+        return dataUrl;
     }
 
-// Or if you want total matches in any index position, you’d do something else,
-// but consecutive order matching is typical for an MST edge sequence.
-
-    function findMismatchIndex(playerSol, correctSol) {
-        const len = Math.min(playerSol.length, correctSol.length);
-        for (let i = 0; i < len; i++) {
-            if (
-                playerSol[i].Vertex1 !== correctSol[i].Vertex1 ||
-                playerSol[i].Vertex2 !== correctSol[i].Vertex2 ||
-                playerSol[i].Weight  !== correctSol[i].Weight
-            ) {
-                return i; // Return first mismatch
+    /********************************************************************
+     *  2) Bilingual Detailed Table
+     ********************************************************************/
+    function buildDetailedComparisonHTML(lang, correctSol, playerSol) {
+        const i18n = {
+            en: {
+                correctMST: "Indicative solution",
+                yourMST: "Your answer",
+                start: "Start",
+                target: "Target",
+                weight: "Weight",
+                status: "Status",
+                correct: "Correct",
+                mistake: "Mistake",
+                ok: "OK",
+                dash: "—"
+            },
+            el: {
+                correctMST: "Ενδεικτική λύση",
+                yourMST: "Η λύση σου",
+                start: "Αρχή",
+                target: "Στόχος",
+                weight: "Βάρος",
+                status: "Κατάσταση",
+                correct: "Σωστό",
+                mistake: "Λάθος",
+                ok: "ΟΚ",
+                dash: "—"
             }
-        }
-        if (playerSol.length !== correctSol.length) {
-            return len;
-        }
-        return -1; // means fully match
-    }
+        };
+        const t = (lang === 'en') ? i18n.en : i18n.el;
 
-    function buildComparisonTableHTML(correctSol, playerSol, mismatchIndex) {
-        // same as before
         const maxLen = Math.max(correctSol.length, playerSol.length);
+
         let html = `
-    <table style="border-collapse: collapse; margin-top: 10px;">
-      <thead>
-        <tr>
-          <th style="padding:4px; border:1px solid #ccc;">Correct MST</th>
-          <th style="padding:4px; border:1px solid #ccc;">Your MST</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+          <table style="border-collapse: collapse; margin-top:10px;">
+            <thead>
+              <tr>
+                <th colspan="4" style="border:1px solid #ccc;">${t.correctMST}</th>
+                <th colspan="4" style="border:1px solid #ccc;">${t.yourMST}</th>
+              </tr>
+              <tr>
+                <th style="padding:4px; border:1px solid #ccc;">${t.start}</th>
+                <th style="padding:4px; border:1px solid #ccc;">${t.target}</th>
+                <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+                <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+
+                <th style="padding:4px; border:1px solid #ccc;">${t.start}</th>
+                <th style="padding:4px; border:1px solid #ccc;">${t.target}</th>
+                <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+                <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
 
         for (let i = 0; i < maxLen; i++) {
-            const c = correctSol[i];
-            const p = playerSol[i];
-            const cText = c ? `${c.Vertex1}-${c.Vertex2} (w=${c.Weight})` : '—';
-            const pText = p ? `${p.Vertex1}-${p.Vertex2} (w=${p.Weight})` : '—';
-            const rowStyle = (i === mismatchIndex) ? 'background-color:#fdd;' : '';
+            const cEdge = correctSol[i];
+            const pEdge = playerSol[i];
+
+            let cStart = cEdge ? cEdge.Vertex1 : t.dash;
+            let cTarget= cEdge ? cEdge.Vertex2 : t.dash;
+            let cWeight= cEdge ? cEdge.Weight  : t.dash;
+
+            let pStart = pEdge ? pEdge.Vertex1 : t.dash;
+            let pTarget= pEdge ? pEdge.Vertex2 : t.dash;
+            let pWeight= pEdge ? pEdge.Weight  : t.dash;
+
+            let cStatus = '';
+            let pStatus = '';
+
+            // If both edges exist & match => "OK"
+            if (cEdge && pEdge &&
+                cEdge.Vertex1 === pEdge.Vertex1 &&
+                cEdge.Vertex2 === pEdge.Vertex2 &&
+                cEdge.Weight  === pEdge.Weight) {
+                cStatus = t.ok;
+                pStatus = t.ok;
+            } else {
+                if (cEdge) cStatus = t.correct;
+                if (pEdge) pStatus = t.mistake;
+            }
+
             html += `
-      <tr style="${rowStyle}">
-        <td style="padding:4px; border:1px solid #ccc;">${cText}</td>
-        <td style="padding:4px; border:1px solid #ccc;">${pText}</td>
-      </tr>
-    `;
+              <tr>
+                <td style="padding:4px; border:1px solid #ccc;">${cStart}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${cTarget}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${cWeight}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${cStatus}</td>
+
+                <td style="padding:4px; border:1px solid #ccc;">${pStart}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${pTarget}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${pWeight}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${pStatus}</td>
+              </tr>
+            `;
         }
 
         html += `</tbody></table>`;
         return html;
     }
 
-    function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
-        console.log("handleSubmitAction() is executing!");
+    /********************************************************************
+     *  3) Mismatch Index
+     ********************************************************************/
+    function findMismatchIndex(playerSol, correctSol) {
+        const len = Math.min(playerSol.length, correctSol.length);
+        for (let i = 0; i < len; i++) {
+            const p = playerSol[i], c = correctSol[i];
+            if (
+                p.Vertex1 !== c.Vertex1 ||
+                p.Vertex2 !== c.Vertex2 ||
+                p.Weight  !== c.Weight
+            ) {
+                return i;
+            }
+        }
+        if (playerSol.length !== correctSol.length) {
+            return len;
+        }
+        return -1;
+    }
 
-        // 1) Build player's solution
-        const playerSolution = actionHistory.map(({ edge }) => {
+    /********************************************************************
+     *  4) handleSubmitAction => partial screenshot & full table
+     ********************************************************************/
+    function handleSubmitAction(cy, actionHistory, orderingTables, ids) {
+        console.log("handleSubmitAction() for Kruskal is executing!");
+
+        // 1) Build player's full solution
+        const playerSolutionFull = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
-            const weight = parseInt(edge.data('weight'));
+            const w = parseInt(edge.data('weight'));
             if (v1 > v2) [v1, v2] = [v2, v1];
-            return { Vertex1: v1, Vertex2: v2, Weight: weight };
+            return { Vertex1: v1, Vertex2: v2, Weight: w };
         });
-        console.log("Player's solution:", playerSolution);
+        console.log("Kruskal Player's solution:", playerSolutionFull);
 
-        // 2) We'll measure similarity with each MST ordering in `window.orderingTables`.
+        // 2) Find the best match in "orderingTables"
         let bestOrdering = null;
         let bestScore = -1;
 
-        for (let tableObj of window.orderingTables) {
+        function measureSimilarity(pSol, cSol) {
+            // Consecutive matches from the start
+            const minLen = Math.min(pSol.length, cSol.length);
+            let s = 0;
+            for (let i = 0; i < minLen; i++) {
+                if (pSol[i].Vertex1 === cSol[i].Vertex1 &&
+                    pSol[i].Vertex2 === cSol[i].Vertex2 &&
+                    pSol[i].Weight  === cSol[i].Weight) {
+                    s++;
+                } else {
+                    break;
+                }
+            }
+            return s;
+        }
+
+        for (let tableObj of orderingTables) {
             for (let ordering of tableObj.orderings) {
-                const similarity = measureSimilarity(playerSolution, ordering);
-                if (similarity > bestScore) {
-                    bestScore = similarity;
+                const sim = measureSimilarity(playerSolutionFull, ordering);
+                if (sim > bestScore) {
+                    bestScore = sim;
                     bestOrdering = ordering;
                 }
             }
         }
 
-        // If bestOrdering is fully identical, that means isCorrect = true
-        const isCorrect = bestScore === playerSolution.length && playerSolution.length === (bestOrdering?.length || 0);
+        // If fully matched => correct
+        const isCorrect = (
+            bestOrdering &&
+            bestScore === playerSolutionFull.length &&
+            playerSolutionFull.length === bestOrdering.length
+        );
 
-        // 3) Score logic
+        // 3) Compute score
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
@@ -520,35 +655,64 @@ $(document).ready(function() {
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // 5) Clear old comparison table from the popup
+        // 5) Clear old
         const compareDivId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareDivId).empty();
 
-        // 6) If not correct, show side-by-side MST comparison with bestOrdering
+        // 6) If not correct => partial screenshot + full bilingual table
         if (!isCorrect && bestOrdering) {
-            const mismatchIndex = findMismatchIndex(playerSolution, bestOrdering);
-            const compareHTML = buildComparisonTableHTML(bestOrdering, playerSolution, mismatchIndex);
-            $(compareDivId).html(compareHTML);
+            // find mismatch
+            const mismatchIndex = findMismatchIndex(playerSolutionFull, bestOrdering);
+            console.log("Kruskal mismatchIndex:", mismatchIndex);
+
+            // partial arrays for the screenshot
+            let truncatedCorrect = bestOrdering;
+            let truncatedPlayer  = playerSolutionFull;
+            if (mismatchIndex >= 0) {
+                truncatedCorrect = bestOrdering.slice(0, mismatchIndex + 1);
+                truncatedPlayer  = playerSolutionFull.slice(0, mismatchIndex + 1);
+            }
+
+            // (A) screenshot for partial
+            const screenshotData = highlightEdgesAndScreenshot(
+                cy,
+                truncatedCorrect,
+                truncatedPlayer
+            );
+            $(compareDivId).append(`
+                <div style="text-align:center; margin-bottom:10px;">
+                  <img src="${screenshotData}"
+                       alt="Comparison Graph"
+                       style="max-width:100%; border:1px solid #ccc;" />
+                </div>
+            `);
+
+            // (B) full bilingual table
+            const fullTable = buildDetailedComparisonHTML(
+                lang,
+                bestOrdering,         // entire correct MST
+                playerSolutionFull
+            );
+            $(compareDivId).append(fullTable);
         }
 
-        // 7) If correct, update player’s score
+        // 7) If correct => update DB
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
                 const method = $('#gameMethod').val(); // "kruskal"
                 updatePlayerScore(username, score, method)
-                    .then((result) => {
+                    .then(result => {
                         console.log('Score added successfully!', result);
                     })
-                    .catch((err) => {
+                    .catch(err => {
                         console.error('Error adding score:', err);
                     });
             }
         }
     }
 
-
-    // On page refresh/close
+    // Stop timer on unload
     window.addEventListener('beforeunload', function() {
         stopTimer();
     });
