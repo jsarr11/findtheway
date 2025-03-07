@@ -115,14 +115,16 @@ $(document).ready(function() {
     function setupGlobalButtonListeners() {
 
         // The "undo" button
-        $('#undo-button-en, #undo-button-el').on('click', function() {
-            // We don't know which language is current, so listening on both
+        $('#undo-button-en').on('click', function() {
             handleUndoAction(
                 window.cy,
                 window.actionHistory,
                 window.primStartingNodeId,
-                'action-table-en' // or we can detect the current one if needed
+                'action-table-en'
             );
+        });
+
+        $('#undo-button-el').on('click', function() {
             handleUndoAction(
                 window.cy,
                 window.actionHistory,
@@ -130,6 +132,7 @@ $(document).ready(function() {
                 'action-table-el'
             );
         });
+
 
         // The "submit" button
         $('#submit-button-en, #submit-button-el').on('click', function() {
@@ -282,7 +285,7 @@ $(document).ready(function() {
                         'background-color': '#e9ecef',
                         'background-image': 'url(../img/house.png)',
                         'background-fit': 'cover',
-                        'background-opacity': 1,
+                        'background-opacity': 0,
                         'label': 'data(id)',
                         'text-valign': 'center',
                         'text-halign': 'center',
@@ -300,7 +303,7 @@ $(document).ready(function() {
                         'background-color': '#e9ecef',
                         'background-image': 'url(../img/house_starting_node.png)',
                         'background-fit': 'cover',
-                        'background-opacity': 1,
+                        'background-opacity': 0,
                         width: '50px',
                         height: '50px'
                     }
@@ -388,25 +391,42 @@ $(document).ready(function() {
 
     function setNodeStyle(node, startingNodeId, startingNodeColor, otherNodeColor) {
         if (node.id() === startingNodeId) {
-            node.style('background-color', startingNodeColor);
+                  node.style({
+                          'background-color': startingNodeColor,
+                          'background-opacity': 1
+                  });
         } else {
-            node.style('background-color', otherNodeColor);
+                  node.style({
+                          'background-color': otherNodeColor,
+                          'background-opacity': 1
+                  });
         }
     }
 
     function resetNodeStyle(node, startingNodeId, cy) {
+        // If NOT in the MST, revert to transparent
         if (!isNodeInTable(actionHistory, node.id())) {
+            node.style({
+                'background-color': '#e9ecef',
+                'background-opacity': 0
+            });
+        }
+        else {
+            // If it’s in the MST, keep it green & opaque
             if (node.id() === startingNodeId) {
-                if (!hasOtherConnectedBlueEdges(node, cy)) {
-                    node.style('background-color', '#e9ecef');
-                } else {
-                    node.style('background-color', '#459e09');
-                }
+                node.style({
+                    'background-color': '#459e09',
+                    'background-opacity': 1
+                });
             } else {
-                node.style('background-color', '#e9ecef');
+                node.style({
+                    'background-color': '#94d95f',
+                    'background-opacity': 1
+                });
             }
         }
     }
+
 
     function objectsEqual(a, b) {
         return a.Vertex1 === b.Vertex1 && a.Vertex2 === b.Vertex2 && a.Weight === b.Weight;

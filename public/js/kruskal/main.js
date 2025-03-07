@@ -109,9 +109,13 @@ $(document).ready(function() {
         // We'll attach all the button events for both English/Greek IDs here
 
         // 1) Undo button
-        $('#undo-button-en, #undo-button-el').on('click', function() {
+        $('#undo-button-en').on('click', function() {
             // We'll call handleUndoAction for both possible language tables
             handleUndoAction(window.cy, window.actionHistory, 'action-table-en');
+        });
+
+        $('#undo-button-el').on('click', function() {
+            // We'll call handleUndoAction for both possible language tables
             handleUndoAction(window.cy, window.actionHistory, 'action-table-el');
         });
 
@@ -252,7 +256,7 @@ $(document).ready(function() {
                         'background-color': '#e9ecef',
                         'background-image': 'url(../img/house.png)',
                         'background-fit': 'cover',
-                        'background-opacity': 1,
+                        'background-opacity': 0,
                         'label': 'data(id)',
                         'text-valign': 'center',
                         'text-halign': 'center',
@@ -330,8 +334,15 @@ $(document).ready(function() {
         edge.style({ 'width': 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
-        sourceNode.style('background-color', '#94d95f');
-        targetNode.style('background-color', '#94d95f');
+
+        sourceNode.style({
+                  'background-color': '#94d95f',
+                  'background-opacity': 1
+          });
+          targetNode.style({
+                  'background-color': '#94d95f',
+                  'background-opacity': 1
+          });
 
         actionHistory.push({ edge, sourceNode, targetNode });
         updateActionTable(actionHistory, actionTableId);
@@ -346,12 +357,31 @@ $(document).ready(function() {
             const { edge, sourceNode, targetNode } = actionHistory.pop();
             edge.style({ 'width': 1, 'line-color': '#999' });
 
+            // For each node, check if it's still in the MST
             if (!isNodeInTable(actionHistory, sourceNode.id())) {
-                sourceNode.style('background-color', '#e9ecef');
+                          sourceNode.style({
+                                  'background-color': '#e9ecef',
+                                  'background-opacity': 0
+                          });
+            } else {
+                          sourceNode.style({
+                                  'background-color': '#94d95f',
+                                  'background-opacity': 1
+                          });
             }
+
             if (!isNodeInTable(actionHistory, targetNode.id())) {
-                targetNode.style('background-color', '#e9ecef');
+                          targetNode.style({
+                                  'background-color': '#e9ecef',
+                                  'background-opacity': 0
+                          });
+            } else {
+                          targetNode.style({
+                                  'background-color': '#94d95f',
+                                  'background-opacity': 1
+                          });
             }
+
             updateActionTable(actionHistory, actionTableId);
 
             const edgeWeight = parseInt(edge.data('weight'));
