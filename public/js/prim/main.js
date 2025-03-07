@@ -99,6 +99,9 @@ $(document).ready(function() {
 
         const newCy = initializeCytoscape(nodes, edges, startingNodeId);
 
+        updateActionTable(window.actionHistory, "action-table-en");
+        updateActionTable(window.actionHistory, "action-table-el");
+
         // Set up Cytoscape event => each time we create a new graph, we rebind these
         newCy.on('tap', 'edge', evt => {
             handleEdgeSelection(evt, newCy, window.actionHistory, startingNodeId, ids.actionTableId);
@@ -199,6 +202,10 @@ $(document).ready(function() {
             $("#action-table-el").empty();
             resetEdgeWeights();
             resetTimer();
+
+            // Hide the table immediately
+            updateActionTable(window.actionHistory, "action-table-en");
+            updateActionTable(window.actionHistory, "action-table-el");
 
             // 3) Start fresh
             setTimeout(() => startTimer(), 100);

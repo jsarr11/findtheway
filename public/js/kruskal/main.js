@@ -91,6 +91,9 @@ $(document).ready(function() {
         // Create Cytoscape
         const newCy = initializeCytoscape(nodes, edges);
 
+        updateActionTable(window.actionHistory, "action-table-en");
+        updateActionTable(window.actionHistory, "action-table-el");
+
         // Hook up edge selection
         newCy.on('tap', 'edge', evt => {
             handleEdgeSelection(evt, newCy, window.actionHistory, ids.actionTableId);
@@ -161,6 +164,10 @@ $(document).ready(function() {
             $('#action-table-el').empty();
             resetEdgeWeights();
             resetTimer();
+
+            // Hide the table immediately
+            updateActionTable(window.actionHistory, "action-table-en");
+            updateActionTable(window.actionHistory, "action-table-el");
 
             setTimeout(() => startTimer(), 100);
 
