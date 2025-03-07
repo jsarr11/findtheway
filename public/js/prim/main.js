@@ -703,26 +703,25 @@ $(document).ready(function() {
 
 
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
-        console.log("handleSubmitAction() is executing!");
+        console.log("handleSubmitAction() for Prim is executing!");
 
         // 1) Build playerSolution
         const playerSolutionFull = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
             const weight = parseInt(edge.data('weight'));
-            if (v1 > v2) [v1, v2] = [v2, v1];
+            if (v1 > v2) [v1, v2] = [v2, v1];  // Sort so Vertex1 < Vertex2
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
-        console.log("Player's solution (canonical):", JSON.stringify(playerSolutionFull, null, 2));
 
-        // 2) Check if ordering is valid
+        // 2) Check if ordering is valid for Prim
         function isValidPrimOrdering(ordering, startingNode) {
             const tree = new Set([ startingNode ]);
             for (let edge of ordering) {
                 const { Vertex1, Vertex2 } = edge;
                 const inTree1 = tree.has(Vertex1);
                 const inTree2 = tree.has(Vertex2);
-                // Must connect exactly one new node each time
+                // Must connect exactly one new vertex each time
                 if ((inTree1 && !inTree2) || (inTree2 && !inTree1)) {
                     tree.add(inTree1 ? Vertex2 : Vertex1);
                 } else {
@@ -732,40 +731,36 @@ $(document).ready(function() {
             return true;
         }
 
-        // 3) Determine whether the player’s solution fully matches a correct MST
+        // 3) Find if the player's solution is correct
         let isCorrect = false;
-        let correctOrderingFound = null; // We'll store one correct MST ordering for comparison
+        let correctOrderingFound = null; // store one MST ordering to compare
 
-        // If "allMSTs" is the final array or you rely on "window.orderingTables," adapt accordingly:
         for (let tableObj of window.orderingTables) {
             for (let ordering of tableObj.orderings) {
                 if (!isValidPrimOrdering(ordering, parseInt(window.primStartingNodeId))) {
                     continue;
                 }
+                // Check full match
                 if (arraysEqual(playerSolutionFull, ordering)) {
                     isCorrect = true;
                     correctOrderingFound = ordering;
                     break;
                 }
                 if (!correctOrderingFound) {
-                    correctOrderingFound = ordering;
+                    correctOrderingFound = ordering; // keep the first valid MST if none stored yet
                 }
             }
             if (isCorrect) break;
         }
 
-        // 4) Stop timer, compute final score
+        // 4) Stop timer, compute score
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
-        let score = Math.floor((totalVertices * totalEdges * 100) / timeUsed);
-        console.log("Calculated Score:", score);
+        let score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
 
-        // If user is wrong, zero out the score
-        if (!isCorrect) score = 0;
-
-        // 5) Show result message
+        // 5) Show message in popup
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -790,68 +785,54 @@ $(document).ready(function() {
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // Clear old table content
+        // 6) Clear old content in the comparison area
         const compareContainerId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareContainerId).empty();
 
-        // 6) If wrong & we have a correct MST to compare => show partial screenshot + full table
+        // 7) Always generate a screenshot (correct or not)
+        // If correct => mismatchIndex = -1 => use full MST
+        // If wrong => partial screenshot
+        const mismatchIndex = isCorrect ? -1 : findMismatchIndex(playerSolutionFull, correctOrderingFound);
+        const truncatedCorrect = mismatchIndex >= 0
+            ? correctOrderingFound.slice(0, mismatchIndex + 1)
+            : correctOrderingFound;
+        const truncatedPlayer = mismatchIndex >= 0
+            ? playerSolutionFull.slice(0, mismatchIndex + 1)
+            : playerSolutionFull;
+
+        // Take screenshot with partial or full edges
+        const screenshotData = highlightEdgesAndScreenshot(cy, truncatedCorrect, truncatedPlayer);
+        // Insert the screenshot
+        $(compareContainerId).append(`
+        <div style="text-align:center; margin-bottom:10px;">
+            <img src="${screenshotData}" 
+                 alt="Comparison Graph" 
+                 style="max-width:100%; border:1px solid #ccc;" />
+        </div>
+    `);
+
+        // 8) Only show the full table if user is wrong
         if (!isCorrect && correctOrderingFound) {
-            // (A) Take a screenshot up to mismatch (so we don't reveal full correct MST in the image)
-            const mismatchIndex = findMismatchIndex(playerSolutionFull, correctOrderingFound);
-            console.log("Mismatch index found at:", mismatchIndex);
-
-            // Make truncated copies for the screenshot only
-            const truncatedCorrect = mismatchIndex >= 0
-                ? correctOrderingFound.slice(0, mismatchIndex + 1)
-                : correctOrderingFound; // if mismatchIndex == -1 or no mismatch, use entire
-            const truncatedPlayer  = mismatchIndex >= 0
-                ? playerSolutionFull.slice(0, mismatchIndex + 1)
-                : playerSolutionFull;
-
-            // 1) Screenshot only shows partial
-            const screenshotData = highlightEdgesAndScreenshot(
-                cy,
-                truncatedCorrect,
-                truncatedPlayer
-            );
-            // Insert the screenshot
-            $(compareContainerId).append(`
-            <div style="text-align:center; margin-bottom:10px;">
-              <img src="${screenshotData}" 
-                   alt="Comparison Graph"
-                   style="max-width:100%; border:1px solid #ccc;" />
-            </div>
-        `);
-
-            // (B) Show the **full** bilingual table (all edges) under the screenshot
-            // i.e. do NOT truncate for the final table, so the user sees the entire MST
             const fullTableHtml = buildDetailedComparisonHTML(
                 lang,
-                correctOrderingFound,   // entire correct MST
-                playerSolutionFull      // entire player solution
+                correctOrderingFound,
+                playerSolutionFull
             );
             $(compareContainerId).append(fullTableHtml);
-
-        } else if (!isCorrect) {
-            // If we are missing correctOrderingFound for some reason, you can just do something simpler
-            // e.g. "No MST found?" or fallback
         }
 
-        // 7) If correct, update the DB score
+        // 9) If correct => update DB score
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
-                const method = $('#gameMethod').val(); // e.g. "prim"
+                const method = $('#gameMethod').val(); // "prim"
                 updatePlayerScore(username, score, method)
-                    .then((result) => {
-                        console.log('Score added successfully!', result);
-                    })
-                    .catch((err) => {
-                        console.error('Error adding score:', err);
-                    });
+                    .then(result => console.log('Score added successfully!', result))
+                    .catch(err => console.error('Error adding score:', err));
             }
         }
     }
+
 
 
     window.addEventListener('beforeunload', function() {

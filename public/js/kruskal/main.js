@@ -580,24 +580,23 @@ $(document).ready(function() {
         const playerSolutionFull = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
-            const w = parseInt(edge.data('weight'));
+            const weight = parseInt(edge.data('weight'));
             if (v1 > v2) [v1, v2] = [v2, v1];
-            return { Vertex1: v1, Vertex2: v2, Weight: w };
+            return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
-        console.log("Kruskal Player's solution:", playerSolutionFull);
 
-        // 2) Find the best match in "orderingTables"
+        // 2) Find the best matching MST from orderingTables
         let bestOrdering = null;
         let bestScore = -1;
 
+        // measureSimilarity = consecutive matches from the start
         function measureSimilarity(pSol, cSol) {
-            // Consecutive matches from the start
             const minLen = Math.min(pSol.length, cSol.length);
             let s = 0;
             for (let i = 0; i < minLen; i++) {
                 if (pSol[i].Vertex1 === cSol[i].Vertex1 &&
                     pSol[i].Vertex2 === cSol[i].Vertex2 &&
-                    pSol[i].Weight  === cSol[i].Weight) {
+                    pSol[i].Weight === cSol[i].Weight) {
                     s++;
                 } else {
                     break;
@@ -623,7 +622,7 @@ $(document).ready(function() {
             playerSolutionFull.length === bestOrdering.length
         );
 
-        // 3) Compute score
+        // 3) Stop timer, compute score
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
@@ -655,42 +654,38 @@ $(document).ready(function() {
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // 5) Clear old
+        // Clear old results
         const compareDivId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareDivId).empty();
 
-        // 6) If not correct => partial screenshot + full bilingual table
+        // 5) Always show screenshot (correct or not)
+        // If correct => mismatchIndex = -1 => use full
+        // If wrong => partial
+        let mismatchIndex = -1;
         if (!isCorrect && bestOrdering) {
-            // find mismatch
-            const mismatchIndex = findMismatchIndex(playerSolutionFull, bestOrdering);
-            console.log("Kruskal mismatchIndex:", mismatchIndex);
+            mismatchIndex = findMismatchIndex(playerSolutionFull, bestOrdering);
+        }
+        const truncatedCorrect = (mismatchIndex >= 0)
+            ? bestOrdering.slice(0, mismatchIndex + 1)
+            : bestOrdering;
+        const truncatedPlayer = (mismatchIndex >= 0)
+            ? playerSolutionFull.slice(0, mismatchIndex + 1)
+            : playerSolutionFull;
 
-            // partial arrays for the screenshot
-            let truncatedCorrect = bestOrdering;
-            let truncatedPlayer  = playerSolutionFull;
-            if (mismatchIndex >= 0) {
-                truncatedCorrect = bestOrdering.slice(0, mismatchIndex + 1);
-                truncatedPlayer  = playerSolutionFull.slice(0, mismatchIndex + 1);
-            }
+        const screenshotData = highlightEdgesAndScreenshot(cy, truncatedCorrect || [], truncatedPlayer || []);
+        $(compareDivId).append(`
+        <div style="text-align:center; margin-bottom:10px;">
+            <img src="${screenshotData}" 
+                 alt="Comparison Graph" 
+                 style="max-width:100%; border:1px solid #ccc;" />
+        </div>
+    `);
 
-            // (A) screenshot for partial
-            const screenshotData = highlightEdgesAndScreenshot(
-                cy,
-                truncatedCorrect,
-                truncatedPlayer
-            );
-            $(compareDivId).append(`
-                <div style="text-align:center; margin-bottom:10px;">
-                  <img src="${screenshotData}"
-                       alt="Comparison Graph"
-                       style="max-width:100%; border:1px solid #ccc;" />
-                </div>
-            `);
-
-            // (B) full bilingual table
+        // 6) Only show the full table if user is wrong
+        if (!isCorrect && bestOrdering) {
             const fullTable = buildDetailedComparisonHTML(
                 lang,
-                bestOrdering,         // entire correct MST
+                bestOrdering,
                 playerSolutionFull
             );
             $(compareDivId).append(fullTable);
@@ -702,15 +697,12 @@ $(document).ready(function() {
             if (username) {
                 const method = $('#gameMethod').val(); // "kruskal"
                 updatePlayerScore(username, score, method)
-                    .then(result => {
-                        console.log('Score added successfully!', result);
-                    })
-                    .catch(err => {
-                        console.error('Error adding score:', err);
-                    });
+                    .then(result => console.log('Score added successfully!', result))
+                    .catch(err => console.error('Error adding score:', err));
             }
         }
     }
+
 
     // Stop timer on unload
     window.addEventListener('beforeunload', function() {
