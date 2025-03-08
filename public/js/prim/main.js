@@ -281,6 +281,26 @@ $(document).ready(function() {
         window.exportData = { table: edgeTable, startingVertex: startingNodeId };
     }
 
+    function buildMSTNodesFromHistory(actionHistory, startingNodeId) {
+        // We'll gather which nodes are currently in the MST
+        // Start with the initial node
+        const mstNodes = new Set([startingNodeId]);
+
+        // For each selected edge, if it touches any node in MST,
+        // we add both endpoints to the MST set
+        for (const { edge } of actionHistory) {
+            const s = edge.data('source');
+            const t = edge.data('target');
+            if (mstNodes.has(s) || mstNodes.has(t)) {
+                mstNodes.add(s);
+                mstNodes.add(t);
+            }
+        }
+
+        return mstNodes;
+    }
+
+
     function initializeCytoscape(nodes, edges, startingNodeId) {
         return cytoscape({
             container: document.getElementById('cy'),
@@ -360,16 +380,78 @@ $(document).ready(function() {
     //---------------------------
     //  In-game event handlers
     //---------------------------
+
     function handleEdgeSelection(evt, cy, actionHistory, startingNodeId, actionTableId) {
         const edge = evt.target;
-        const existingActionIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
-        if (existingActionIndex !== -1) {
+        // If user taps an already chosen edge => undo
+        const existingIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
+        if (existingIndex !== -1) {
             handleUndoAction(cy, actionHistory, startingNodeId, actionTableId);
             return;
         }
+
+        // Build the set of MST nodes so far
+        const mstNodes = buildMSTNodesFromHistory(actionHistory, startingNodeId);
+
+        // Check validity for Prim
+        const s = edge.data('source');
+        const t = edge.data('target');
+        const isFirstEdge = (actionHistory.length === 0);
+
+        let isValid = false;
+        if (isFirstEdge) {
+            // Must touch the starting node
+            isValid = (s === startingNodeId || t === startingNodeId);
+        } else {
+            // Must connect exactly one node inside MST to one outside
+            const inMST_s = mstNodes.has(s);
+            const inMST_t = mstNodes.has(t);
+            const exactlyOneInMST = (inMST_s && !inMST_t) || (!inMST_s && inMST_t);
+            isValid = exactlyOneInMST;
+        }
+
+        // Bilingual messages
+        const currentLanguage = localStorage.getItem('language') || 'el';
+        const errorElEn = document.getElementById("error-message-en");
+        const errorElEl = document.getElementById("error-message-el");
+
+        // Helper: Hide both error messages
+        function hideErrorMessages() {
+            errorElEn.style.display = "none";
+            errorElEl.style.display = "none";
+        }
+
+        if (!isValid) {
+            // Show the correct error message in Greek or English
+            hideErrorMessages(); // ensure the other language is hidden
+            if (currentLanguage === 'en') {
+                errorElEn.style.display = "block";
+                if (isFirstEdge) {
+                    errorElEn.textContent = "First edge must connect with the starting house";
+                } else {
+                    errorElEn.textContent = "Your choices must connect with the already existing graph";
+                }
+            } else {
+                errorElEl.style.display = "block";
+                if (isFirstEdge) {
+                    errorElEl.textContent = "Η πρώτη ακμή πρέπει να συνδέεται με το αρχικό σπίτι";
+                } else {
+                    errorElEl.textContent = "Οι επιλογές σου πρέπει να συνδέονται το ήδη υπάρχον δίκτυο";
+                }
+            }
+
+            // Optionally disable further clicks on this edge
+            // edge.style({'pointer-events': 'none', 'line-color': '#ccc'});
+            return; // do not add to MST
+        }
+
+        // If valid => hide both error messages
+        hideErrorMessages();
+
+        // Now proceed with normal MST logic
         edge.style({ width: 4, 'line-color': '#94d95f' });
-        const sourceNode = cy.$(`#${edge.data('source')}`);
-        const targetNode = cy.$(`#${edge.data('target')}`);
+        const sourceNode = cy.$(`#${s}`);
+        const targetNode = cy.$(`#${t}`);
 
         setNodeStyle(sourceNode, startingNodeId, '#459e09', '#94d95f');
         setNodeStyle(targetNode, startingNodeId, '#459e09', '#94d95f');
@@ -380,6 +462,7 @@ $(document).ready(function() {
         const w = parseInt(edge.data('weight'));
         addEdgeWeight(w);
     }
+
 
     function handleUndoAction(cy, actionHistory, startingNodeId, actionTableId) {
         if (actionHistory.length > 0) {
