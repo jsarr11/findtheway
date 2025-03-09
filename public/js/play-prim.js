@@ -9,10 +9,18 @@ function closeCustomLevelPopup() {
 
 function updateEdgeConstraints() {
     const vertices = parseInt($('#vertices').val());
-    if (isNaN(vertices)) {
+    // If vertices is not a number or out of range, hide the edges container
+    if (isNaN(vertices) || vertices < 4 || vertices > 12) {
+        $('#edgesContainer').hide();
         $('#edgesRangeDisplay').text('');
+        // Also hide the next sections since nodes are invalid
+        $('#weightsContainer').hide();
+        $('#playContainer').hide();
         return;
+    } else {
+        $('#edgesContainer').show();
     }
+
     const minEdges = vertices + 2;
     const maxEdges = (vertices * (vertices - 1)) / 2;
     const lang = localStorage.getItem('language') || 'el';
@@ -22,6 +30,8 @@ function updateEdgeConstraints() {
     $('#edgesRangeDisplay').text(rangeText);
     checkInputs();
 }
+
+
 
 function generateValidEdges() {
     const vertices = parseInt($('#vertices').val());
@@ -40,8 +50,13 @@ function generateValidEdges() {
     $('#edges').val(generatedEdges);
     const edgesLabel = localStorage.getItem('language') === 'en' ? 'Edges: ' : 'Ακμές: ';
     $('#generatedEdgesDisplay').text(edgesLabel + generatedEdges);
+
+    // Reveal the weights section once edges are generated
+    $('#weightsContainer').show();
+
     checkInputs();
 }
+
 
 
 function checkInputs() {
@@ -50,8 +65,16 @@ function checkInputs() {
     const minWeight = $('#minWeight').val();
     const maxWeight = $('#maxWeight').val();
 
-    $('#playButton').prop('disabled', !(vertices && edges && minWeight && maxWeight));
+    // Show play button container only if all inputs are non-empty
+    if (vertices && edges && minWeight && maxWeight) {
+        $('#playContainer').show();
+        $('#playButton').prop('disabled', false);
+    } else {
+        $('#playContainer').hide();
+        $('#playButton').prop('disabled', true);
+    }
 }
+
 
 function playGame(level) {
     const currentLanguage = localStorage.getItem('language') || 'el';
@@ -120,6 +143,9 @@ function localizePopup() {
         $('#label-minWeight').text("Min");
         $('#label-maxWeight').text("Max");
         $('#playButton').text("Play");
+        $('#p1').text("1. Give the number of houses, from 4 to 12");
+        $('#p2').text("2. Push the button to generate a random number of pavements");
+        $('#p3').text("3. Give min and max weights you want, from 1 to 50");
     } else {
         $('#popup-title').text("Δημιουργία προσαρμοσμένου επιπέδου");
         $('#label-vertices').text("Αριθμός κορυφών:");
@@ -127,11 +153,14 @@ function localizePopup() {
         $('#label-minWeight').text("Ελάχιστο");
         $('#label-maxWeight').text("Μέγιστο");
         $('#playButton').text("Παίξε");
+        $('#p1').text("1. Δώσε τον από σπίτια, από 4 μεχρι 12");
+        $('#p2').text("2. Πάτησε το κουμπί για να δημιουργηθεί ένας τυχαίος αριθμός πεζοδρομίων");
+        $('#p3').text("3. Δώσε το ελάχιστο και μέγιστο βάρος που επιθυμείς, από 1 έως 50");
     }
 }
 
 $(document).ready(function () {
-    // Existing bindings
+    // Existing bindings for input events
     $('#vertices, #edges, #minWeight, #maxWeight').on('input', checkInputs);
     $('#vertices').on('input', updateEdgeConstraints);
     $('#generateEdgesButton').on('click', generateValidEdges);

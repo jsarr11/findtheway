@@ -85,22 +85,32 @@
             <span class="close" onclick="closeCustomLevelPopup()">&times;</span>
             <!-- We'll assume the language is determined by reading localStorage and changing labels accordingly -->
             <h2 id="popup-title">Δημιουργία προσαρμοσμένου επιπέδου</h2>
+            <p id="p1"></p>
             <label for="vertices" id="label-vertices">Αριθμός κορυφών:</label>
             <input type="number" id="vertices" name="vertices" min="4" max="12" required onchange="updateEdgeConstraints()"><br>
 
-            <p id="edgesRangeDisplay"></p>
-            <button id="generateEdgesButton" type="button"></button>
-            <div id="generatedEdgesDisplay"></div>
-            <input type="hidden" id="edges" name="edges">
+            <div id="edgesContainer" style="display: none;">
+                <p id="p2"></p>
+                <p id="edgesRangeDisplay"></p>
+                <button id="generateEdgesButton" type="button"></button>
+                <div id="generatedEdgesDisplay"></div>
+                <input type="hidden" id="edges" name="edges">
+            </div>
 
+            <!-- Weights Section (hidden until edges are generated) -->
+            <div id="weightsContainer" style="display: none;">
+                <p id="p3"></p>
+                <label for="minWeight" id="label-minWeight">Ελάχιστο βάρος:</label>
+                <input type="number" id="minWeight" name="minWeight" min="1" max="50" required><br>
 
-            <label for="minWeight" id="label-minWeight">Ελάχιστο βάρος:</label>
-            <input type="number" id="minWeight" name="minWeight" min="1" max="50" required><br>
+                <label for="maxWeight" id="label-maxWeight">Μέγιστο βάρος:</label>
+                <input type="number" id="maxWeight" name="maxWeight" min="1" max="50" required><br>
+            </div>
 
-            <label for="maxWeight" id="label-maxWeight">Μέγιστο βάρος:</label>
-            <input type="number" id="maxWeight" name="maxWeight" min="1" max="50" required><br>
-
-            <button id="playButton" onclick="playCustomGame()" disabled>Παίξε</button>
+            <!-- Play Button (hidden until valid weights) -->
+            <div id="playContainer" style="display: none;">
+                <button id="playButton" onclick="playCustomGame()">Παίξε</button>
+            </div>
             <div id="error-message" style="color: red; display: none;"></div>
         </div>
     </div>
