@@ -9,11 +9,22 @@ function closeCustomLevelPopup() {
 
 function updateEdgeConstraints() {
     const vertices = parseInt($('#vertices').val());
-    // If vertices is not a number or out of range, hide the edges container
+    const edgesMapping = {
+        4: {min: 4, max: 5},
+        5: {min: 5, max: 6},
+        6: {min: 6, max: 8},
+        7: {min: 7, max: 10},
+        8: {min: 8, max: 12},
+        9: {min: 9, max: 13},
+        10: {min: 10, max: 15},
+        11: {min: 11, max: 17},
+        12: {min: 12, max: 18}
+    };
+
+    // If vertices is invalid, hide the edges container and subsequent sections
     if (isNaN(vertices) || vertices < 4 || vertices > 12) {
         $('#edgesContainer').hide();
-        $('#edgesRangeDisplay').text('');
-        // Also hide the next sections since nodes are invalid
+        $('#edgesRangeDisplay').html('');
         $('#weightsContainer').hide();
         $('#playContainer').hide();
         return;
@@ -21,32 +32,64 @@ function updateEdgeConstraints() {
         $('#edgesContainer').show();
     }
 
-    const minEdges = vertices + 2;
-    const maxEdges = (vertices * (vertices - 1)) / 2;
-    const lang = localStorage.getItem('language') || 'el';
-    const rangeText = lang === 'en' ?
-        'Valid number of edges: ' + minEdges + " - " + maxEdges :
-        'Έγκυρος αριθμός ακμών: ' + minEdges + " - " + maxEdges;
-    $('#edgesRangeDisplay').text(rangeText);
+    // Build a table showing only the row for the entered node count
+    const mapping = edgesMapping[vertices];
+    const tableHtml = `
+      <table id="edgesTable" style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>Nodes</th>
+            <th>Min Edges</th>
+            <th>Max Edges</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${vertices}</td>
+            <td>${mapping.min}</td>
+            <td>${mapping.max}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+    $('#edgesRangeDisplay').html(tableHtml);
+
     checkInputs();
 }
 
+const edgesMapping = {
+    4: {min: 4, max: 5},
+    5: {min: 5, max: 6},
+    6: {min: 6, max: 8},
+    7: {min: 7, max: 10},
+    8: {min: 8, max: 12},
+    9: {min: 9, max: 13},
+    10: {min: 10, max: 15},
+    11: {min: 11, max: 17},
+    12: {min: 12, max: 18}
+};
 
 
 function generateValidEdges() {
     const vertices = parseInt($('#vertices').val());
+
     if (isNaN(vertices)) {
         $('#generatedEdgesDisplay').text('');
         return;
     }
-    const minEdges = vertices + 2;
-    const maxEdges = (vertices * (vertices - 1)) / 2;
-    if (minEdges > maxEdges) {
-        const errMsg = localStorage.getItem('language') === 'en' ? 'Invalid number of vertices' : 'Μη έγκυρος αριθμός κορυφών';
+    if (!(vertices in edgesMapping)) {
+        const errMsg = localStorage.getItem('language') === 'en' ?
+            'Invalid number of vertices' :
+            'Μη έγκυρος αριθμός κορυφών';
         $('#generatedEdgesDisplay').text(errMsg);
         return;
     }
+
+    const mapping = edgesMapping[vertices];
+    const minEdges = mapping.min;
+    const maxEdges = mapping.max;
     const generatedEdges = Math.floor(Math.random() * (maxEdges - minEdges + 1)) + minEdges;
+
     $('#edges').val(generatedEdges);
     const edgesLabel = localStorage.getItem('language') === 'en' ? 'Edges: ' : 'Ακμές: ';
     $('#generatedEdgesDisplay').text(edgesLabel + generatedEdges);
@@ -56,6 +99,7 @@ function generateValidEdges() {
 
     checkInputs();
 }
+
 
 
 
@@ -82,41 +126,62 @@ function playGame(level) {
     window.location.href = `/main-game-prim?level=${level}`;
 }
 
+
 function playCustomGame() {
     const currentLanguage = localStorage.getItem('language') || 'el';
-    const langSuffix = currentLanguage === 'en' ? 'en' : 'el';
     const vertices = parseInt($('#vertices').val());
     const edges = parseInt($('#edges').val());
     const minWeight = parseInt($('#minWeight').val());
     const maxWeight = parseInt($('#maxWeight').val());
 
-    const maxEdges = (vertices * (vertices - 1)) / 2;
+    // Our custom edges mapping
+    const edgesMapping = {
+        4: { min: 4, max: 5 },
+        5: { min: 5, max: 6 },
+        6: { min: 6, max: 8 },
+        7: { min: 7, max: 10 },
+        8: { min: 8, max: 12 },
+        9: { min: 9, max: 13 },
+        10: { min: 10, max: 15 },
+        11: { min: 11, max: 17 },
+        12: { min: 12, max: 18 }
+    };
 
-    // Messages differ based on language
-    const invalidVerticesMsg = currentLanguage === 'en' ?
-        "Invalid input: Number of vertices must be between 4 and 12." :
-        "Μη έγκυρη είσοδος: Ο αριθμός των κορυφών πρέπει να είναι μεταξύ 4 και 12.";
+    // Language-based messages
+    const invalidVerticesMsg = (currentLanguage === 'en')
+        ? "Invalid input: Number of vertices must be between 4 and 12."
+        : "Μη έγκυρη είσοδος: Ο αριθμός των κορυφών πρέπει να είναι μεταξύ 4 και 12.";
 
-    const invalidEdgesMsg = currentLanguage === 'en' ?
-        `Invalid input: Number of edges must be between ${vertices + 2} and ${maxEdges} for ${vertices} vertices.` :
-        `Μη έγκυρη είσοδος: Ο αριθμός των ακμών πρέπει να είναι μεταξύ ${vertices + 2} και ${maxEdges} για ${vertices} κορυφές.`;
+    const invalidEdgesMsg = (minVal, maxVal) => (currentLanguage === 'en')
+        ? `Invalid input: Number of edges must be between ${minVal} and ${maxVal} for ${vertices} vertices.`
+        : `Μη έγκυρη είσοδος: Ο αριθμός των ακμών πρέπει να είναι μεταξύ ${minVal} και ${maxVal} για ${vertices} κορυφές.`;
 
-    const invalidWeightsMsg = currentLanguage === 'en' ?
-        "Invalid input: Weights must be between 1 and 50." :
-        "Μη έγκυρη είσοδος: Τα βάρη πρέπει να είναι μεταξύ 1 και 50.";
+    const invalidWeightsMsg = (currentLanguage === 'en')
+        ? "Invalid input: Weights must be between 1 and 50."
+        : "Μη έγκυρη είσοδος: Τα βάρη πρέπει να είναι μεταξύ 1 και 50.";
 
-    const minGreaterThanMaxMsg = currentLanguage === 'en' ?
-        "Invalid input: Minimum weight cannot be greater than maximum weight." :
-        "Μη έγκυρη είσοδος: Το ελάχιστο βάρος δεν μπορεί να είναι μεγαλύτερο από το μέγιστο βάρος.";
+    const minGreaterThanMaxMsg = (currentLanguage === 'en')
+        ? "Invalid input: Minimum weight cannot be greater than maximum weight."
+        : "Μη έγκυρη είσοδος: Το ελάχιστο βάρος δεν μπορεί να είναι μεγαλύτερο από το μέγιστο βάρος.";
 
+    // 1) Validate vertices
     if (vertices < 4 || vertices > 12) {
         showErrorMessage(invalidVerticesMsg);
         return;
     }
-    if (edges < vertices + 2 || edges > maxEdges) {
-        showErrorMessage(invalidEdgesMsg);
+
+    // 2) Validate edges using our custom mapping
+    const mapping = edgesMapping[vertices]; // e.g. {min:4, max:5} for vertices=4
+    if (!mapping) {
+        showErrorMessage(invalidVerticesMsg);
         return;
     }
+    if (edges < mapping.min || edges > mapping.max) {
+        showErrorMessage(invalidEdgesMsg(mapping.min, mapping.max));
+        return;
+    }
+
+    // 3) Validate weights
     if (minWeight < 1 || minWeight > 50 || maxWeight < 1 || maxWeight > 50) {
         showErrorMessage(invalidWeightsMsg);
         return;
@@ -126,8 +191,10 @@ function playCustomGame() {
         return;
     }
 
+    // If all is valid, proceed
     window.location.href = `/main-game-prim?level=custom&vertices=${vertices}&edges=${edges}&minWeight=${minWeight}&maxWeight=${maxWeight}`;
 }
+
 
 function showErrorMessage(message) {
     $('#error-message').text(message).show();
