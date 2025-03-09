@@ -19,24 +19,42 @@ const edgesMapping = {
     12: {min: 12, max: 18}
 };
 
+function updateEdgesTableLanguage() {
+    const lang = localStorage.getItem('language') || 'el';
+    let headerNodes, headerMin, headerMax;
+    if (lang === 'en') {
+        headerNodes = "Nodes";
+        headerMin = "Min Edges";
+        headerMax = "Max Edges";
+    } else {
+        headerNodes = "Κορυφές";
+        headerMin = "Ελάχιστες ακμές";
+        headerMax = "Μέγιστες ακμές";
+    }
+    // Update the header if the table exists in the edges display container
+    if ($('#edgesRangeDisplay table').length) {
+        $('#edgesRangeDisplay table thead tr').html(`
+            <th>${headerNodes}</th>
+            <th>${headerMin}</th>
+            <th>${headerMax}</th>
+        `);
+    }
+}
+
 
 function updateEdgeConstraints() {
-
-    // 1) Reset everything
+    // Reset all fields and hide lower sections
     $('#edges').val('');
     $('#generatedEdgesDisplay').text('');
     $('#minWeight').val('');
     $('#maxWeight').val('');
     $('#error-message').hide();
 
-    // 2) Hide sections initially
     $('#edgesContainer').hide();
     $('#weightsContainer').hide();
     $('#playContainer').hide();
 
     const vertices = parseInt($('#vertices').val());
-
-    // If vertices is invalid, hide the edges container and subsequent sections
     if (isNaN(vertices) || vertices < 4 || vertices > 12) {
         $('#edgesContainer').hide();
         $('#edgesRangeDisplay').html('');
@@ -47,15 +65,29 @@ function updateEdgeConstraints() {
         $('#edgesContainer').show();
     }
 
-    // Build a table showing only the row for the entered node count
+    // Get current language
+    const lang = localStorage.getItem('language') || 'el';
+    // Set table header texts based on language
+    let headerNodes, headerMin, headerMax;
+    if (lang === 'en') {
+        headerNodes = "Nodes";
+        headerMin = "Min Edges";
+        headerMax = "Max Edges";
+    } else {
+        headerNodes = "Κορυφές";
+        headerMin = "Ελάχιστες ακμές";
+        headerMax = "Μέγιστες ακμές";
+    }
+
+    // Build a table showing only the row for the entered node count using the language-specific headers
     const mapping = edgesMapping[vertices];
     const tableHtml = `
       <table id="edgesTable" style="width:100%; border-collapse:collapse;">
         <thead>
           <tr>
-            <th>Nodes</th>
-            <th>Min Edges</th>
-            <th>Max Edges</th>
+            <th>${headerNodes}</th>
+            <th>${headerMin}</th>
+            <th>${headerMax}</th>
           </tr>
         </thead>
         <tbody>
@@ -71,6 +103,7 @@ function updateEdgeConstraints() {
 
     checkInputs();
 }
+
 
 function generateValidEdges() {
     const vertices = parseInt($('#vertices').val());
@@ -226,6 +259,9 @@ function localizePopup() {
         $('#p2').text("2. Πάτησε το κουμπί για να δημιουργηθεί ένας τυχαίος αριθμός πεζοδρομίων");
         $('#p3').text("3. Δώσε το ελάχιστο και μέγιστο βάρος που επιθυμείς, από 1 έως 50");
     }
+
+    // Update the table headers, if the table is visible
+    updateEdgesTableLanguage();
 }
 
 $(document).ready(function () {
