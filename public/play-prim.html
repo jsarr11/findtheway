@@ -88,8 +88,11 @@
             <label for="vertices" id="label-vertices">Αριθμός κορυφών:</label>
             <input type="number" id="vertices" name="vertices" min="4" max="12" required onchange="updateEdgeConstraints()"><br>
 
-            <label for="edges" id="label-edges">Αριθμός ακμών:</label>
-            <input type="number" id="edges" name="edges" min="3" required><br>
+            <p id="edgesRangeDisplay"></p>
+            <button id="generateEdgesButton" type="button"></button>
+            <div id="generatedEdgesDisplay"></div>
+            <input type="hidden" id="edges" name="edges">
+
 
             <label for="minWeight" id="label-minWeight">Ελάχιστο βάρος:</label>
             <input type="number" id="minWeight" name="minWeight" min="1" max="50" required><br>
