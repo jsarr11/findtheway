@@ -7,19 +7,34 @@ function closeCustomLevelPopup() {
     $('#customLevelPopup').hide();
 }
 
+const edgesMapping = {
+    4: {min: 4, max: 5},
+    5: {min: 5, max: 6},
+    6: {min: 6, max: 8},
+    7: {min: 7, max: 10},
+    8: {min: 8, max: 12},
+    9: {min: 9, max: 13},
+    10: {min: 10, max: 15},
+    11: {min: 11, max: 17},
+    12: {min: 12, max: 18}
+};
+
+
 function updateEdgeConstraints() {
+
+    // 1) Reset everything
+    $('#edges').val('');
+    $('#generatedEdgesDisplay').text('');
+    $('#minWeight').val('');
+    $('#maxWeight').val('');
+    $('#error-message').hide();
+
+    // 2) Hide sections initially
+    $('#edgesContainer').hide();
+    $('#weightsContainer').hide();
+    $('#playContainer').hide();
+
     const vertices = parseInt($('#vertices').val());
-    const edgesMapping = {
-        4: {min: 4, max: 5},
-        5: {min: 5, max: 6},
-        6: {min: 6, max: 8},
-        7: {min: 7, max: 10},
-        8: {min: 8, max: 12},
-        9: {min: 9, max: 13},
-        10: {min: 10, max: 15},
-        11: {min: 11, max: 17},
-        12: {min: 12, max: 18}
-    };
 
     // If vertices is invalid, hide the edges container and subsequent sections
     if (isNaN(vertices) || vertices < 4 || vertices > 12) {
@@ -56,19 +71,6 @@ function updateEdgeConstraints() {
 
     checkInputs();
 }
-
-const edgesMapping = {
-    4: {min: 4, max: 5},
-    5: {min: 5, max: 6},
-    6: {min: 6, max: 8},
-    7: {min: 7, max: 10},
-    8: {min: 8, max: 12},
-    9: {min: 9, max: 13},
-    10: {min: 10, max: 15},
-    11: {min: 11, max: 17},
-    12: {min: 12, max: 18}
-};
-
 
 function generateValidEdges() {
     const vertices = parseInt($('#vertices').val());
