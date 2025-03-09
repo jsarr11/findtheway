@@ -10,7 +10,7 @@
     function updateEdgeConstraints() {
     const vertices = parseInt($('#vertices').val());
     const maxEdges = (vertices * (vertices - 1)) / 2;
-    $('#edges').attr('min', vertices + 2);
+    $('#edges').attr('min', vertices - 1);
     $('#edges').attr('max', maxEdges);
     checkInputs();
 }
@@ -43,22 +43,22 @@
 
     // Messages differ based on language
     const invalidVerticesMsg = currentLanguage === 'en' ?
-    "Invalid input: Number of vertices must be between 5 and 25." :
-    "Μη έγκυρη είσοδος: Ο αριθμός των κορυφών πρέπει να είναι μεταξύ 5 και 25.";
+    "Invalid input: Number of vertices must be between 4 and 12." :
+    "Μη έγκυρη είσοδος: Ο αριθμός των κορυφών πρέπει να είναι μεταξύ 4 και 12.";
 
     const invalidEdgesMsg = currentLanguage === 'en' ?
     `Invalid input: Number of edges must be between ${vertices + 2} and ${maxEdges} for ${vertices} vertices.` :
     `Μη έγκυρη είσοδος: Ο αριθμός των ακμών πρέπει να είναι μεταξύ ${vertices + 2} και ${maxEdges} για ${vertices} κορυφές.`;
 
     const invalidWeightsMsg = currentLanguage === 'en' ?
-    "Invalid input: Weights must be between 5 and 40." :
-    "Μη έγκυρη είσοδος: Τα βάρη πρέπει να είναι μεταξύ 5 και 40.";
+    "Invalid input: Weights must be between 1 and 50." :
+    "Μη έγκυρη είσοδος: Τα βάρη πρέπει να είναι μεταξύ 1 και 50.";
 
     const minGreaterThanMaxMsg = currentLanguage === 'en' ?
     "Invalid input: Minimum weight cannot be greater than maximum weight." :
     "Μη έγκυρη είσοδος: Το ελάχιστο βάρος δεν μπορεί να είναι μεγαλύτερο από το μέγιστο βάρος.";
 
-    if (vertices < 5 || vertices > 25) {
+    if (vertices < 5 || vertices > 12) {
     showErrorMessage(invalidVerticesMsg);
     return;
 }
@@ -66,7 +66,7 @@
     showErrorMessage(invalidEdgesMsg);
     return;
 }
-    if (minWeight < 5 || minWeight > 40 || maxWeight < 5 || maxWeight > 40) {
+    if (minWeight < 1 || minWeight > 50 || maxWeight < 1 || maxWeight > 50) {
     showErrorMessage(invalidWeightsMsg);
     return;
 }

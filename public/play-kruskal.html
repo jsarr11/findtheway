@@ -86,16 +86,16 @@
             <!-- We'll assume the language is determined by reading localStorage and changing labels accordingly -->
             <h2 id="popup-title">Δημιουργία προσαρμοσμένου επιπέδου</h2>
             <label for="vertices" id="label-vertices">Αριθμός κορυφών:</label>
-            <input type="number" id="vertices" name="vertices" min="5" max="25" required onchange="updateEdgeConstraints()"><br>
+            <input type="number" id="vertices" name="vertices" min="4" max="12" required onchange="updateEdgeConstraints()"><br>
 
             <label for="edges" id="label-edges">Αριθμός ακμών:</label>
             <input type="number" id="edges" name="edges" min="3" required><br>
 
             <label for="minWeight" id="label-minWeight">Ελάχιστο βάρος:</label>
-            <input type="number" id="minWeight" name="minWeight" min="5" max="40" required><br>
+            <input type="number" id="minWeight" name="minWeight" min="1" max="50" required><br>
 
             <label for="maxWeight" id="label-maxWeight">Μέγιστο βάρος:</label>
-            <input type="number" id="maxWeight" name="maxWeight" min="5" max="40" required><br>
+            <input type="number" id="maxWeight" name="maxWeight" min="1" max="50" required><br>
 
             <button id="playButton" onclick="playCustomGame()" disabled>Παίξε</button>
             <div id="error-message" style="color: red; display: none;"></div>
