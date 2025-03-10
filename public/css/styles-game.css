@@ -139,3 +139,10 @@ body {
 .info-popup {
     text-align: left;
 }
+
+#tutorial-button-el, #tutorial-button-en {
+    background: #d49726;
+}
+#scores-button-el, #scores-button-en {
+    background: #d45226;
+}

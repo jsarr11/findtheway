@@ -640,18 +640,18 @@ $(document).ready(function() {
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
-                correct: "Congratulations!",
-                correct2: "Your answer was correct!",
+                correct: "Correct",
+                correct2: "Congratulations!",
                 incorrect: "Your answer is not correct...",
                 incorrect2: "Try again or visit the tutorial...",
-                score: "Your Score is:"
+                score: "Score:"
             },
             el: {
-                correct: "Συγχαρητήρια!",
-                correct2: "Η απάντησή σας ήταν σωστή!",
+                correct: "Σωστα!",
+                correct2: "Συγχαρητήρια!",
                 incorrect: "Η απάντησή σας δεν είναι σωστή...",
-                incorrect2: "Προσπαθήστε ξανά ή επισκεφθείτε τον οδηγό...",
-                score: "Το Σκορ σας είναι:"
+                incorrect2: "Προσπαθήστε ξανά ή επισκεφθείτε τον οδηγό παιχνιδιού...",
+                score: "Σκορ:"
             }
         };
 
