@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FindTheWay-Theory Prim</title>
+    <title>FindTheWay-About Prim</title>
     <link rel="icon" href="/img/favicon.png" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css">
@@ -25,31 +25,53 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Αλγόριθμος Prim - θεωρία</h1>
-            <p>Στο πλαίσιο της Θεωρίας Γράφων, ένας γράφος είναι ένα σύνολο από κορυφές (δηλαδή, σημεία)
-                και ακμές (δηλαδή, γραμμές που συνδέουν σημεία). Οι κορυφές αντιστοιχούν σε οντότητες.
-                Μία ακμή μεταξύ δύο κορυφών υποδηλώνει ότι οι αντίστοιχες οντότητες σχετίζονται ή συνδέονται
-                κάποιο τρόπο. Συνήθως, οι ακμές έχουν βάρη, τα οποία αντικατοπτρίζουν κάποιο είδος κόστους
-                που απαιτείται για τη δημιουργία της σύνδεσης. Τα βάρη μπορούν να αναπαριστούν φυσική ή
-                εννοιολογική απόσταση, χρόνο, προϋπολογισμό, κ.λπ.</p>
-            <p>Τα δέντρα είναι ειδικές περιπτώσεις γραφήματος που είναι χωρίς κύκλους (acyclic) και συνεκτικά
-                (connected). Ένα εκτεινόμενο δέντρο (Spanning Tree) ενός δεδομένου γράφου είναι ένα δέντρο που
-                περιλαμβάνει όλες τις κορυφές του γράφου αυτού. Όταν αποδίδονται βάρη στις ακμές ενός γράφου,
-                τότε ένα Ελάχιστο Εκτεινόμενο Δέντρο (Minimum Spanning Tree - MST) για τον γράφο αυτό είναι
-                ένα εκτεινόμενο δέντρο με ελάχιστο συνολικό κόστος ακμών.</p>
-            <p>Το πρόβλημα του MST στοχεύει στην εύρεση εκτεινόμενων δέντρων με ελάχιστο συνολικό κόστος
-                ακμών για έναν δεδομένο συνεκτικό γράφο και έχει πολλές πρακτικές εφαρμογές. Για παράδειγμα,
-                φανταστείτε ότι οι κορυφές του γράφου αντιστοιχούν σε σπίτια, αεροδρόμια, γειτονικά νησιά,
-                πύλες, και αναζητούμε λύσεις ελάχιστου κόστους για τη διατήρηση της συνδεσιμότητάς τους,
-                δηλαδή για να εξασφαλίσουμε την ύπαρξη μιας (όχι απαραίτητα άμεσης) σύνδεσης μεταξύ
-                οποιωνδήποτε δύο από αυτά με ελάχιστο συνολικό κόστος.</p>
-            <p>Δεδομένου ενός συνεκτικού γράφου, μπορούμε να υπολογίσουμε αποτελεσματικά (δηλαδή, γρήγορα)
-                ένα Ελάχιστο Εκτεινόμενο Δέντρο χρησιμοποιώντας δύο καλά γνωστούς αλγορίθμους από τη
-                βιβλιογραφία: τον αλγόριθμο του Prim και τον αλγόριθμο του Kruskal. Και οι δύο επιστρέφουν
-                παρόμοια αποτελέσματα, αν και με ελαφρώς διαφορετικό τρόπο.</p>
-            <p><strong>Ο αλγόριθμος του Prim ξεκινά από μια συγκεκριμένη κορυφή και υπολογίζει ένα Ελάχιστο
-                Εκτεινόμενο Δέντρο προσθέτοντας σταδιακά κορυφές με ελάχιστο επιπλέον κόστος.</strong></p>
+            <h1>Αλγόριθμος Prim - Σχετικά</h1>
+
+            <p>Στο πλαίσιο της Θεωρίας γράφων, ένας γράφος είναι μια συλλογή από κορυφές (δηλαδή, σημεία) και
+                ακμές (δηλαδή, γραμμές που συνδέουν τα σημεία). Οι κορυφές αντιστοιχούν σε οντότητες, ενώ μια ακμή
+                μεταξύ δύο κορυφών υποδηλώνει ότι οι αντίστοιχες οντότητες σχετίζονται μεταξύ τους. Συνήθως, οι ακμές
+                φέρουν βάρη που αντικατοπτρίζουν κάποιο κόστος που απαιτείται για τη δημιουργία τους, όπως φυσική ή
+                εννοιολογική απόσταση, χρόνος, προϋπολογισμός κ.λπ.</p>
+
+            <p>Τα δέντρα είναι ειδικές περιπτώσεις γράφων που είναι άκυκλα και συνδεδεμένα. Ένα δέντρο επικάλυψης
+                ενός γράφου είναι ένα δέντρο που περιέχει όλες τις κορυφές του γράφου. Όταν ανατίθενται βάρη στις
+                ακμές ενός γράφου, το ελάχιστο δέντρο επικάλυψης (MST) είναι το δέντρο επικάλυψης με το ελάχιστο
+                συνολικό κόστος ακμών.</p>
+
+            <p>Το πρόβλημα του MST στοχεύει στην εύρεση δέντρων επικάλυψης με ελάχιστο συνολικό κόστος για
+                συνδεδεμένους γράφους και έχει πολλές πρακτικές εφαρμογές. Για παράδειγμα, φανταστείτε ότι οι
+                κορυφές ενός γράφου αντιστοιχούν σε σπίτια, αεροδρόμια, κοντινά νησιά ή πύλες, και αναζητούμε τη
+                βέλτιστη λύση για να τα συνδέσουμε με το ελάχιστο συνολικό κόστος, εξασφαλίζοντας ότι υπάρχει
+                σύνδεση (όχι απαραίτητα άμεση) μεταξύ οποιωνδήποτε δύο σημείων.</p>
+
+            <p>Για έναν συνδεδεμένο γράφο, μπορούμε να υπολογίσουμε αποτελεσματικά ένα ελάχιστο δέντρο επικάλυψης
+                χρησιμοποιώντας δύο γνωστούς αλγορίθμους: τον αλγόριθμο του Prim και τον αλγόριθμο του Kruskal.
+                Και οι δύο αλγόριθμοι επιστρέφουν παρόμοια αποτελέσματα, αλλά η προσέγγισή τους είναι ελαφρώς
+                διαφορετική.</p>
+
+            <h2>Κατανόηση του Αλγορίθμου Prim στην Πράξη</h2>
+
+            <p>Σας παρουσιάζεται ένα νεοσύστατο χωριό όπου πρέπει να κατασκευαστούν πεζοδρόμια ώστε όλα τα σπίτια
+                να συνδεθούν με τον χαμηλότερο δυνατό προϋπολογισμό. Μόνο οι πραγματικά ελάχιστου κόστους προτάσεις
+                είναι επιλέξιμες για χρηματοδότηση.</p>
+
+            <p>Το καθήκον σας είναι να αποφασίσετε ποια σπίτια πρέπει να συνδεθούν με πεζοδρόμια για να επιτευχθεί
+                πλήρης σύνδεση με το ελάχιστο συνολικό κόστος. Μπορείτε να το κάνετε αυτό χρησιμοποιώντας μία από
+                τις δύο διαθέσιμες μεθόδους: τη μία που προτάθηκε αρχικά από τον Vojtěch Jarník και αργότερα
+                αναπτύχθηκε από τον Robert Prim, και μία άλλη που προτάθηκε από τον Joseph Kruskal.</p>
+
+            <p>Σύμφωνα με τον Αλγόριθμο του Prim, σας δίνεται το σπίτι από όπου θα ξεκινήσουν οι εργασίες και το κόστος
+                για όλα τα επιμέρους πεζοδρόμια μεταξύ οποιωνδήποτε δύο σπιτιών στο χωριό. Στη συνέχεια,
+                δημιουργείτε την πρότασή σας βήμα προς βήμα, προσθέτοντας σπίτια που συνδέονται με ελάχιστου κόστους
+                πεζοδρόμια στα σπίτια που έχετε ήδη συμπεριλάβει στη λύση σας, μέχρι να συνδεθούν όλα τα σπίτια.</p>
+
+            <p>Ο αλγόριθμος του Prim ξεκινά από μια συγκεκριμένη κορυφή και κατασκευάζει το ελάχιστο δέντρο επικάλυψης
+                σταδιακά, προσθέτοντας την φθηνότερη διαθέσιμη ακμή που επεκτείνει το δέντρο.</p>
+
+            <p>Χρησιμοποιήστε τη βέλτιστη στρατηγική σας για να βοηθήσετε τους κατοίκους να εξασφαλίσουν χρηματοδότηση
+                για τη βελτίωση του χωριού τους!</p>
         </div>
+
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
             <button id="back-button-el" onclick="window.location.href='/play-prim'">Πίσω</button>
@@ -62,29 +84,50 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Prim algorithm - Theory</h1>
-            <p>In the context of Graph Theory a graph is a collection of vertices (i.e., points) and
-                edges (i.e., lines connecting points). Vertices correspond to entities. An edge between
-                two vertices implies that the corresponding entities are somehow related/associated.
-                Usually edges bear weights which reflect some sort of cost required for their establishment.
-                Weigths can reflect physical or conceptual distance, time, budget and so on.</p>
-            <p>Trees are special cases of graphs which are acyclic and connected. A Spanning Tree for a
-                given graph is a tree containing all vertices of this graph. When weights are assigned to
-                the edges of a graph, a Minimum Spanning Tree (MST) for this graph is a spanning tree of
-                minimum total edge-cost for this graph.</p>
-            <p>The MST problem aims at finding spanning trees of minimum total (edge) cost for given
-                (connected) graphs and has many practical applications. Imagine for example that graph
-                vertices correspond to houses, airports, close-by islands, gates,  and we seek for
-                minimum-cost solutions for keeping all of them connected, i.e., for guaranteeing the
-                existence of a (not necessarily direct) connection between any two of them at a minimum
-                total cost.</p>
-            <p>Given a connected graph, we can efficiently (i.e., fast) compute a Minimum Spanning Tree
-                for this graph using two well-known algorithms from the literature: Prim's algorithm and
-                Kruskal's algorithm, which return similar results though in a slightly different fashion.</p>
-            <p><strong>Prim's algorithm starts from a particular vertex and computes a Minimum Spanning Tree
-                by gradually augmenting a partial spanning tree by adding vertices at minimum additional
-                cost.</strong></p>
+            <h1>Prim Algorithm - About</h1>
+
+            <p>In the context of graph theory, a graph is a collection of vertices (i.e., points) and edges
+                (i.e., lines connecting points). Vertices correspond to entities, while an edge between two vertices
+                implies that the corresponding entities are somehow related or associated. Usually, edges bear weights
+                that reflect some sort of cost required for their establishment, such as physical or conceptual distance,
+                time, budget, etc.</p>
+
+            <p>Trees are special cases of graphs that are acyclic and connected. A spanning tree
+                for a given graph is a tree containing all the vertices of this graph. When weights are assigned to
+                the edges of a graph, a Minimum Spanning Tree (MST) is a spanning tree that has the minimum total
+                edge-cost for that graph.</p>
+
+            <p>The MST problem aims at finding spanning trees of minimum total cost for connected graphs
+                and has many real-world applications. For example, imagine that the graph vertices correspond to
+                houses, airports, nearby islands, or gates, and we seek minimum-cost solutions to connect all of them,
+                ensuring that there exists a connection (not necessarily direct) between any two points at the
+                lowest possible cost.</p>
+
+            <p>Given a connected graph, we can efficiently compute a Minimum Spanning Tree using two well-known
+                algorithms: Prim's algorithm and Kruskal's algorithm. Both algorithms yield similar results,
+                but their approaches are slightly different.</p>
+
+            <h2>Understanding Prim's Algorithm in Practice</h2>
+
+            <p>You are presented with a newly created village where pavements must be constructed so that all
+                houses are connected at the lowest possible budget. Only the truly minimum-cost proposals qualify
+                for funding.</p>
+
+            <p>Your task is to decide which houses should be connected with pavements to achieve full connectivity
+                at minimum total cost. You can do this using one of two methods: one suggested initially by Vojtěch
+                Jarník and later developed by Robert Prim, and another suggested by Joseph Kruskal.</p>
+
+            <p>According to Prim's Algorithm, you are given the starting house and the cost for all individual
+                pavements between any two houses in the village. You then build your proposal step by step, adding
+                houses that are connected by minimum-cost pavements to houses you have already included in your
+                solution, until all houses in the village are fully connected.</p>
+
+            <p>Prim's algorithm starts from a particular vertex and constructs the Minimum Spanning Tree
+                incrementally by adding the cheapest edge that expands the tree.</p>
+
+            <p>Use your best strategy to help the residents obtain funding for improving their village!</p>
         </div>
+
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
             <button id="back-button-en" onclick="window.location.href='/play-prim'">Back</button>
