@@ -25,37 +25,30 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Αλγόριθμος Kruskal</h1>
-            <h3>Ο αλγόριθμος Kruskal είναι ένας άπληστος αλγόριθμος για την εύρεση του Ελαχίστου
-                Καλυπτικού Δέντρου (MST) ενός γράφου, επιλέγοντας τις ακμές με τη μικρότερη δυνατή
-                τιμή και διασφαλίζοντας ότι δεν δημιουργούνται κύκλοι.</h3>
-            <h2>Βασική Ιδέα</h2>
-            <ul>
-                <li>Ταξινομούμε όλες τις ακμές του γράφου κατά αύξουσα σειρά βάρους.</li>
-                <li>Ξεκινώντας από την ελαφρύτερη ακμή, προσθέτουμε ακμές στο MST χωρίς να δημιουργούμε
-                    κύκλους.</li>
-                <li>Συνεχίζουμε μέχρι να συμπεριληφθούν Ν-1 ακμές, όπου Ν είναι ο αριθμός των κόμβων.</li>
-            </ul>
-            <h2>Περιγραφή Βημάτων</h2>
-            <ol>
-                <li>Ταξινομούμε τις ακμές κατά αύξουσα σειρά βάρους.</li>
-                <li>
-                    Ξεκινάμε με ένα κενό MST και ελέγχουμε κάθε ακμή:
-                    <ul>
-                        <li>Αν δεν δημιουργεί κύκλο, την προσθέτουμε στο MST.</li>
-                        <li>Αν δημιουργεί κύκλο, την απορρίπτουμε.</li>
-                    </ul>
-                </li>
-                <li>Επαναλαμβάνουμε το βήμα 2 μέχρι να έχουμε Ν-1 ακμές</li>
-            </ol>
-            <h2>Χαρακτηριστικά</h2>
-            <ul>
-                <li>Ο αλγόριθμος Kruskal επιλέγει πρώτα τις ελαφρύτερες ακμές, σε αντίθεση με τον Prim
-                    που ξεκινά από έναν κόμβο.</li>
-                <li>Είναι πιο αποδοτικός για αραιούς γράφους.
-                </li>
-                <li>Χρησιμοποιεί συχνά τη δομή Disjoint Set (Union-Find) για την ανίχνευση κύκλων.</li>
-            </ul>
+            <p>Στο πλαίσιο της Θεωρίας Γράφων, ένας γράφος είναι ένα σύνολο από κορυφές (δηλαδή, σημεία)
+                και ακμές (δηλαδή, γραμμές που συνδέουν σημεία). Οι κορυφές αντιστοιχούν σε οντότητες.
+                Μία ακμή μεταξύ δύο κορυφών υποδηλώνει ότι οι αντίστοιχες οντότητες σχετίζονται ή συνδέονται
+                κάποιο τρόπο. Συνήθως, οι ακμές έχουν βάρη, τα οποία αντικατοπτρίζουν κάποιο είδος κόστους
+                που απαιτείται για τη δημιουργία της σύνδεσης. Τα βάρη μπορούν να αναπαριστούν φυσική ή
+                εννοιολογική απόσταση, χρόνο, προϋπολογισμό, κ.λπ.</p>
+            <p>Τα δέντρα είναι ειδικές περιπτώσεις γραφήματος που είναι χωρίς κύκλους (acyclic) και συνεκτικά
+                (connected). Ένα εκτεινόμενο δέντρο (Spanning Tree) ενός δεδομένου γράφου είναι ένα δέντρο που
+                περιλαμβάνει όλες τις κορυφές του γράφου αυτού. Όταν αποδίδονται βάρη στις ακμές ενός γράφου,
+                τότε ένα Ελάχιστο Εκτεινόμενο Δέντρο (Minimum Spanning Tree - MST) για τον γράφο αυτό είναι
+                ένα εκτεινόμενο δέντρο με ελάχιστο συνολικό κόστος ακμών.</p>
+            <p>Το πρόβλημα του MST στοχεύει στην εύρεση εκτεινόμενων δέντρων με ελάχιστο συνολικό κόστος
+                ακμών για έναν δεδομένο συνεκτικό γράφο και έχει πολλές πρακτικές εφαρμογές. Για παράδειγμα,
+                φανταστείτε ότι οι κορυφές του γράφου αντιστοιχούν σε σπίτια, αεροδρόμια, γειτονικά νησιά,
+                πύλες, και αναζητούμε λύσεις ελάχιστου κόστους για τη διατήρηση της συνδεσιμότητάς τους,
+                δηλαδή για να εξασφαλίσουμε την ύπαρξη μιας (όχι απαραίτητα άμεσης) σύνδεσης μεταξύ
+                οποιωνδήποτε δύο από αυτά με ελάχιστο συνολικό κόστος.</p>
+            <p>Δεδομένου ενός συνεκτικού γράφου, μπορούμε να υπολογίσουμε αποτελεσματικά (δηλαδή, γρήγορα)
+                ένα Ελάχιστο Εκτεινόμενο Δέντρο χρησιμοποιώντας δύο καλά γνωστούς αλγορίθμους από τη
+                βιβλιογραφία: τον αλγόριθμο του Prim και τον αλγόριθμο του Kruskal. Και οι δύο επιστρέφουν
+                παρόμοια αποτελέσματα, αν και με ελαφρώς διαφορετικό τρόπο.</p>
+            <p><strong>Ο αλγόριθμος του Kruskal υπολογίζει ένα Ελάχιστο Εκτεινόμενο Δέντρο προσθέτοντας
+                σταδιακά τις ακμές ελάχιστου κόστους σε αρχικά ασύνδετα συστατικά/υποδέντρα, έως ότου
+                όλες οι κορυφές συνδεθούν.</strong></p>
         </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-kruskal) -->
@@ -69,34 +62,27 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Kruskal algorithm</h1>
-            <h3>The Kruskal’s algorithm is a greedy algorithm used to find the Minimum Spanning Tree
-                (MST) by always choosing the smallest available edge while ensuring no cycles are formed.</h3>
-            <h2>Basic Idea</h2>
-            <ul>
-                <li>Sort all edges in increasing order of weight.</li>
-                <li>Start with the smallest edge and keep adding edges to the MST as long as they do not form a cycle.</li>
-                <li>Stop when exactly N-1 edges are included, where N is the number of vertices.</li>
-            </ul>
-            <h2>Steps of the Algorithm</h2>
-            <ol>
-                <li>Sort all edges in ascending order of weight.</li>
-                <li>
-                    Start with an empty MST and process each edge:
-                    <ul>
-                        <li>If it does not form a cycle, add it to the MST.</li>
-                        <li>If it forms a cycle, discard it.</li>
-                    </ul>
-                </li>
-                <li>Repeat step 2 until the MST contains N-1 edges.</li>
-            </ol>
-            <h2>Characteristics</h2>
-            <ul>
-                <li>Kruskal’s algorithm picks the lightest edges first, unlike Prim’s, which
-                    starts from a single vertex.</li>
-                <li>It is more efficient for sparse graphs.</li>
-                <li>It often uses Disjoint Set (Union-Find) to efficiently detect cycles.</li>
-            </ul>
+            <p>In the context of Graph Theory a graph is a collection of vertices (i.e., points) and
+                edges (i.e., lines connecting points). Vertices correspond to entities. An edge between
+                two vertices implies that the corresponding entities are somehow related/associated.
+                Usually edges bear weights which reflect some sort of cost required for their establishment.
+                Weigths can reflect physical or conceptual distance, time, budget and so on.</p>
+            <p>Trees are special cases of graphs which are acyclic and connected. A Spanning Tree for a
+                given graph is a tree containing all vertices of this graph. When weights are assigned to
+                the edges of a graph, a Minimum Spanning Tree (MST) for this graph is a spanning tree of
+                minimum total edge-cost for this graph.</p>
+            <p>The MST problem aims at finding spanning trees of minimum total (edge) cost for given
+                (connected) graphs and has many practical applications. Imagine for example that graph
+                vertices correspond to houses, airports, close-by islands, gates,  and we seek for
+                minimum-cost solutions for keeping all of them connected, i.e., for guaranteeing the
+                existence of a (not necessarily direct) connection between any two of them at a minimum
+                total cost.</p>
+            <p>Given a connected graph, we can efficiently (i.e., fast) compute a Minimum Spanning Tree
+                for this graph using two well-known algorithms from the literature: Prim's algorithm and
+                Kruskal's algorithm, which return similar results though in a slightly different fashion.</p>
+            <p><strong>Kruskal's algorithm computes a Minimum Spanning Tree by gradually adding
+                minimum-cost edges to in principle disconnected components/subtrees until all are
+                connected.</strong></p>
         </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-kruskal) -->

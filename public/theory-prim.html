@@ -25,32 +25,29 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Αλγόριθμος Prim</h1>
-            <h3>Ο αλγόριθμος Prim είναι ένας αλγόριθμος που χρησιμοποιείται για την εύρεση του
-                Ελαχίστου Καλυπτικού Δέντρου (Minimum Spanning Tree - MST) ενός συνεκτικού,
-                βαρύνομενου και μη κατευθυνόμενου γράφου.</h3>
-            <h2>Βασική Ιδέα</h2>
-            <ul>
-                <li>Ξεκινάμε από τον αρχικό κόμβο του γράφου.</li>
-                <li>Σε κάθε βήμα, προσθέτουμε την ελάχιστη ακμή που συνδέει έναν κόμβο μέσα
-                    στο MST με έναν κόμβο έξω από το MST.</li>
-                <li>Επαναλαμβάνουμε τη διαδικασία μέχρι να συμπεριληφθούν όλοι οι κόμβοι.</li>
-            </ul>
-            <h2>Περιγραφή Βημάτων</h2>
-                <ol>
-                    <li>Αρχικοποιούμε το σύνολο του MST με τον αρχικό κόμβο.</li>
-                    <li>Βρίσκουμε την ακμή με το μικρότερο βάρος που συνδέει έναν κόμβο του
-                        MST με έναν κόμβο εκτός MST.</li>
-                    <li>Προσθέτουμε την ακμή στο MST και επαναλαμβάνουμε το βήμα 2 μέχρι να
-                        συμπεριληφθούν όλοι οι κόμβοι.</li>
-                </ol>
-            <h2>Χαρακτηριστικά</h2>
-            <ul>
-                <li>Ο αλγόριθμος Prim λειτουργεί τοπικά, χτίζοντας το MST βήμα-βήμα από έναν αρχικό κόμβο.</li>
-                <li>Είναι πιο αποδοτικός για πυκνούς γράφους.</li>
-                <li>Συγκριτικά με τον αλγόριθμο Kruskal, ο Prim’s επεκτείνει το MST προσθέτοντας κορυφές μία-μία,
-                    ενώ ο Kruskal επιλέγει ακμές με αύξουσα σειρά βάρους.</li>
-            </ul>
+            <p>Στο πλαίσιο της Θεωρίας Γράφων, ένας γράφος είναι ένα σύνολο από κορυφές (δηλαδή, σημεία)
+                και ακμές (δηλαδή, γραμμές που συνδέουν σημεία). Οι κορυφές αντιστοιχούν σε οντότητες.
+                Μία ακμή μεταξύ δύο κορυφών υποδηλώνει ότι οι αντίστοιχες οντότητες σχετίζονται ή συνδέονται
+                κάποιο τρόπο. Συνήθως, οι ακμές έχουν βάρη, τα οποία αντικατοπτρίζουν κάποιο είδος κόστους
+                που απαιτείται για τη δημιουργία της σύνδεσης. Τα βάρη μπορούν να αναπαριστούν φυσική ή
+                εννοιολογική απόσταση, χρόνο, προϋπολογισμό, κ.λπ.</p>
+            <p>Τα δέντρα είναι ειδικές περιπτώσεις γραφήματος που είναι χωρίς κύκλους (acyclic) και συνεκτικά
+                (connected). Ένα εκτεινόμενο δέντρο (Spanning Tree) ενός δεδομένου γράφου είναι ένα δέντρο που
+                περιλαμβάνει όλες τις κορυφές του γράφου αυτού. Όταν αποδίδονται βάρη στις ακμές ενός γράφου,
+                τότε ένα Ελάχιστο Εκτεινόμενο Δέντρο (Minimum Spanning Tree - MST) για τον γράφο αυτό είναι
+                ένα εκτεινόμενο δέντρο με ελάχιστο συνολικό κόστος ακμών.</p>
+            <p>Το πρόβλημα του MST στοχεύει στην εύρεση εκτεινόμενων δέντρων με ελάχιστο συνολικό κόστος
+                ακμών για έναν δεδομένο συνεκτικό γράφο και έχει πολλές πρακτικές εφαρμογές. Για παράδειγμα,
+                φανταστείτε ότι οι κορυφές του γράφου αντιστοιχούν σε σπίτια, αεροδρόμια, γειτονικά νησιά,
+                πύλες, και αναζητούμε λύσεις ελάχιστου κόστους για τη διατήρηση της συνδεσιμότητάς τους,
+                δηλαδή για να εξασφαλίσουμε την ύπαρξη μιας (όχι απαραίτητα άμεσης) σύνδεσης μεταξύ
+                οποιωνδήποτε δύο από αυτά με ελάχιστο συνολικό κόστος.</p>
+            <p>Δεδομένου ενός συνεκτικού γράφου, μπορούμε να υπολογίσουμε αποτελεσματικά (δηλαδή, γρήγορα)
+                ένα Ελάχιστο Εκτεινόμενο Δέντρο χρησιμοποιώντας δύο καλά γνωστούς αλγορίθμους από τη
+                βιβλιογραφία: τον αλγόριθμο του Prim και τον αλγόριθμο του Kruskal. Και οι δύο επιστρέφουν
+                παρόμοια αποτελέσματα, αν και με ελαφρώς διαφορετικό τρόπο.</p>
+            <p><strong>Ο αλγόριθμος του Prim ξεκινά από μια συγκεκριμένη κορυφή και υπολογίζει ένα Ελάχιστο
+                Εκτεινόμενο Δέντρο προσθέτοντας σταδιακά κορυφές με ελάχιστο επιπλέον κόστος.</strong></p>
         </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
@@ -64,29 +61,27 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Prim algorithm</h1>
-            <h3>The Prim’s algorithm is used to find the Minimum Spanning Tree (MST) of a connected,
-                weighted, undirected graph.</h3>
-            <h2>Basic Idea</h2>
-            <ul>
-                <li>We start from the starting vertex in the graph.</li>
-                <li>At each step, we add the minimum-weight edge that connects a vertex inside the
-                    MST to a vertex outside the MST.</li>
-                <li>We repeat the process until all vertices are included.</li>
-            </ul>
-            <h2>Steps of the Algorithm</h2>
-            <ol>
-                <li>Initialize the MST with the starting vertex.</li>
-                <li>Find the smallest weight edge that connects a vertex inside the MST with a vertex outside.</li>
-                <li>Add this edge to the MST and repeat step 2 until all vertices are included.</li>
-            </ol>
-            <h2>Characteristics</h2>
-            <ul>
-                <li>Prim’s algorithm works locally, growing the MST step by step from an initial vertex.</li>
-                <li>It is more efficient for dense graphs.</li>
-                <li>Compared to Kruskal’s algorithm, Prim’s grows the MST by adding vertices, while
-                    Kruskal’s picks edges in increasing weight order.</li>
-            </ul>
+            <p>In the context of Graph Theory a graph is a collection of vertices (i.e., points) and
+                edges (i.e., lines connecting points). Vertices correspond to entities. An edge between
+                two vertices implies that the corresponding entities are somehow related/associated.
+                Usually edges bear weights which reflect some sort of cost required for their establishment.
+                Weigths can reflect physical or conceptual distance, time, budget and so on.</p>
+            <p>Trees are special cases of graphs which are acyclic and connected. A Spanning Tree for a
+                given graph is a tree containing all vertices of this graph. When weights are assigned to
+                the edges of a graph, a Minimum Spanning Tree (MST) for this graph is a spanning tree of
+                minimum total edge-cost for this graph.</p>
+            <p>The MST problem aims at finding spanning trees of minimum total (edge) cost for given
+                (connected) graphs and has many practical applications. Imagine for example that graph
+                vertices correspond to houses, airports, close-by islands, gates,  and we seek for
+                minimum-cost solutions for keeping all of them connected, i.e., for guaranteeing the
+                existence of a (not necessarily direct) connection between any two of them at a minimum
+                total cost.</p>
+            <p>Given a connected graph, we can efficiently (i.e., fast) compute a Minimum Spanning Tree
+                for this graph using two well-known algorithms from the literature: Prim's algorithm and
+                Kruskal's algorithm, which return similar results though in a slightly different fashion.</p>
+            <p><strong>Prim's algorithm starts from a particular vertex and computes a Minimum Spanning Tree
+                by gradually augmenting a partial spanning tree by adding vertices at minimum additional
+                cost.</strong></p>
         </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->

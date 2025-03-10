@@ -25,27 +25,21 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Prim - οδηγός παιχνιδιού</h1>
-            <h3>Ο στόχος του παιχνιδιού είναι να δημιουργήσετε το Ελάχιστο Καλυπτικό Δέντρο (MST)
-                ξεκινώντας από έναν αρχικό κόμβο και επιλέγοντας τις ακμές με το μικρότερο βάρος που
-                συνδέουν το MST με νέα κορυφές.</h3>
-            <h2>Βήματα για να παίξετε:</h2>
-            <ol>
-                <li><strong>Ξεκινήστε το παιχνίδι</strong> – Θα δείτε έναν γράφο με κόμβους και ακμές. Ένας κόμβος είναι
-                    επιλεγμένος ως το αρχικό σημείο (σηματοδοτημένος διαφορετικά).</li>
-                <li><strong>Επιλογή ακμών</strong> – Πατήστε σε μία ακμή που συνδέει τον επιλεγμένο κόμβο με έναν νέο κόμβο.</li>
-                <li><strong>Συνέχιση της διαδικασίας</strong> – Συνεχίστε να προσθέτετε ακμές ακολουθώντας τον αλγόριθμο Prim
-                    μέχρι να συμπεριληφθούν όλοι οι κόμβοι.</li>
-                <li><strong>Έλεγχος απάντησης</strong> – Πατήστε το κουμπί Έλεγχος για να ελέγξετε αν η λύση σας είναι σωστή.</li>
-            </ol>
-            <h2>Χρήσιμα κουμπιά στο παιχνίδι</h2>
-            <ul>
-                <li><strong>Αναίρεση (Undo)</strong> – Μπορείτε να αφαιρέσετε την τελευταία ακμή που προσθέσατε είτε
-                    πατώντας το κουμπί αναίρεσης είτε επιλέγοντας μια ήδη επιλεγμένη ακμή.</li>
-                <li><strong>Παύση (Pause)</strong> – Μπορείτε να πατήσετε παύση για να διακόψετε προσωρινά το παιχνίδι.</li>
-                <li><strong>Επανεκκίνηση (Start again)</strong> - Αν θέλετε να ξεκινήσετε από την αρχή, μπορείτε να πατήσετε το κουμπί επανεκκίνησης.</li>
-                <li><strong>Σκορ (Scores)</strong> – Μπορείτε να δείτε τη βαθμολογία σας και τη βαθμολογία άλλων παικτών.</li>
-            </ul>
+            <p>Σου παρουσιάζεται ένα νεοσύστατο χωριό, όπου πρέπει να δημιουργηθούν πεζοδρόμια έτσι
+                ώστε όλα τα σπίτια να συνδεθούν με τον ελάχιστο δυνατό προϋπολογισμό. Μόνο οι προτάσεις
+                με πραγματικά ελάχιστο κόστος είναι επιλέξιμες για χρηματοδότηση.</p>
+            <p>Μπορείς να σχεδιάσεις την πρότασή σου σχετικά με το ποια σπίτια πρέπει να συνδεθούν με
+                πεζοδρόμιο, έτσι ώστε όλα τα σπίτια να συνδεθούν με ελάχιστο συνολικό κόστος,
+                χρησιμοποιώντας μία από τις δύο διαθέσιμες μεθόδους:
+                μία που προτάθηκε αρχικά από τον Vojtěch Jarník και αργότερα από τον Robert Prim,
+                και μία που προτάθηκε από τον Joseph Kruskal.</p>
+            <p>Κάνε το καλύτερο δυνατό για να βοηθήσεις τους κατοίκους να εξασφαλίσουν υποστήριξη για τη
+                βελτίωση του χωριού τους.</p>
+            <p>Σύμφωνα με τη μέθοδο που προτάθηκε αρχικά από τον Vojtěch Jarník και αργότερα από τον
+                Robert Prim, σου δίνεται το σπίτι από το οποίο θα ξεκινήσει το έργο, καθώς και το κόστος
+                για κάθε πιθανό πεζοδρόμιο μεταξύ δύο οποιωνδήποτε σπιτιών του χωριού. Στη συνέχεια, δομείς
+                την πρότασή σου προσθέτοντας σταδιακά σπίτια που συνδέονται με πεζοδρόμια ελάχιστου κόστους
+                προς τα σπίτια που έχεις ήδη συμπεριλάβει στη λύση σου, έως ότου όλα τα σπίτια συνδεθούν.</p>
         </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
@@ -59,26 +53,19 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Prim - game tutorial</h1>
-            <h3>The goal of the game is to create the Minimum Spanning Tree (MST) by starting from a selected
-                node and adding the lowest-weight edges that connect new vertices.</h3>
-            <h2>Steps to Play:</h2>
-            <ol>
-                <li><strong>Start the game</strong> – You will see a graph with nodes and edges. One node is
-                    preselected as the starting point (highlighted differently).</li>
-                <li><strong>Select edges</strong> – Click on an edge that connects a selected node to a new node.</li>
-                <li><strong>Continue</strong> – Keep adding edges following Prim’s algorithm until all nodes are included.</li>
-                <li><strong>Check your solution</strong> – Click Submit to verify if your solution is correct.</li>
-
-            </ol>
-            <h2>Useful Buttons in the Game</h2>
-            <ul>
-                <li><strong>Undo</strong> - You can remove the last selected edge either by clicking the undo
-                    button or by selecting an already chosen edge.</li>
-                <li><strong>Pause </strong> - You can pause the game at any time.</li>
-                <li><strong>Restart</strong> - If you want to restart, click the 'start again' button.</li>
-                <li><strong>Scores</strong> – View your score and the leaderboard.</li>
-            </ul>
+            <p>You are presented with a newly created village where pavements must be created so that all
+                houses are connected with the lower possible budget. Only the really minimum-cost proposals
+                are qualified for funding.</p>
+            <p>You can engineer your proposal about which houses must be connected with a pavement so that
+                all houses are connected at a minimum total budget using one of two available methods: one
+                suggested initially by Vojtěch Jarník and later by Robert Prim and one suggested by Joseph
+                Kruskal.</p>
+            <p>Do your best in order to help the residents to obtain support for improving their village.</p>
+            <p>According to the method suggested initially by Vojtěch Jarník and later by Robert Prim, you
+                are given the house where the work will start and the cost for all individual pavements
+                between any two houses in the village. Then, you build your proposal by gradually adding
+                houses connected by minimum-cost pavements to houses you have already included in your
+                solution so far until all houses are connected.</p>
         </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-prim) -->
