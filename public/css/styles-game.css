@@ -146,3 +146,9 @@ body {
 #scores-button-el, #scores-button-en {
     background: #d45226;
 }
+
+#comparison-table-en img,
+#comparison-table-el img{
+    border-radius: 7%;
+    border: 1px solid #439662!important;
+}
