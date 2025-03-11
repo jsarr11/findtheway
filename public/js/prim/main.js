@@ -678,15 +678,14 @@ $(document).ready(function() {
     /**************************************
      *  Bilingual Detailed Comparison Table
      **************************************/
-    function buildDetailedComparisonHTML(lang, correctSol, playerSol) {
-        // Simple bilingual texts:
+    function buildDetailedComparisonHTML(lang, correctSol, playerSol, mismatchIndex) {
+        // Bilingual texts
         const i18n = {
             en: {
                 correctMST: "Indicative solution",
                 yourMST: "Your answer",
-                start: "Start",
-                target: "Target",
-                weight: "Weight",
+                edge: "Pavement",
+                weight: "Cost",
                 status: "Status",
                 correct: "Correct",
                 mistake: "Mistake",
@@ -696,9 +695,8 @@ $(document).ready(function() {
             el: {
                 correctMST: "Ενδεικτική λύση",
                 yourMST: "Η λύση σου",
-                start: "Αρχή",
-                target: "Στόχος",
-                weight: "Βάρος",
+                edge: "Πεζοδρόμιο",
+                weight: "Κόστος",
                 status: "Κατάσταση",
                 correct: "Σωστό",
                 mistake: "Λάθος",
@@ -706,88 +704,104 @@ $(document).ready(function() {
                 dash: "—"
             }
         };
-
-        // For convenience, pick the right texts
         const t = (lang === 'en') ? i18n.en : i18n.el;
-
-        // We'll compare correctSol & playerSol index-by-index
         const maxLen = Math.max(correctSol.length, playerSol.length);
 
-        let html = `
-    <table style="border-collapse: collapse; margin-top: 10px;">
-      <thead>
-        <tr>
-          <th colspan="4" style="border:1px solid #ccc;">${t.correctMST}</th>
-          <th colspan="4" style="border:1px solid #ccc;">${t.yourMST}</th>
-        </tr>
-        <tr>
-          <!-- Correct MST columns -->
-          <th style="padding:4px; border:1px solid #ccc;">${t.start}</th>
-          <th style="padding:4px; border:1px solid #ccc;">${t.target}</th>
-          <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
-          <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
-
-          <!-- Player MST columns -->
-          <th style="padding:4px; border:1px solid #ccc;">${t.start}</th>
-          <th style="padding:4px; border:1px solid #ccc;">${t.target}</th>
-          <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
-          <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
+        // Build Correct MST table (without Status)
+        let correctRows = "";
         for (let i = 0; i < maxLen; i++) {
             const cEdge = correctSol[i];
-            const pEdge = playerSol[i];
-
-            // Convert edge to text or show dash if no edge
-            let cStart  = cEdge ? cEdge.Vertex1 : t.dash;
-            let cTarget = cEdge ? cEdge.Vertex2 : t.dash;
-            let cWeight = cEdge ? cEdge.Weight  : t.dash;
-
-            let pStart  = pEdge ? pEdge.Vertex1 : t.dash;
-            let pTarget = pEdge ? pEdge.Vertex2 : t.dash;
-            let pWeight = pEdge ? pEdge.Weight  : t.dash;
-
-            // If we want a simple “OK” if both edges match exactly,
-            // otherwise "Correct"/"Mistake" or nothing:
-            let cStatus = '';
-            let pStatus = '';
-
-            if (cEdge && pEdge &&
-                cEdge.Vertex1 === pEdge.Vertex1 &&
-                cEdge.Vertex2 === pEdge.Vertex2 &&
-                cEdge.Weight  === pEdge.Weight
-            ) {
-                // They match exactly
-                cStatus = t.ok;
-                pStatus = t.ok;
+            let edgeText, weightText;
+            if (cEdge) {
+                edgeText = `${cEdge.Vertex1}-${cEdge.Vertex2}`;
+                weightText = cEdge.Weight;
             } else {
-                if (cEdge) cStatus = t.correct;   // Means "This is the correct edge"
-                if (pEdge) pStatus = t.mistake;   // Means "Player selected this incorrectly"
+                edgeText = t.dash;
+                weightText = t.dash;
             }
-
-            html += `
-      <tr>
-        <!-- Correct MST columns -->
-        <td style="padding:4px; border:1px solid #ccc;">${cStart}</td>
-        <td style="padding:4px; border:1px solid #ccc;">${cTarget}</td>
-        <td style="padding:4px; border:1px solid #ccc;">${cWeight}</td>
-        <td style="padding:4px; border:1px solid #ccc;">${cStatus}</td>
-
-        <!-- Player MST columns -->
-        <td style="padding:4px; border:1px solid #ccc;">${pStart}</td>
-        <td style="padding:4px; border:1px solid #ccc;">${pTarget}</td>
-        <td style="padding:4px; border:1px solid #ccc;">${pWeight}</td>
-        <td style="padding:4px; border:1px solid #ccc;">${pStatus}</td>
-      </tr>
-    `;
+            const rowStyle = (i === mismatchIndex) ? 'background-color: #fdd;' : '';
+            correctRows += `
+          <tr style="${rowStyle}">
+            <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
+            <td style="padding:4px; border:1px solid #ccc;">${weightText}</td>
+          </tr>
+        `;
         }
+        const correctTable = `
+      <h3 style="margin-bottom:4px;">${t.correctMST}</h3>
+      <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
+        <thead>
+          <tr>
+            <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+            <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${correctRows}
+        </tbody>
+      </table>
+    `;
 
-        html += `</tbody></table>`;
-        return html;
+        // Build Player MST table (with Status)
+        let playerRows = "";
+        for (let i = 0; i < maxLen; i++) {
+            const pEdge = playerSol[i];
+            let edgeText, weightText, statusText = "";
+            if (pEdge) {
+                edgeText = `${pEdge.Vertex1}-${pEdge.Vertex2}`;
+                weightText = pEdge.Weight;
+            } else {
+                edgeText = t.dash;
+                weightText = t.dash;
+            }
+            if (pEdge) {
+                if (correctSol[i] &&
+                    correctSol[i].Vertex1 === pEdge.Vertex1 &&
+                    correctSol[i].Vertex2 === pEdge.Vertex2 &&
+                    correctSol[i].Weight  === pEdge.Weight
+                ) {
+                    statusText = t.ok;
+                } else {
+                    statusText = t.mistake;
+                }
+            } else {
+                statusText = t.dash;
+            }
+            const rowStyle = (i === mismatchIndex) ? 'background-color: #fdd;' : '';
+            playerRows += `
+          <tr style="${rowStyle}">
+            <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
+            <td style="padding:4px; border:1px solid #ccc;">${weightText}</td>
+            <td style="padding:4px; border:1px solid #ccc;">${statusText}</td>
+          </tr>
+        `;
+        }
+        const playerTable = `
+      <h3 style="margin-bottom:4px;">${t.yourMST}</h3>
+      <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
+        <thead>
+          <tr>
+            <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+            <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+            <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${playerRows}
+        </tbody>
+      </table>
+    `;
+
+        // Return both tables side by side in a flex container
+        return `
+      <div style="display:flex; gap:1rem; margin-top:10px; justify-content:center; align-items:flex-start;">
+        <div style="width:auto;">${correctTable}</div>
+        <div style="width:auto;">${playerTable}</div>
+      </div>
+    `;
     }
+
+
 
 
 
@@ -863,8 +877,8 @@ $(document).ready(function() {
             el: {
                 correct: "Σωστα!",
                 correct2: "Συγχαρητήρια!",
-                incorrect: "Η απάντησή σας δεν είναι σωστή...",
-                incorrect2: "Προσπαθήστε ξανά ή επισκεφθείτε τον οδηγό παιχνιδιού...",
+                incorrect: "Η απάντησή σου δεν είναι σωστή...",
+                incorrect2: "Προσπάθησε ξανά ή επισκέψου τον οδηγό παιχνιδιού...",
                 score: "Σκορ:"
             }
         };
