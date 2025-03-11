@@ -155,22 +155,24 @@ router.get('/info', (req, res) => {
 
 ///////////////////////////   PLAY KRUSKAL PAGE   //////////////////////////////
 router.get('/play-kruskal', (req, res) => {
-    // Check if user is authenticated
     if (!req.session.username) {
-        return res.redirect('/login'); // Unified login route
+        req.session.returnTo = req.originalUrl;  // Store last attempted page
+        return res.redirect('/login');
     }
     res.sendFile(path.join(__dirname, 'public', 'play-kruskal.html'));
 });
 
+
 ///////////////////////////   PLAY PRIM PAGE   //////////////////////////////
 // Serve unified play prim page
 router.get('/play-prim', (req, res) => {
-    // Check if user is authenticated
     if (!req.session.username) {
-        return res.redirect('/login'); // single login route
+        req.session.returnTo = req.originalUrl;  // Store last attempted page
+        return res.redirect('/login');
     }
     res.sendFile(path.join(__dirname, 'public', 'play-prim.html'));
 });
+
 
 ///////////////////////////   THEORY PAGES   //////////////////////////////
 // Serve theory Kruskal pages

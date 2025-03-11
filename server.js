@@ -10,8 +10,14 @@ const port = 3000;
 app.use(session({
     secret: 'your-secret-key',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,  // Only save session if modified
+    cookie: {
+        httpOnly: true,
+        secure: false, // Change to `true` if using HTTPS
+        maxAge: 24 * 60 * 60 * 1000  // 24 hours session expiration
+    }
 }));
+
 
 app.use(express.json());
 
