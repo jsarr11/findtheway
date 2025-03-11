@@ -50,16 +50,15 @@ function updateEdgeConstraints() {
     $('#maxWeight').val('');
     $('#error-message').hide();
 
-    $('#edgesContainer').hide();
-    $('#weightsContainer').hide();
-    $('#playContainer').hide();
+    $('#weightsContainer').show();
+    $('#playContainer').show();
 
     const vertices = parseInt($('#vertices').val());
     if (isNaN(vertices) || vertices < 4 || vertices > 12) {
-        $('#edgesContainer').hide();
-        $('#edgesRangeDisplay').html('');
-        $('#weightsContainer').hide();
+        $('#weightsContainer').show(); // Make sure weights section appears right away
         $('#playContainer').hide();
+        $('#edgesRangeDisplay').text(''); // Ensure it does not disappear
+
         return;
     } else {
         $('#edgesContainer').show();
@@ -81,25 +80,13 @@ function updateEdgeConstraints() {
 
     // Build a table showing only the row for the entered node count using the language-specific headers
     const mapping = edgesMapping[vertices];
-    const tableHtml = `
-      <table id="edgesTable" style="width:100%; border-collapse:collapse;">
-        <thead>
-          <tr>
-            <th>${headerNodes}</th>
-            <th>${headerMin}</th>
-            <th>${headerMax}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>${vertices}</td>
-            <td>${mapping.min}</td>
-            <td>${mapping.max}</td>
-          </tr>
-        </tbody>
-      </table>
-    `;
-    $('#edgesRangeDisplay').html(tableHtml);
+    if (mapping) {
+        const generatedEdges = Math.floor(Math.random() * (mapping.max - mapping.min + 1)) + mapping.min;
+        $('#edges').val(generatedEdges);
+        $('#edgesRangeDisplay').text((localStorage.getItem('language') === 'el' ? '2. Αριθμός πεζοδρομίων: ' : '2. Number of pavements: ') + generatedEdges);
+
+    }
+
 
     checkInputs();
 }
@@ -114,8 +101,8 @@ function generateValidEdges() {
     }
     if (!(vertices in edgesMapping)) {
         const errMsg = localStorage.getItem('language') === 'en' ?
-            'Invalid number of vertices' :
-            'Μη έγκυρος αριθμός κορυφών';
+            'Invalid number of houses' :
+            'Μη έγκυρος αριθμός σπιτιών';
         $('#generatedEdgesDisplay').text(errMsg);
         return;
     }
@@ -184,20 +171,20 @@ function playCustomGame() {
 
     // Language-based messages
     const invalidVerticesMsg = (currentLanguage === 'en')
-        ? "Invalid input: Number of vertices must be between 4 and 12."
-        : "Μη έγκυρη είσοδος: Ο αριθμός των κορυφών πρέπει να είναι μεταξύ 4 και 12.";
+        ? "Invalid input: Number of houses must be between 4 and 12."
+        : "Μη έγκυρη είσοδος: Ο αριθμός των σπιτιών πρέπει να είναι μεταξύ 4 και 12.";
 
     const invalidEdgesMsg = (minVal, maxVal) => (currentLanguage === 'en')
-        ? `Invalid input: Number of edges must be between ${minVal} and ${maxVal} for ${vertices} vertices.`
-        : `Μη έγκυρη είσοδος: Ο αριθμός των ακμών πρέπει να είναι μεταξύ ${minVal} και ${maxVal} για ${vertices} κορυφές.`;
+        ? `Invalid input: Number of pavements must be between ${minVal} and ${maxVal} for ${vertices} vertices.`
+        : `Μη έγκυρη είσοδος: Ο αριθμός των πεζοδρομίων πρέπει να είναι μεταξύ ${minVal} και ${maxVal} για ${vertices} κορυφές.`;
 
     const invalidWeightsMsg = (currentLanguage === 'en')
-        ? "Invalid input: Weights must be between 1 and 50."
-        : "Μη έγκυρη είσοδος: Τα βάρη πρέπει να είναι μεταξύ 1 και 50.";
+        ? "Invalid input: Costs must be between 1 and 50."
+        : "Μη έγκυρη είσοδος: Τα κόστη πρέπει να είναι μεταξύ 1 και 50.";
 
     const minGreaterThanMaxMsg = (currentLanguage === 'en')
-        ? "Invalid input: Minimum weight cannot be greater than maximum weight."
-        : "Μη έγκυρη είσοδος: Το ελάχιστο βάρος δεν μπορεί να είναι μεγαλύτερο από το μέγιστο βάρος.";
+        ? "Invalid input: Minimum cost cannot be greater than maximum weight."
+        : "Μη έγκυρη είσοδος: Το ελάχιστο κόστος δεν μπορεί να είναι μεγαλύτερο από το μέγιστο κόστος.";
 
     // 1) Validate vertices
     if (vertices < 4 || vertices > 12) {
@@ -237,27 +224,26 @@ function showErrorMessage(message) {
 
 function localizePopup() {
     const currentLanguage = localStorage.getItem('language') || 'el';
+    $('#edgesRangeDisplay').text((currentLanguage === 'el' ? '2. Αριθμός πεζοδρομίων: ' : '2. Number of pavements: ') + $('#edges').val());
 
     if (currentLanguage === 'en') {
         $('#popup-title').text("Create custom level");
-        $('#label-vertices').text("Number of vertices:");
+        $('#label-vertices').text("Number of houses:");
         $('#generateEdgesButton').text("Generate a valid number of edges");
         $('#label-minWeight').text("Min");
         $('#label-maxWeight').text("Max");
-        $('#playButton').text("Play");
+        $('#playButton').text("Let's go!");
         $('#p1').text("1. Give the number of houses, from 4 to 12");
-        $('#p2').text("2. Push the button to generate a random number of pavements");
         $('#p3').text("3. Give min and max weights you want, from 1 to 50");
     } else {
         $('#popup-title').text("Δημιουργία προσαρμοσμένου επιπέδου");
-        $('#label-vertices').text("Αριθμός κορυφών:");
-        $('#generateEdgesButton').text("Παραγωγή έγκυρου αριθμού ακμών");
+        $('#label-vertices').text("Αριθμός σπιτιών:");
+        $('#generateEdgesButton').text("Παραγωγή έγκυρου αριθμού πεζοδρομίων");
         $('#label-minWeight').text("Ελάχιστο");
         $('#label-maxWeight').text("Μέγιστο");
-        $('#playButton').text("Παίξε");
+        $('#playButton').text("Ας ξεκινήσουμε!");
         $('#p1').text("1. Δώσε αριθμό από σπίτια, από 4 μεχρι 12");
-        $('#p2').text("2. Πάτησε το κουμπί για να δημιουργηθεί ένας τυχαίος αριθμός πεζοδρομίων");
-        $('#p3').text("3. Δώσε το ελάχιστο και μέγιστο βάρος που επιθυμείς, από 1 έως 50");
+        $('#p3').text("3. Δώσε το ελάχιστο και μέγιστο κόστος που επιθυμείς, από 1 έως 50");
     }
 
     // Update the table headers, if the table is visible

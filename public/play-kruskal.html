@@ -83,13 +83,11 @@
             <span class="close" onclick="closeCustomLevelPopup()">&times;</span>
             <h2 id="popup-title"></h2>
             <p id="p1"></p>
-            <label for="vertices" id="label-vertices">Αριθμός κορυφών:</label>
+            <label for="vertices" id="label-vertices">Αριθμός σπιτιών:</label>
             <input type="number" id="vertices" name="vertices" min="4" max="12" required onchange="updateEdgeConstraints()"><br>
 
             <div id="edgesContainer" style="display: none;">
-                <p id="p2"></p>
                 <div id="edgesRangeDisplay"></div>
-                <button id="generateEdgesButton" type="button"></button>
                 <div id="generatedEdgesDisplay"></div>
                 <input type="hidden" id="edges" name="edges">
             </div>
