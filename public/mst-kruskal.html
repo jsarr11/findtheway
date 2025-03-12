@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindTheWay-MST Kruskal</title>
+    <link rel="icon" href="/img/favicon.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="/js/language-switcher.js"></script>
+</head>
+<body>
+<header>
+    <div class="header-line">
+        <a onclick="window.location.href='/user-page'"><img src="/img/logo_500x500.png" alt="logo" class="logo"></a>
+        <button id="switch-lang">English</button>
+    </div>
+</header>
+<main>
+
+    <!-- Greek Content -->
+    <div id="content-el">
+        <div class="centered">
+            <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
+        </div>
+        <div class="info">
+            <h1>Το πρόβλημα του Ελάχιστου Συνδετικού Δέντρου (MST)</h1>
+
+            <p>Στο πλαίσιο της θεωρίας γράφων, ένας γράφος είναι μια συλλογή κορυφών (δηλαδή,
+                σημεία) και ακμών (δηλαδή, γραμμές που συνδέουν σημεία). Οι κορυφές αντιστοιχούν
+                σε οντότητες, ενώ μια ακμή μεταξύ δύο κορυφών υποδηλώνει ότι οι αντίστοιχες
+                οντότητες είναι κατά κάποιο τρόπο σχετικές ή συνδεδεμένες. Συνήθως, οι ακμές
+                έχουν βάρη που αντικατοπτρίζουν κάποιο είδος κόστους που απαιτείται για την
+                εγκατάστασή τους, όπως για παράδειγμα απόσταση, χρόνος ή προϋπολογισμός.
+                Τα δέντρα είναι ειδικές περιπτώσεις γράφων που είναι ακυκλικά και συνδεδεμένα.
+                Ένα δέντρο κάλυψης για έναν δεδομένο γράφο είναι ένα δέντρο που περιέχει όλες
+                τις κορυφές του γράφου. Όταν αποδίδονται βάρη στις ακμές ενός γράφου, ένα Ελάχιστο
+                Συνδετικό Δέντρο (MST) για αυτόν τον γράφο είναι ένα δέντρο κάλυψης που έχει το
+                ελάχιστο συνολικό κόστος ακμών.</p>
+
+            <p>Το πρόβλημα του Ελάχιστου Συνδετικού Δέντρου έχει πολλές εφαρμογές στον πραγματικό
+                κόσμο. Φανταστείτε, για παράδειγμα, ότι οι κορυφές του γράφου αντιστοιχούν σε
+                σπίτια, αεροδρόμια ή κοντινά νησιά και αναζητούμε λύσεις με το ελάχιστο κόστος
+                για να τα συνδέσουμε όλα, εξασφαλίζοντας ότι υπάρχει σύνδεση (όχι απαραίτητα άμεση)
+                μεταξύ οποιωνδήποτε δύο σημείων με το χαμηλότερο δυνατό κόστος. Δεδομένου ενός
+                συνδεδεμένου γράφου, μπορούμε να υπολογίσουμε αποτελεσματικά ένα Ελάχιστο Συνδετικό
+                Δέντρο χρησιμοποιώντας δύο γνωστούς αλγορίθμους: τον αλγόριθμο του Prim και τον
+                αλγόριθμο του Kruskal. Και οι δύο αλγόριθμοι αποδίδουν παρόμοια αποτελέσματα,
+                αλλά οι προσεγγίσεις τους είναι ελαφρώς διαφορετικές.
+                Ο αλγόριθμος του Prim ξεκινά από μια συγκεκριμένη κορυφή και κατασκευάζει σταδιακά
+                το Ελάχιστο Συνδετικό Δέντρο, προσθέτοντας την φτηνότερη ακμή που επεκτείνει το
+                δέντρο. Ο αλγόριθμος του Kruskal υπολογίζει ένα Ελάχιστο Συνδετικό Δέντρο,
+                προσθέτοντας σταδιακά ακμές με το ελάχιστο κόστος σε αρχικά μη συνδεδεμένα
+                συστατικά ή υποδέντρα, μέχρι να συνδεθούν όλα.</p>
+
+
+            <h2>Το παιχνίδι</h2>
+
+            <p>Σας παρουσιάζεται ένα νεοδημιουργημένο χωριό όπου πρέπει να κατασκευαστούν πεζοδρόμια
+                ώστε όλα τα σπίτια να είναι συνδεδεμένα με τον χαμηλότερο δυνατό προϋπολογισμό.
+                Μόνο οι προτάσεις με το ελάχιστο κόστος πληρούν τις προϋποθέσεις για χρηματοδότηση.</p>
+
+            <p>Σας δίδεται το κόστος για όλα τα μεμονωμένα πεζοδρόμια μεταξύ οποιωνδήποτε δύο
+                σπιτιών στο χωριό. Στόχος σας είναι να καθορίσετε ποια σπίτια πρέπει να συνδεθούν
+                με πεζοδρόμια ώστε να επιτευχθεί πλήρης συνδεσιμότητα με το ελάχιστο συνολικό
+                προϋπολογισμό. Χρησιμοποιώντας τη μέθοδο που προτάθηκε από τον Joseph Kruskal,
+                αναμένεται να χτίσετε την πρότασή σας, προσθέτοντας σταδιακά πεζοδρόμια του
+                ελάχιστου κόστους μέχρι να συνδεθούν όλα τα σπίτια.</p>
+
+            <p>Κάντε το καλύτερο δυνατό για να βοηθήσετε τους κατοίκους να εξασφαλίσουν
+                χρηματοδότηση για τη βελτίωση του χωριού τους.</p>
+        </div>
+
+
+        <div class="button-container">
+            <!-- Unified back route (e.g., /play-kruskal) -->
+            <button id="back-button-el" onclick="window.location.href='/play-kruskal'">Πίσω</button>
+        </div>
+    </div>
+
+    <!-- English Content (hidden by default) -->
+    <div id="content-en" style="display:none;">
+        <div class="centered">
+            <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
+        </div>
+        <div class="info">
+            <h1>The MST problem</h1>
+
+            <p>In the context of graph theory, a graph is a collection of vertices (i.e., points)
+                and edges (i.e., lines connecting points). Vertices correspond to entities, while
+                an edge between two vertices implies that the corresponding entities are somehow
+                related or associated. Usually, edges have weights that reflect some sort of cost
+                required for their establishment, like for example distance, time, budget.Trees are
+                special cases of graphs that are acyclic and connected. A spanning tree for a given
+                graph is a tree containing all the vertices of this graph. When weights are assigned
+                to the edges of a graph, a Minimum Spanning Tree (MST) for that graph is a spanning
+                tree that has the minimum total edge-cost.</p>
+
+            <p>The MST problem has many real-world applications. Imagine, for example, that graph
+                vertices correspond to houses, airports or nearby islands and we seek minimum-cost
+                solutions to connect all of them, ensuring that there exists a connection (not
+                necessarily direct) between any two points at the lowest possible cost. Given a
+                connected graph, we can efficiently compute a Minimum Spanning Tree using two
+                well-known algorithms: Prim's algorithm and Kruskal's algorithm. Both algorithms
+                yield similar results, but their approaches are slightly different. Prim's algorithm
+                starts from a particular vertex and constructs the Minimum Spanning Tree
+                incrementally by adding the cheapest edge that expands the tree. Kruskal's
+                algorithm computes a Minimum Spanning Tree by gradually adding minimum-cost
+                edges to initially disconnected components or subtrees until all are connected.</p>
+
+
+            <h2>The game</h2>
+
+            <p>You are presented with a newly created village where pavements must be constructed
+                so that all houses are connected with the lowest possible budget. Only the
+                minimum-cost proposals qualify for funding.</p>
+
+            <p>You are given the cost for all individual pavements between any two houses in the
+                village. Your goal is to determine which houses must be connected with pavements
+                to achieve full connectivity at the minimum total budget. Using the method
+                suggested by Joseph Kruskal, you are expected to build your proposal by gradually
+                adding minimum-cost pavements until all houses are connected.</p>
+
+            <p>Do your best to help the residents secure funding to improve their village.</p>
+        </div>
+
+
+        <div class="button-container">
+            <!-- Unified back route (e.g., /play-kruskal) -->
+            <button id="back-button-en" onclick="window.location.href='/play-kruskal'">Back</button>
+        </div>
+    </div>
+
+</main>
+</body>
+</html>

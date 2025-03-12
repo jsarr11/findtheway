@@ -174,20 +174,20 @@ router.get('/play-prim', (req, res) => {
 
 ///////////////////////////   THEORY PAGES   //////////////////////////////
 // Serve theory Kruskal pages
-router.get('/theory-kruskal', (req, res) => {
+router.get('/mst-kruskal', (req, res) => {
     // Check if user is authenticated
     if (!req.session.username) {
         return res.redirect('/login');
     }
-    res.sendFile(path.join(__dirname, 'public', 'theory-kruskal.html'));
+    res.sendFile(path.join(__dirname, 'public', 'mst-kruskal.html'));
 });
 
-router.get('/theory-prim', (req, res) => {
+router.get('/mst-prim', (req, res) => {
     // Check if user is authenticated
     if (!req.session.username) {
         return res.redirect('/login');
     }
-    res.sendFile(path.join(__dirname, 'public', 'theory-prim.html'));
+    res.sendFile(path.join(__dirname, 'public', 'mst-prim.html'));
 });
 
 ///////////////////////////   TUTORIAL KRUSKAL PAGES   //////////////////////////////
