@@ -280,3 +280,10 @@ table tr:hover {
     padding: 10px;
     background: rgba(255, 255, 255, 0.7);
 }
+
+#tutorial-button-el, #tutorial-button-en {
+    background: #d49726;
+}
+.red {
+    background: #d45226;
+}

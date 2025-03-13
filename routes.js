@@ -192,25 +192,25 @@ router.get('/mst-prim', (req, res) => {
 
 ///////////////////////////   TUTORIAL KRUSKAL PAGES   //////////////////////////////
 // Serve unified tutorial prim page
-router.get('/tutorial-kruskal', (req, res) => {
+router.get('/how-to-play-kruskal', (req, res) => {
     // Check if user is authenticated
     if (!req.session.username) {
         // Redirect to a unified login page or choose language-based login as needed
         // For simplicity, assume a unified login route:
         return res.redirect('/login');
     }
-    res.sendFile(path.join(__dirname, 'public', 'tutorial-kruskal.html'));
+    res.sendFile(path.join(__dirname, 'public', 'how-to-play-kruskal.html'));
 });
 
 // Serve unified tutorial prim page
-router.get('/tutorial-prim', (req, res) => {
+router.get('/how-to-play-prim', (req, res) => {
     // Check if user is authenticated
     if (!req.session.username) {
         // Redirect to a unified login page or choose language-based login as needed
         // For simplicity, assume a unified login route:
         return res.redirect('/login');
     }
-    res.sendFile(path.join(__dirname, 'public', 'tutorial-prim.html'));
+    res.sendFile(path.join(__dirname, 'public', 'how-to-play-prim.html'));
 });
 
 //////////////////////////////   SCORES PAGES   //////////////////////////////
