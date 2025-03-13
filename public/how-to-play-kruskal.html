@@ -25,21 +25,24 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Kruskal algorithm - tutorial</h1>
-            <p>Σου παρουσιάζεται ένα νεοσύστατο χωριό, όπου πρέπει να δημιουργηθούν πεζοδρόμια έτσι ώστε
-                όλα τα σπίτια να συνδεθούν με τον ελάχιστο δυνατό προϋπολογισμό. Μόνο οι προτάσεις με
-                πραγματικά ελάχιστο κόστος είναι επιλέξιμες για χρηματοδότηση.</p>
-            <p>Μπορείς να σχεδιάσεις την πρότασή σου σχετικά με το ποια σπίτια πρέπει να συνδεθούν με
-                πεζοδρόμιο, έτσι ώστε όλα τα σπίτια να συνδεθούν με ελάχιστο συνολικό κόστος,
-                χρησιμοποιώντας μία από τις δύο διαθέσιμες μεθόδους:
-                μία που προτάθηκε αρχικά από τον Vojtěch Jarník και αργότερα από τον Robert Prim,
-                και μία που προτάθηκε από τον Joseph Kruskal.</p>
-            <p>Κάνε το καλύτερο δυνατό για να βοηθήσεις τους κατοίκους να εξασφαλίσουν υποστήριξη για τη
-                βελτίωση του χωριού τους.</p>
-            <p>Σύμφωνα με τη μέθοδο που προτάθηκε από τον Joseph Kruskal, σου δίνεται το κόστος για κάθε
-                πιθανό πεζοδρόμιο μεταξύ δύο οποιωνδήποτε σπιτιών του χωριού. Στη συνέχεια, δομείς την
-                πρότασή σου προσθέτοντας σταδιακά πεζοδρόμια ελάχιστου κόστους έως ότου όλα τα σπίτια
-                συνδεθούν.</p>
+            <h1>Πώς να παίξετε</h1>
+            <p><strong>Στόχος: </strong>δημιουργήστε ένα Ελάχιστο Καλυπτικό Δέντρο (MST) επιλέγοντας τα
+                φθηνότερα πεζοδρόμια και αποφεύγοντας κύκλους</p>
+            <p><strong>Βήματα: </strong>Ξεκινήστε το παιχνίδι > Επιλέξτε ένα-ένα τα επιθυμητά πεζοδρόμια,
+                δίνοντας προτεραιότητα κάθε φορά στα φθηνότερα, αποφεύγοντας τη δημιουργία κύκλων >
+                Συνεχίστε μέχρι να συνδεθούν όλα τα σπίτια και ο συνολικός αριθμός επιλεγμένων πεζοδρομίων
+                να είναι ένας λιγότερος από τον αριθμό των σπιτιών του χωριού > Πατήστε Υποβολή για να
+                επαληθεύσετε την πρότασή σας</p>
+            <h3>Κουμπιά:</h3>
+            <p><strong>Αναίρεση τελευταίας ακμής: </strong>αφαιρεί το τελευταίο επιλεγμένο πεζοδρόμιο –
+                εναλλακτικά, κάνοντας κλικ σε οποιοδήποτε επιλεγμένο πεζοδρόμιο το αποεπιλέγετε</p>
+            <p><strong>Παύση: </strong>παγώνει το παιχνίδι και τον χρονομετρητή οποιαδήποτε στιγμή</p>
+            <p><strong>Έλεγχος: </strong>επαληθεύστε την πρόταση σας</p>
+            <p><strong>Ξεκινήστε ξανά: </strong>ξεκινήστε ξανά με το ίδιο χωριό</p>
+            <p><strong>Νέο παιχνίδι: </strong>ξεκινήστε ένα καινούριο παιχνίδι</p>
+            <p><strong>Σκορ: </strong>δείτε τα δικά σας σκορ και τα σκορ των κορυφαίων παικτών</p>
+            <p><strong>Πώς να παίξετε: </strong>μεταβείτε σε αυτήν τη σελίδα</p>
+            <p><strong>Έξοδος: </strong>κλείστε το παιχνίδι</p>
         </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-kruskal) -->
@@ -53,18 +56,23 @@
             <img src="./img/logo_500x500.png" alt="Logo" class="bigLogo">
         </div>
         <div class="info">
-            <h1>Αλγόριθμος Kruskal - οδηγός</h1>
-            <p>You are presented with a newly created village where pavements must be created so that all
-                houses are connected with the lower possible budget. Only the really minimum-cost proposals
-                are qualified for funding.</p>
-            <p>You can engineer your proposal about which houses must be connected with a pavement so that
-                all houses are connected at a minimum total budget using one of two available methods: one
-                suggested initially by Vojtěch Jarník and later by Robert Prim and one suggested by Joseph
-                Kruskal.</p>
-            <p>Do your best in order to help the residents to obtain support for improving their village.</p>
-            <p>According to the method suggested by Joseph Kruskal, you are given the cost for all
-                individual pavements between any two houses in the village. Then, you build your proposal
-                by gradually adding to your proposal minimum-cost pavements until all houses are connected.</p>
+            <h1>How to play</h1>
+            <p><strong>Goal: </strong>create a Minimum Spanning Tree (MST) by selecting the cheapest
+                pavements while avoiding cycles</p>
+            <p><strong>Steps: </strong>Start the game > Select desired pavements one-by-one giving
+                priority each time to the cheapest without creating cycles > Continue until all
+                houses are connected and the total number of selected pavements is one less than
+                the number of the village houses > Click Submit to verify your proposal</p>
+            <h3>Buttons:</h3>
+            <p><strong>Undo last edge: </strong>remove last selected pavement - alternatively
+                clicking on any selected pavement deselects it</p>
+            <p><strong>Pause: </strong>pause the game and the time counter at any desired time</p>
+            <p><strong>Submit: </strong>verify proposal</p>
+            <p><strong>Start again: </strong>start again with the same village</p>
+            <p><strong>New game: </strong>start a new game</p>
+            <p><strong>Scores: </strong>see your scores and the top players' scores</p>
+            <p><strong>How to play: </strong>access this page</p>
+            <p><strong>Quit: </strong>exit the game</p>
         </div>
         <div class="button-container">
             <!-- Unified back route (e.g., /play-kruskal) -->
