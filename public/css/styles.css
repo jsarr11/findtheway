@@ -19,7 +19,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    /*height: 100%;*/
     background-image: url('../img/background2.png'); /* Replace with the image path */
     background-size: cover;
     background-position: center;
@@ -34,9 +34,10 @@ h1, h2, h3, h4, h5, h6, button, input, textarea, label, p, span, div {
     font-weight: 400; /* Regular weight for most text */
 }
 header {
-    position: absolute;
+    position: relative;
     top: 10px;
     left: 10px;
+    align-self: flex-start;
 }
 header button {
     background-color: #007bff;
