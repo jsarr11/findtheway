@@ -61,7 +61,7 @@ $(document).ready(() => {
 
         const headers = `<tr><th>${$('html').attr('lang') === 'en' ? 'Rank' : 'Θέση'}</th>
                          <th>${$('html').attr('lang') === 'en' ? 'Username' : 'Όνομα Χρήστη'}</th>
-                         <th>${$('html').attr('lang') === 'en' ? 'Score' : 'Σκορ'}</th></tr>`;
+                         <th>${$('html').attr('lang') === 'en' ? 'Score' : 'Βαθμολογία'}</th></tr>`;
 
         primTable.html(headers);
         kruskalTable.html(headers);

@@ -461,7 +461,7 @@ $(document).ready(function() {
         // Bilingual texts
         const i18n = {
             en: {
-                correctMST: "Indicative solution",
+                correctMST: "Suggested solution",
                 yourMST: "Your answer",
                 edge: "Pavement",
                 weight: "Cost",
@@ -472,7 +472,7 @@ $(document).ready(function() {
                 dash: "—"
             },
             el: {
-                correctMST: "Ενδεικτική λύση",
+                correctMST: "Προτεινόμενη λύση",
                 yourMST: "Η λύση σου",
                 edge: "Πεζοδρόμιο",
                 weight: "Κόστος",
@@ -666,15 +666,15 @@ $(document).ready(function() {
                 correct: "Correct",
                 correct2: "Congratulations!",
                 incorrect: "Your answer is not correct...",
-                incorrect2: "Try again or visit the tutorial...",
+                incorrect2: "Try again or visit 'How to play'",
                 score: "Score:"
             },
             el: {
-                correct: "Σωστα!",
+                correct: "Σωστά!",
                 correct2: "Συγχαρητήρια!",
-                incorrect: "Η απάντησή σου δεν είναι σωστή...",
-                incorrect2: "Προσπάθησε ξανά ή επισκέψου τον οδηγό παιχνιδιού...",
-                score: "Σκορ:"
+                incorrect: "Η απάντησή δεν είναι σωστή...",
+                incorrect2: "Προσπαθήστε ξανά ή ξαναδείτε 'Πώς να παίξετε'",
+                score: "Βαθμολογία:"
             }
         };
 

@@ -219,7 +219,7 @@ table th {
     background-color: #4cb674; /* Green accent color for headers */
     color: white;
     padding: 10px;
-    text-transform: uppercase;
+    text-transform: lowercase;
     font-size: 14px;
 }
 

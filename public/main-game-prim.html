@@ -59,7 +59,7 @@
                 <button id="submit-button-el">Έλεγχος</button>
             </div>
             <div>
-                <button onclick="window.location.href='/play-prim'">Εξοδος</button>
+                <button onclick="window.location.href='/play-prim'">Έξοδος</button>
             </div>
         </div>
         <div id="popup-el" class="popup hidden popup-2">
@@ -67,13 +67,13 @@
                 <p id="popup-message-el"></p>
                 <div id="comparison-table-el" style="margin-top: 10px;"></div>
                 <div>
-                    <button id="tutorial-button-el">Πως να παίξετε</button>
+                    <button id="tutorial-button-el">Πώς να παίξετε</button>
                     <button class="btn popup-button restart-button">Ξεκινήστε ξανά</button>
                     <button onclick="location.reload()">Νέο παιχνίδι</button>
-                    <button id="scores-button-el">Σκορ</button>
+                    <button id="scores-button-el">Βαθμολογία</button>
                 </div>
                 <div>
-                    <button onclick="window.location.href='/play-prim'">Πισω</button>
+                    <button onclick="window.location.href='/play-prim'">Πίσω</button>
                 </div>
             </div>
         </div>
@@ -95,11 +95,11 @@
                 </div>
             </div>
             <div id="player-scores-el" class="player-scores">
-                <h2>Τα σκορ σου</h2>
+                <h2>Οι βαθμολογίες σου</h2>
                 <table id="player-scores-table-el" class="score-table">
                     <tr>
-                        <th>Prim's</th>
-                        <th>Kruskal's</th>
+                        <th>Prim</th>
+                        <th>Kruskal</th>
                     </tr>
                     <tr>
                         <td id="player-prim-el">0</td>
@@ -120,7 +120,7 @@
             </div>
             <div class="info info-popup">
                 <h1>Πώς να παίξετε</h1>
-                <p><strong>Στόχος: </strong>δημιουργήστε ένα Ελάχιστο Καλυπτικό Δέντρο (MST) επιλέγοντας τα
+                <p><strong>Στόχος: </strong>δημιουργήστε ένα Ελάχιστο Γεννητικό Δέντρο (MST) επιλέγοντας τα
                     φθηνότερα πεζοδρόμια και αποφεύγοντας κύκλους</p>
                 <p><strong>Βήματα: </strong>Ξεκινήστε το παιχνίδι > Επιλέξτε ένα-ένα τα επιθυμητά πεζοδρόμια,
                     δίνοντας προτεραιότητα κάθε φορά στα φθηνότερα, αποφεύγοντας τη δημιουργία κύκλων >
@@ -134,7 +134,7 @@
                 <p><strong>Έλεγχος: </strong>επαληθεύστε την πρόταση σας</p>
                 <p><strong>Ξεκινήστε ξανά: </strong>ξεκινήστε ξανά με το ίδιο χωριό</p>
                 <p><strong>Νέο παιχνίδι: </strong>ξεκινήστε ένα καινούριο παιχνίδι</p>
-                <p><strong>Σκορ: </strong>δείτε τα δικά σας σκορ και τα σκορ των κορυφαίων παικτών</p>
+                <p><strong>Βαθμολογία: </strong>δείτε τις κορυφαιες βαθμολογίες και τις δικές σας</p>
                 <p><strong>Πώς να παίξετε: </strong>μεταβείτε σε αυτήν τη σελίδα</p>
                 <p><strong>Έξοδος: </strong>κλείστε το παιχνίδι</p>
             </div>
@@ -246,7 +246,7 @@
             <div class="info info-popup">
                 <h1>How to play</h1>
                 <p><strong>Goal: </strong>create a Minimum Spanning Tree (MST) by selecting the cheapest
-                    pavements while avoiding cycles</p>
+                    pavements for connecting all houses while avoiding cycles</p>
                 <p><strong>Steps: </strong>Start the game > Select desired pavements one-by-one giving
                     priority each time to the cheapest without creating cycles > Continue until all
                     houses are connected and the total number of selected pavements is one less than
