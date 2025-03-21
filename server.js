@@ -4,7 +4,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const routes = require('./routes');
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Set up session management
 app.use(session({
@@ -26,6 +26,6 @@ app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 // Use the routes defined in routes.js
 app.use('/', routes);
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}/`);
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}/`);
 });
