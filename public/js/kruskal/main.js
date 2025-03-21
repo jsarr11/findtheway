@@ -665,8 +665,8 @@ $(document).ready(function() {
             en: {
                 correct: "Correct",
                 correct2: "Congratulations!",
-                incorrect: "Your answer is not correct...",
-                incorrect2: "Try again or visit 'How to play'",
+                incorrect: "Suggestion incorrect...",
+                incorrect2: "Try again or recall 'How to play'",
                 score: "Score:"
             },
             el: {
