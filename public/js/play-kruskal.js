@@ -199,6 +199,7 @@ function showErrorMessage(message) {
 function localizePopup() {
     const currentLanguage = localStorage.getItem('language') || 'el';
     $('#edgesRangeDisplay').text((currentLanguage === 'el' ? '2. Αριθμός πεζοδρομίων: ' : '2. Number of pavements: ') + $('#edges').val());
+    $('#edgesRangeDisplay').append('<br>' + (localStorage.getItem('language') === 'el' ? '(Τυχαίος αριθμός μέσα στο επιτρεπόμενο όριο)' : '(Random number from the valid range)'));
 
     if (currentLanguage === 'en') {
         $('#popup-title').text("Create custom level");

@@ -84,7 +84,7 @@ function updateEdgeConstraints() {
         const generatedEdges = Math.floor(Math.random() * (mapping.max - mapping.min + 1)) + mapping.min;
         $('#edges').val(generatedEdges);
         $('#edgesRangeDisplay').text((localStorage.getItem('language') === 'el' ? '2. Αριθμός πεζοδρομίων: ' : '2. Number of pavements: ') + generatedEdges);
-
+        $('#edgesRangeDisplay').append('<br>' + (localStorage.getItem('language') === 'el' ? '(Τυχαίος αριθμός μέσα στο επιτρεπόμενο όριο)' : '(Random number from the valid range)'));
     }
 
 
