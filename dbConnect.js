@@ -2,7 +2,7 @@ const { Pool } = require('pg');
 
 // Use DATABASE_URL from environment variables
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_EfOzC2Hi6VoF@ep-patient-smoke-a8a7j47g-pooler.eastus2.azure.neon.tech/neondb?sslmode=require',
+    connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_DM4u9RtHqLSc@ep-old-bonus-a8c1sm5m-pooler.eastus2.azure.neon.tech/neondb?sslmode=require',
     ssl: {
         rejectUnauthorized: false, // Required for cloud-hosted PostgreSQL
     },
