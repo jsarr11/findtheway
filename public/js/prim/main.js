@@ -386,6 +386,7 @@ $(document).ready(function() {
 
     function handleEdgeSelection(evt, cy, actionHistory, startingNodeId, actionTableId) {
         const edge = evt.target;
+
         // If user taps an already chosen edge => undo
         const existingIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
         if (existingIndex !== -1) {
@@ -396,60 +397,50 @@ $(document).ready(function() {
         // Build the set of MST nodes so far
         const mstNodes = buildMSTNodesFromHistory(actionHistory, startingNodeId);
 
-        // Check validity for Prim
+        // Extract edge endpoints
         const s = edge.data('source');
         const t = edge.data('target');
         const isFirstEdge = (actionHistory.length === 0);
 
         let isValid = false;
+        let errorMessage = "";
+
+        const inMST_s = mstNodes.has(s);
+        const inMST_t = mstNodes.has(t);
+        const exactlyOneInMST = (inMST_s && !inMST_t) || (!inMST_s && inMST_t);
+        const bothInMST = inMST_s && inMST_t;
+
         if (isFirstEdge) {
-            // Must touch the starting node
+            // First edge must touch the starting node
             isValid = (s === startingNodeId || t === startingNodeId);
+            if (!isValid) errorMessage = { en: "First edge must connect with the starting house", el: "Η πρώτη ακμή πρέπει να συνδέεται με το αρχικό σπίτι" };
         } else {
-            // Must connect exactly one node inside MST to one outside
-            const inMST_s = mstNodes.has(s);
-            const inMST_t = mstNodes.has(t);
-            const exactlyOneInMST = (inMST_s && !inMST_t) || (!inMST_s && inMST_t);
-            isValid = exactlyOneInMST;
-        }
-
-        // Bilingual messages
-        const currentLanguage = localStorage.getItem('language') || 'el';
-        const errorElEn = document.getElementById("error-message-en");
-        const errorElEl = document.getElementById("error-message-el");
-
-        // Helper: Hide both error messages
-        function hideErrorMessages() {
-            errorElEn.style.display = "none";
-            errorElEl.style.display = "none";
-        }
-
-        if (!isValid) {
-            // Show the correct error message in Greek or English
-            hideErrorMessages(); // ensure the other language is hidden
-            if (currentLanguage === 'en') {
-                errorElEn.style.display = "block";
-                if (isFirstEdge) {
-                    errorElEn.textContent = "First edge must connect with the starting house";
-                } else {
-                    errorElEn.textContent = "Your choices must connect with the already existing graph";
-                }
+            if (exactlyOneInMST) {
+                isValid = true;
+            } else if (bothInMST) {
+                errorMessage = { en: "Your choices must not create a circle", el: "Οι επιλογές σου δεν πρέπει να σχηματίζουν κύκλο" };
             } else {
-                errorElEl.style.display = "block";
-                if (isFirstEdge) {
-                    errorElEl.textContent = "Η πρώτη ακμή πρέπει να συνδέεται με το αρχικό σπίτι";
-                } else {
-                    errorElEl.textContent = "Οι επιλογές σου πρέπει να συνδέονται το ήδη υπάρχον δίκτυο";
-                }
+                errorMessage = { en: "Your choices must connect with the already existing graph", el: "Οι επιλογές σου πρέπει να συνδέονται με το ήδη υπάρχον δίκτυο" };
             }
-
-            // Optionally disable further clicks on this edge
-            // edge.style({'pointer-events': 'none', 'line-color': '#ccc'});
-            return; // do not add to MST
         }
 
-        // If valid => hide both error messages
-        hideErrorMessages();
+        // Get current language and correct element IDs
+        const currentLanguage = localStorage.getItem('language') || 'el';
+        const suffix = currentLanguage === 'en' ? '-en' : '-el';
+        const errorEl = document.getElementById(`error-message${suffix}`);
+
+        // Hide error message first
+        errorEl.style.display = "none";
+
+        // Display error message if invalid
+        if (!isValid) {
+            errorEl.textContent = errorMessage[currentLanguage];
+            errorEl.style.display = "block";
+            return; // Do not add to MST
+        }
+
+        // If valid => hide the error message
+        errorEl.style.display = "none";
 
         // Now proceed with normal MST logic
         edge.style({ width: 4, 'line-color': '#94d95f' });
@@ -465,6 +456,8 @@ $(document).ready(function() {
         const w = parseInt(edge.data('weight'));
         addEdgeWeight(w);
     }
+
+
 
 
     function handleUndoAction(cy, actionHistory, startingNodeId, actionTableId) {
