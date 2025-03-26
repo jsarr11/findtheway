@@ -707,7 +707,7 @@ $(document).ready(function() {
 
         const screenshotData = highlightEdgesAndScreenshot(cy, truncatedCorrect || [], truncatedPlayer || []);
         $(compareDivId).append(`
-        <div style="text-align:center; margin-bottom:10px;">
+        <div class="screenshot">
             <img src="${screenshotData}" 
                  alt="Comparison Graph" 
                  style="max-width:100%; border:1px solid #ccc;" />

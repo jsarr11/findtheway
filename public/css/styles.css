@@ -1,7 +1,19 @@
 /*****************   Header   ********************/
+header {
+    width: 100%;
+    background: rgba(255, 255, 255, 0); /* Optional */
+}
+header button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
 .header-line {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
+    padding: 10px;
     align-items: center;
 }
 img.logo {
@@ -18,7 +30,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     height: 100vh;
     background-image: url('../img/background2.png'); /* Replace with the image path */
     background-size: cover;
@@ -33,24 +45,21 @@ h1, h2, h3, h4, h5, h6, button, input, textarea, label, p, span, div {
     font-family: 'Roboto', Arial, sans-serif;
     font-weight: 400; /* Regular weight for most text */
 }
-header {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-}
-header button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-}
 main {
+    width: 100%;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    margin-top: 140px;
 }
+@media (max-height: 800px) {
+    main {
+        margin-top: 20px;
+    }
+}
+
 h1 {
     font-size: 2.5rem;
     margin-bottom: 20px;
