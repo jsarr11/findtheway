@@ -101,7 +101,7 @@ body {
     background: url("../img/background3.jpg");
     border: 2px solid #ccc;
     border-radius: 10px;
-    padding: 20px;
+    padding: 0;
     z-index: 1000;
     display: flex;
     /*align-items: flex-start;*/
