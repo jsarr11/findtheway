@@ -331,6 +331,13 @@ $(document).ready(function() {
     /********************************************************************
      *  Edge selection & Undo
      ********************************************************************/
+    /************************************************************************
+     * handleEdgeSelection(...) => Called whenever the user clicks on an edge.
+     *    - If the edge is already chosen, it undoes it.
+     *    - Otherwise, it checks for a cycle. If cycle => don't pick; show message.
+     *    - If valid, picks the edge & checks if there's a smaller edge available.
+     *    - Messages appear under the action table in bilingual format
+     ************************************************************************/
     function handleEdgeSelection(evt, cy, actionHistory, actionTableId) {
         // 1) Bilingual messages
         const lang = localStorage.getItem('language') || 'el';
@@ -347,50 +354,49 @@ $(document).ready(function() {
         const cycleMsg = (lang === 'en') ? messages.en.cycle : messages.el.cycle;
         const smallerMsg = (lang === 'en') ? messages.en.smaller : messages.el.smaller;
 
-        // 2) Insert a short text message under the action table in either English or Greek
+        // 2) Helper to show or clear a text message under the action table
         function showGameMessage(msg) {
-            // We'll display in #game-message-en if user is in English, else #game-message-el for Greek
             const containerId = (lang === 'en') ? 'game-message-en' : 'game-message-el';
-
             let container = document.getElementById(containerId);
             if (!container) {
-                // If there's no container, create one and place it after the action table
+                // create a <div> for messages if none found
                 container = document.createElement('div');
                 container.id = containerId;
                 container.style.color = 'red';
                 container.style.margin = '6px 0';
+                // place under the appropriate action table
                 const tableId = (lang === 'en') ? 'action-table-en' : 'action-table-el';
-                const anchor = document.getElementById(tableId);
-                if (anchor && anchor.parentNode) {
-                    anchor.parentNode.insertBefore(container, anchor.nextSibling);
+                const tableElem = document.getElementById(tableId);
+                if (tableElem && tableElem.parentNode) {
+                    tableElem.parentNode.insertBefore(container, tableElem.nextSibling);
                 }
             }
-            container.textContent = msg;
+            container.textContent = msg; // if msg=='' => effectively hides it
         }
 
-        // 3) Build a union-find structure from the edges currently in actionHistory
+        // 3) Because the user wants the message to disappear every time they pick ANY edge,
+        //    we clear the message immediately at the start of the function.
+        //    If there's a cycle or smaller-edge warning, we'll overwrite it below.
+        showGameMessage('');
+
+        // 4) Build a union-find from edges in actionHistory
         function buildUnionFind() {
             const parent = {};
             const rank = {};
 
-            // For each chosen edge, union its endpoints
             actionHistory.forEach(({ edge }) => {
                 const s = edge.data('source');
                 const t = edge.data('target');
-
-                // ensure parent[s] and parent[t] exist
                 if (parent[s] === undefined) { parent[s] = s; rank[s] = 0; }
                 if (parent[t] === undefined) { parent[t] = t; rank[t] = 0; }
             });
 
-            // path compression
             function find(x) {
                 if (parent[x] !== x) {
                     parent[x] = find(parent[x]);
                 }
                 return parent[x];
             }
-            // union
             function union(a, b) {
                 const ra = find(a);
                 const rb = find(b);
@@ -406,58 +412,47 @@ $(document).ready(function() {
                 return true;
             }
 
-            // Actually union all existing edges from actionHistory
+            // union existing edges
             actionHistory.forEach(({ edge }) => {
-                const s = edge.data('source');
-                const t = edge.data('target');
-                union(s, t);
+                union(edge.data('source'), edge.data('target'));
             });
 
-            return { parent, rank, find, union };
+            return { find, union, parent, rank };
         }
 
-        // 4) Check if adding a new edge forms a cycle
         function formsCycle(edgeToAdd) {
             const uf = buildUnionFind();
             const s = edgeToAdd.data('source');
             const t = edgeToAdd.data('target');
-
-            // make sure these new endpoints exist in the union-find as well
             if (uf.parent[s] === undefined) {
                 uf.parent[s] = s; uf.rank[s] = 0;
             }
             if (uf.parent[t] === undefined) {
                 uf.parent[t] = t; uf.rank[t] = 0;
             }
-
-            // if they already have the same root => cycle
             const rs = uf.find(s);
             const rt = uf.find(t);
-            return (rs === rt);
+            return (rs === rt); // same root => cycle
         }
 
-        // --- Now your original handleEdgeSelection flow:
-
+        // --- Original flow
         const edge = evt.target;
         const existingIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
         if (existingIndex !== -1) {
+            // Edge was already chosen => user toggles off
             handleUndoAction(cy, actionHistory, actionTableId);
             return;
         }
 
-        // Check if adding this edge forms a cycle
+        // check cycle
         if (formsCycle(edge)) {
             // revert style
             edge.style({ width: 1, 'line-color': '#999' });
-            // show cycle message in the HTML
             showGameMessage(cycleMsg);
             return;
-        } else {
-            // Clear any old message (in case user triggered a cycle previously)
-            showGameMessage('');
         }
 
-        // Normal selection flow if no cycle
+        // pick the edge (no cycle)
         edge.style({ width: 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
@@ -477,29 +472,79 @@ $(document).ready(function() {
         const w = parseInt(edge.data('weight'));
         addEdgeWeight(w);
 
-        // 5) Check if there's a smaller edge not chosen yet that wouldn't form a cycle
+        // check if there's a smaller unpicked edge that wouldn't form a cycle
         const allEdges = cy.edges();
-        let foundSmaller = false;
         for (let i = 0; i < allEdges.length; i++) {
             const e = allEdges[i];
-            if (actionHistory.some(a => a.edge.id() === e.id())) continue; // skip chosen edges
-            const we = parseInt(e.data('weight'));
-            if (we < w) {
-                // see if adding 'e' would form a cycle
-                if (!formsCycle(e)) {
-                    foundSmaller = true;
-                    break;
-                }
+            // skip chosen edges
+            if (actionHistory.some(a => a.edge.id() === e.id())) continue;
+            const ew = parseInt(e.data('weight'));
+            if (ew < w && !formsCycle(e)) {
+                // show smaller-edge message
+                showGameMessage(smallerMsg);
+                return; // show only once
             }
         }
 
-        if (foundSmaller) {
-            showGameMessage(smallerMsg);
-        } else {
-            // Clear any existing message if no smaller-edge situation
-            showGameMessage('');
+        // if none found => no message
+        showGameMessage('');
+    }
+
+
+    /************************************************************************
+     * handleUndoAction(...) => Also clear the message so it's removed
+     * when the user undoes an edge.
+     ************************************************************************/
+    function handleUndoAction(cy, actionHistory, actionTableId) {
+        // Clear any old message so it disappears if user undoes
+        const lang = localStorage.getItem('language') || 'el';
+        const containerId = (lang === 'en') ? 'game-message-en' : 'game-message-el';
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.textContent = '';
+        }
+
+        if (actionHistory.length > 0) {
+            const { edge, sourceNode, targetNode } = actionHistory.pop();
+            edge.style({ width: 1, 'line-color': '#999' });
+
+            function isNodeInTable(history, nodeId) {
+                return history.some(a => {
+                    return a.sourceNode?.id() === nodeId || a.targetNode?.id() === nodeId;
+                });
+            }
+
+            if (!isNodeInTable(actionHistory, sourceNode.id())) {
+                sourceNode.style({
+                    'background-color': '#e9ecef',
+                    'background-opacity': 0
+                });
+            } else {
+                sourceNode.style({
+                    'background-color': '#94d95f',
+                    'background-opacity': 1
+                });
+            }
+
+            if (!isNodeInTable(actionHistory, targetNode.id())) {
+                targetNode.style({
+                    'background-color': '#e9ecef',
+                    'background-opacity': 0
+                });
+            } else {
+                targetNode.style({
+                    'background-color': '#94d95f',
+                    'background-opacity': 1
+                });
+            }
+
+            updateActionTable(actionHistory, actionTableId);
+
+            const w = parseInt(edge.data('weight'));
+            subtractEdgeWeight(w);
         }
     }
+
 
 
 
