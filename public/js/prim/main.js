@@ -483,26 +483,53 @@ $(document).ready(function() {
         addEdgeWeight(w);
 
         // ---------------------- NEW CODE START ----------------------
-        // Check if there's a smaller edge that also can connect to MST
+        // Έλεγχος για καλύτερη διαθέσιμη επιλογή βάσει των MST orderings
         const betterOptionMsg = {
             en: "There is a better option available",
             el: "Υπάρχει καλύτερη διαθέσιμη επιλογή"
         };
 
-        const allEdges = cy.edges();
-        for (let i = 0; i < allEdges.length; i++) {
-            const e = allEdges[i];
-            // skip if already chosen
-            if (actionHistory.some(a => a.edge.id() === e.id())) continue;
+        // Δημιουργία της τρέχουσας σειράς ακμών του παίκτη
+        let playerEdges = actionHistory.map(({ edge }) => {
+            let v1 = parseInt(edge.data('source'));
+            let v2 = parseInt(edge.data('target'));
+            if (v1 > v2) [v1, v2] = [v2, v1];
+            return { Vertex1: v1, Vertex2: v2, Weight: parseInt(edge.data('weight')) };
+        });
 
-            const ew = parseInt(e.data('weight'));
-            if (ew < w && canConnectToMST(e, actionHistory, startingNodeId)) {
-                // Found a smaller valid edge => show bilingual message
-                errorEl.textContent = betterOptionMsg[currentLanguage];
-                errorEl.style.display = "block";
-                break;
+        // Συλλογή υποψήφιων βαρών από τα MST orderings όπου η σειρά του παίκτη είναι πρόθεμα
+        let candidateWeights = [];
+
+        for (let tableObj of window.orderingTables) {
+            for (let ordering of tableObj.orderings) {
+                let isPrefix = true;
+                for (let i = 0; i < playerEdges.length; i++) {
+                    let playerEdge = playerEdges[i];
+                    let orderingEdge = ordering[i];
+                    // Εξασφαλίζουμε ότι η σειρά είναι canonical (ο μικρότερος κόμβος πρώτος)
+                    let [p1, p2] = [playerEdge.Vertex1, playerEdge.Vertex2];
+                    if (p1 > p2) [p1, p2] = [p2, p1];
+                    let [o1, o2] = [orderingEdge.Vertex1, orderingEdge.Vertex2];
+                    if (o1 > o2) [o1, o2] = [o2, o1];
+                    if (p1 !== o1 || p2 !== o2 || playerEdge.Weight !== orderingEdge.Weight) {
+                        isPrefix = false;
+                        break;
+                    }
+                }
+                if (isPrefix && ordering.length > playerEdges.length) {
+                    // Η επόμενη ακμή στην συγκεκριμένη διάταξη είναι η αναμενόμενη επιλογή
+                    candidateWeights.push(ordering[playerEdges.length].Weight);
+                }
             }
         }
+
+        // if (candidateWeights.length > 0) {
+        //     const minCandidateWeight = Math.min(...candidateWeights);
+        //     if (minCandidateWeight < w) {
+        //         errorEl.textContent = betterOptionMsg[currentLanguage];
+        //         errorEl.style.display = "block";
+        //     }
+        // }
         // ---------------------- NEW CODE END ------------------------
     }
 
