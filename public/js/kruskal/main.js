@@ -332,6 +332,112 @@ $(document).ready(function() {
      *  Edge selection & Undo
      ********************************************************************/
     function handleEdgeSelection(evt, cy, actionHistory, actionTableId) {
+        // 1) Bilingual messages
+        const lang = localStorage.getItem('language') || 'el';
+        const messages = {
+            en: {
+                cycle: "This edge creates a cycle and cannot be selected!",
+                smaller: "There is a smaller edge available that doesn't create a cycle."
+            },
+            el: {
+                cycle: "Αυτή η ακμή δημιουργεί κύκλο και δεν μπορεί να επιλεγεί!",
+                smaller: "Υπάρχει διαθέσιμη ακμή με μικρότερο βάρος που δεν δημιουργεί κύκλο."
+            }
+        };
+        const cycleMsg = (lang === 'en') ? messages.en.cycle : messages.el.cycle;
+        const smallerMsg = (lang === 'en') ? messages.en.smaller : messages.el.smaller;
+
+        // 2) Insert a short text message under the action table in either English or Greek
+        function showGameMessage(msg) {
+            // We'll display in #game-message-en if user is in English, else #game-message-el for Greek
+            const containerId = (lang === 'en') ? 'game-message-en' : 'game-message-el';
+
+            let container = document.getElementById(containerId);
+            if (!container) {
+                // If there's no container, create one and place it after the action table
+                container = document.createElement('div');
+                container.id = containerId;
+                container.style.color = 'red';
+                container.style.margin = '6px 0';
+                const tableId = (lang === 'en') ? 'action-table-en' : 'action-table-el';
+                const anchor = document.getElementById(tableId);
+                if (anchor && anchor.parentNode) {
+                    anchor.parentNode.insertBefore(container, anchor.nextSibling);
+                }
+            }
+            container.textContent = msg;
+        }
+
+        // 3) Build a union-find structure from the edges currently in actionHistory
+        function buildUnionFind() {
+            const parent = {};
+            const rank = {};
+
+            // For each chosen edge, union its endpoints
+            actionHistory.forEach(({ edge }) => {
+                const s = edge.data('source');
+                const t = edge.data('target');
+
+                // ensure parent[s] and parent[t] exist
+                if (parent[s] === undefined) { parent[s] = s; rank[s] = 0; }
+                if (parent[t] === undefined) { parent[t] = t; rank[t] = 0; }
+            });
+
+            // path compression
+            function find(x) {
+                if (parent[x] !== x) {
+                    parent[x] = find(parent[x]);
+                }
+                return parent[x];
+            }
+            // union
+            function union(a, b) {
+                const ra = find(a);
+                const rb = find(b);
+                if (ra === rb) return false;
+                if (rank[ra] < rank[rb]) {
+                    parent[ra] = rb;
+                } else if (rank[ra] > rank[rb]) {
+                    parent[rb] = ra;
+                } else {
+                    parent[rb] = ra;
+                    rank[ra]++;
+                }
+                return true;
+            }
+
+            // Actually union all existing edges from actionHistory
+            actionHistory.forEach(({ edge }) => {
+                const s = edge.data('source');
+                const t = edge.data('target');
+                union(s, t);
+            });
+
+            return { parent, rank, find, union };
+        }
+
+        // 4) Check if adding a new edge forms a cycle
+        function formsCycle(edgeToAdd) {
+            const uf = buildUnionFind();
+            const s = edgeToAdd.data('source');
+            const t = edgeToAdd.data('target');
+
+            // make sure these new endpoints exist in the union-find as well
+            if (uf.parent[s] === undefined) {
+                uf.parent[s] = s; uf.rank[s] = 0;
+            }
+            if (uf.parent[t] === undefined) {
+                uf.parent[t] = t; uf.rank[t] = 0;
+            }
+
+            // if they already have the same root => cycle
+            const rs = uf.find(s);
+            const rt = uf.find(t);
+            return (rs === rt);
+        }
+
+        // --- Now your original handleEdgeSelection flow:
+
         const edge = evt.target;
         const existingIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
         if (existingIndex !== -1) {
@@ -339,6 +445,19 @@ $(document).ready(function() {
             return;
         }
 
+        // Check if adding this edge forms a cycle
+        if (formsCycle(edge)) {
+            // revert style
+            edge.style({ width: 1, 'line-color': '#999' });
+            // show cycle message in the HTML
+            showGameMessage(cycleMsg);
+            return;
+        } else {
+            // Clear any old message (in case user triggered a cycle previously)
+            showGameMessage('');
+        }
+
+        // Normal selection flow if no cycle
         edge.style({ width: 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
@@ -357,7 +476,32 @@ $(document).ready(function() {
 
         const w = parseInt(edge.data('weight'));
         addEdgeWeight(w);
+
+        // 5) Check if there's a smaller edge not chosen yet that wouldn't form a cycle
+        const allEdges = cy.edges();
+        let foundSmaller = false;
+        for (let i = 0; i < allEdges.length; i++) {
+            const e = allEdges[i];
+            if (actionHistory.some(a => a.edge.id() === e.id())) continue; // skip chosen edges
+            const we = parseInt(e.data('weight'));
+            if (we < w) {
+                // see if adding 'e' would form a cycle
+                if (!formsCycle(e)) {
+                    foundSmaller = true;
+                    break;
+                }
+            }
+        }
+
+        if (foundSmaller) {
+            showGameMessage(smallerMsg);
+        } else {
+            // Clear any existing message if no smaller-edge situation
+            showGameMessage('');
+        }
     }
+
+
 
     function handleUndoAction(cy, actionHistory, actionTableId) {
         if (actionHistory.length > 0) {
