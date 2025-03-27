@@ -495,58 +495,6 @@ $(document).ready(function() {
      * handleUndoAction(...) => Also clear the message so it's removed
      * when the user undoes an edge.
      ************************************************************************/
-    function handleUndoAction(cy, actionHistory, actionTableId) {
-        // Clear any old message so it disappears if user undoes
-        const lang = localStorage.getItem('language') || 'el';
-        const containerId = (lang === 'en') ? 'game-message-en' : 'game-message-el';
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.textContent = '';
-        }
-
-        if (actionHistory.length > 0) {
-            const { edge, sourceNode, targetNode } = actionHistory.pop();
-            edge.style({ width: 1, 'line-color': '#999' });
-
-            function isNodeInTable(history, nodeId) {
-                return history.some(a => {
-                    return a.sourceNode?.id() === nodeId || a.targetNode?.id() === nodeId;
-                });
-            }
-
-            if (!isNodeInTable(actionHistory, sourceNode.id())) {
-                sourceNode.style({
-                    'background-color': '#e9ecef',
-                    'background-opacity': 0
-                });
-            } else {
-                sourceNode.style({
-                    'background-color': '#94d95f',
-                    'background-opacity': 1
-                });
-            }
-
-            if (!isNodeInTable(actionHistory, targetNode.id())) {
-                targetNode.style({
-                    'background-color': '#e9ecef',
-                    'background-opacity': 0
-                });
-            } else {
-                targetNode.style({
-                    'background-color': '#94d95f',
-                    'background-opacity': 1
-                });
-            }
-
-            updateActionTable(actionHistory, actionTableId);
-
-            const w = parseInt(edge.data('weight'));
-            subtractEdgeWeight(w);
-        }
-    }
-
-
-
 
     function handleUndoAction(cy, actionHistory, actionTableId) {
         if (actionHistory.length > 0) {
