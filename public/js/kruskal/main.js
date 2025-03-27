@@ -927,7 +927,8 @@ $(document).ready(function() {
     function handleSubmitAction(cy, actionHistory, orderingTables, ids) {
         console.log("handleSubmitAction() for Kruskal is executing!");
 
-        // 1) Build player's MST as a set of edges (ignoring order).
+        // 1) Build player's MST ignoring order for correctness,
+        //    but we keep the actual sequence for checking tie-based ordering
         const playerSolutionFull = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
@@ -936,12 +937,14 @@ $(document).ready(function() {
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
 
-        // 2) Functions to check ignoring order, and exact same sequence
+        // Helper to produce a "canonical" string for set membership
         function canonical(e) {
             let [a, b] = [e.Vertex1, e.Vertex2];
             if (a > b) [a, b] = [b, a];
             return `${a}-${b}-${e.Weight}`;
         }
+
+        // 2) Check if two MSTs match ignoring order (just sets)
         function setsMatchIgnoreOrder(pSol, cSol) {
             if (pSol.length !== cSol.length) return false;
             const setP = new Set(pSol.map(canonical));
@@ -952,49 +955,130 @@ $(document).ready(function() {
             }
             return true;
         }
-        function sameSequence(pSol, cSol) {
-            if (pSol.length !== cSol.length) return false;
-            for (let i = 0; i < pSol.length; i++) {
-                const pa = pSol[i], ca = cSol[i];
-                if (
-                    pa.Vertex1 !== ca.Vertex1 ||
-                    pa.Vertex2 !== ca.Vertex2 ||
-                    pa.Weight !== ca.Weight
-                ) {
-                    return false;
+
+        // 3) **Tie‐Aware** sequence check:
+        //    The idea is to group edges by their weight, in ascending order,
+        //    and allow any permutation of edges within the same weight group.
+        //    If those grouped sequences match, we consider them "same order ignoring ties."
+        function sameSequenceIgnoringTies(playerSol, officialSol) {
+            // Quick length check
+            if (playerSol.length !== officialSol.length) return false;
+
+            // Sort each MST by ascending weight, but keep the original ordering *within* same weights
+            // Actually we want to reflect the *player's chosen order* vs. the official MST order.
+            // So we can't just sort them. We must group them in the order they appear.
+            //   However, typically in Kruskal we talk about ascending weights.
+            //   If the official MST has edges in ascending order, the player’s MST also
+            //   can have the same ascending order for each weight group, but can permute within that group.
+
+            // Approach:
+            //  1) We create a "weight block sequence" for each MST:
+            //     in officialSol, we collect consecutive edges of the same weight as one block.
+            //     in playerSol, we do the same.
+            //  2) We compare block by block. If the weight is the same and the sets of edges are identical,
+            //     we consider that block matched. Then we proceed to the next block.
+            //  3) If the number of blocks or their distinct weights differ in the final
+            //     sequence, it's not the same ignoring ties.
+
+            // A convenient way is to "collapse" consecutive edges of the same weight into a single block.
+            // But we must ensure both MSTs follow the same ascending weight progression.
+            // If the official MST is in ascending order already, we can find its blocks.
+            // The player's MST might not strictly be sorted, but for it to match ignoring ties,
+            // it must have the same "blocks" in the same order of weights.
+
+            // Let's do it directly:
+
+            function buildBlocks(edges) {
+                // We'll go in ascending order of weight from left to right.
+                // But the "official MST" is presumably listed in ascending order.
+                // If it's not guaranteed, we can just sort by weight, but then we lose the original "tie order."
+                // The requirement says "the official MST is in ascending weight (Kruskal style)."
+                // so let's assume officialSol is sorted. If you want to absolutely ensure it, you can do:
+                // edges = [...edges].sort((a,b) => a.Weight - b.Weight);
+                // But let's do it for both to be safe:
+
+                const sorted = [...edges].sort((a, b) => a.Weight - b.Weight);
+                const blocks = [];
+                let currentWeight = null;
+                let currentBlock = [];
+
+                for (let i = 0; i < sorted.length; i++) {
+                    let e = sorted[i];
+                    if (currentWeight === null || e.Weight !== currentWeight) {
+                        // start a new block
+                        if (currentBlock.length > 0) {
+                            blocks.push({ weight: currentWeight, edges: currentBlock });
+                        }
+                        currentWeight = e.Weight;
+                        currentBlock = [ e ];
+                    } else {
+                        // same weight => part of same block
+                        currentBlock.push(e);
+                    }
+                }
+                // push last block
+                if (currentBlock.length > 0) {
+                    blocks.push({ weight: currentWeight, edges: currentBlock });
+                }
+                return blocks;
+            }
+
+            const blocksP = buildBlocks(playerSol);
+            const blocksO = buildBlocks(officialSol);
+
+            if (blocksP.length !== blocksO.length) return false;
+
+            // Now compare block-by-block
+            for (let i = 0; i < blocksP.length; i++) {
+                const bp = blocksP[i];
+                const bo = blocksO[i];
+                // Compare weights
+                if (bp.weight !== bo.weight) return false;
+                // Compare sets of edges in the block
+                if (bp.edges.length !== bo.edges.length) return false;
+
+                const setBp = new Set(bp.edges.map(canonical));
+                const setBo = new Set(bo.edges.map(canonical));
+                // same set ignoring order
+                if (setBp.size !== setBo.size) return false;
+                for (let x of setBp) {
+                    if (!setBo.has(x)) return false;
                 }
             }
             return true;
         }
 
-        // 3) Determine correctness (ignoring order), and also check if exact order
-        let isCorrect = false;
-        let matchedCorrectMST = null;
-        let isCorrectOrder = false;
+        // 4) Find if the player's MST is correct ignoring order, and if so,
+        //    whether it's also "tie‐aware" same sequence
+        let isCorrect = false;            // user MST is correct ignoring order
+        let matchedCorrectMST = null;     // the official MST that matches ignoring order
+        let isTieAwareOrder = false;      // user MST matches the official MST in the sense of ignoring ties
+                                          // but still in the same ascending weight block sequence
 
-        for (let tableObj of orderingTables) {
-            for (let ordering of tableObj.orderings) {
-                if (setsMatchIgnoreOrder(playerSolutionFull, ordering)) {
-                    isCorrect = true;
-                    matchedCorrectMST = ordering;
-                    // Also check same exact sequence
-                    if (sameSequence(playerSolutionFull, ordering)) {
-                        isCorrectOrder = true;
+        // find a matching MST ignoring order
+        outerLoop:
+            for (let tableObj of orderingTables) {
+                for (let officialSol of tableObj.orderings) {
+                    if (setsMatchIgnoreOrder(playerSolutionFull, officialSol)) {
+                        isCorrect = true;
+                        matchedCorrectMST = officialSol;
+                        // Now check tie‐aware sequence
+                        if (sameSequenceIgnoringTies(playerSolutionFull, officialSol)) {
+                            isTieAwareOrder = true;
+                        }
+                        break outerLoop;
                     }
-                    break;
                 }
             }
-            if (isCorrect) break;
-        }
 
-        // 4) Stop timer & compute score if correct
+        // 5) Stop timer & compute score
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
         const score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
 
-        // 5) Show base messages
+        // 6) Bilingual messages
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -1015,19 +1099,21 @@ $(document).ready(function() {
             }
         };
 
+        // show result text
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? messages[lang].correct : messages[lang].incorrect);
         popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // 6) Clear comparison area, highlight edges ignoring order for screenshot
+        // 7) Clear the comparison area
         const compareDivId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareDivId).empty();
 
+        // pick an MST to compare for the screenshot
         let chosenMST = matchedCorrectMST;
         if (!isCorrect) {
-            // fallback if not correct
+            // fallback if user is wrong
             if (orderingTables.length > 0 && orderingTables[0].orderings.length > 0) {
                 chosenMST = orderingTables[0].orderings[0];
             } else {
@@ -1035,6 +1121,7 @@ $(document).ready(function() {
             }
         }
 
+        // screenshot ignoring order
         const screenshotData = highlightEdgesAndScreenshot(cy, chosenMST, playerSolutionFull);
         $(compareDivId).append(`
         <div class="screenshot">
@@ -1044,23 +1131,23 @@ $(document).ready(function() {
         </div>
     `);
 
-        // 7) Build table ignoring order
-        // (We assume you already have buildDetailedComparisonHTMLIgnoreOrder function)
+        // 8) Build a table ignoring order
         const tableHTML = buildDetailedComparisonHTMLIgnoreOrder(lang, chosenMST, playerSolutionFull);
         $(compareDivId).append(tableHTML);
 
-        // 8) Show orange message ONLY IF the MST is correct but out-of-order
-        // i.e. isCorrect === true AND isCorrectOrder === false
-        // if user is WRONG (isCorrect===false), or correct+inOrder, we SKIP the orange message
-        if (isCorrect && !isCorrectOrder) {
+        // 9) Show the orange message **only** if MST is correct but the user’s sequence
+        //    truly differs on differently weighted edges => (isCorrect && !isTieAwareOrder).
+        //    If the MST is wrong, or user matched the official MST exactly (including tie permutations),
+        //    we skip the orange block.
+        if (isCorrect && !isTieAwareOrder) {
             $(compareDivId).append(`
-            <div style="margin-top:10px; padding:8px; background-color:orange;">
-                ${messages[lang].orderNote}
-            </div>
+          <div style="margin-top:10px; padding:8px; background-color:orange;">
+            ${messages[lang].orderNote}
+          </div>
         `);
         }
 
-        // 9) If correct => update DB
+        // 10) If correct => store DB
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
@@ -1071,6 +1158,7 @@ $(document).ready(function() {
             }
         }
     }
+
 
     // Stop timer on unload
     window.addEventListener('beforeunload', function() {
