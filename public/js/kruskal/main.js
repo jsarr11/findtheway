@@ -936,8 +936,7 @@ $(document).ready(function() {
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
 
-        // 2) For comparing sets, we define a function that checks if
-        //    player's MST matches a correct MST ignoring order.
+        // 2) Functions to check ignoring order, and exact same sequence
         function canonical(e) {
             let [a, b] = [e.Vertex1, e.Vertex2];
             if (a > b) [a, b] = [b, a];
@@ -953,16 +952,35 @@ $(document).ready(function() {
             }
             return true;
         }
+        function sameSequence(pSol, cSol) {
+            if (pSol.length !== cSol.length) return false;
+            for (let i = 0; i < pSol.length; i++) {
+                const pa = pSol[i], ca = cSol[i];
+                if (
+                    pa.Vertex1 !== ca.Vertex1 ||
+                    pa.Vertex2 !== ca.Vertex2 ||
+                    pa.Weight !== ca.Weight
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        }
 
-        // 3) Find at least one correct MST in orderingTables that *ignoring order*
-        //    matches the player’s MST. If so, player is correct.
+        // 3) Determine correctness (ignoring order), and also check if exact order
         let isCorrect = false;
         let matchedCorrectMST = null;
+        let isCorrectOrder = false;
+
         for (let tableObj of orderingTables) {
             for (let ordering of tableObj.orderings) {
                 if (setsMatchIgnoreOrder(playerSolutionFull, ordering)) {
                     isCorrect = true;
                     matchedCorrectMST = ordering;
+                    // Also check same exact sequence
+                    if (sameSequence(playerSolutionFull, ordering)) {
+                        isCorrectOrder = true;
+                    }
                     break;
                 }
             }
@@ -976,7 +994,7 @@ $(document).ready(function() {
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
         const score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
 
-        // 5) Show messages (we do NOT remove or change your existing text)
+        // 5) Show base messages
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -1003,18 +1021,13 @@ $(document).ready(function() {
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // 6) Prepare the screenshot. We highlight edges ignoring order.
-        //    In highlightEdgesAndScreenshot(), green means edge is in both
-        //    sets, red means it’s only in the player’s set, grey means unchosen.
-        //    We pass the entire sets, no partial mismatch or indexing.
+        // 6) Clear comparison area, highlight edges ignoring order for screenshot
         const compareDivId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareDivId).empty();
 
-        // If correct, matchedCorrectMST is the MST to compare with; else pick any MST from orderingTables (first found),
-        // or just an empty array if none. This ensures we highlight "extra / missing" edges ignoring order.
         let chosenMST = matchedCorrectMST;
         if (!isCorrect) {
-            // fallback: pick the first MST from orderingTables if any
+            // fallback if not correct
             if (orderingTables.length > 0 && orderingTables[0].orderings.length > 0) {
                 chosenMST = orderingTables[0].orderings[0];
             } else {
@@ -1031,18 +1044,21 @@ $(document).ready(function() {
         </div>
     `);
 
-        // 7) Build a table ignoring order for the final comparison
-        //    This labels each player edge as "OK" or "Mistake" based purely on set membership.
-        //    Similarly, it shows the correct MST's edges, no partial indexing.
+        // 7) Build table ignoring order
+        // (We assume you already have buildDetailedComparisonHTMLIgnoreOrder function)
         const tableHTML = buildDetailedComparisonHTMLIgnoreOrder(lang, chosenMST, playerSolutionFull);
         $(compareDivId).append(tableHTML);
 
-        // 8) Always show an orange note that we ignore order
-        $(compareDivId).append(`
-      <div style="margin-top:10px; padding:8px; background-color:orange;">
-        ${messages[lang].orderNote}
-      </div>
-    `);
+        // 8) Show orange message ONLY IF the MST is correct but out-of-order
+        // i.e. isCorrect === true AND isCorrectOrder === false
+        // if user is WRONG (isCorrect===false), or correct+inOrder, we SKIP the orange message
+        if (isCorrect && !isCorrectOrder) {
+            $(compareDivId).append(`
+            <div style="margin-top:10px; padding:8px; background-color:orange;">
+                ${messages[lang].orderNote}
+            </div>
+        `);
+        }
 
         // 9) If correct => update DB
         if (score > 0) {
@@ -1055,9 +1071,6 @@ $(document).ready(function() {
             }
         }
     }
-
-
-
 
     // Stop timer on unload
     window.addEventListener('beforeunload', function() {
