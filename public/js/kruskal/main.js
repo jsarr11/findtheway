@@ -343,12 +343,12 @@ $(document).ready(function() {
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
-                cycle: "This edge creates a cycle and cannot be selected!",
-                smaller: "There is a smaller edge available that doesn't create a cycle."
+                cycle: "This pavement creates a cycle and cannot be selected!",
+                smaller: "There is a pavement edge with lower cost available!."
             },
             el: {
-                cycle: "Αυτή η ακμή δημιουργεί κύκλο και δεν μπορεί να επιλεγεί!",
-                smaller: "Υπάρχει διαθέσιμη ακμή με μικρότερο βάρος που δεν δημιουργεί κύκλο."
+                cycle: "Αυτό το πεζοδρόμιο δημιουργεί κύκλο και δεν μπορεί να επιλεγεί!",
+                smaller: "Υπάρχει διαθέσιμο πεζοδρόμιο με μικρότερο κόστος!"
             }
         };
         const cycleMsg = (lang === 'en') ? messages.en.cycle : messages.el.cycle;
@@ -1087,7 +1087,7 @@ $(document).ready(function() {
                 incorrect: "Suggestion incorrect...",
                 incorrect2: "Try again or recall 'How to play'",
                 score: "Score:",
-                orderNote: "Order is ignored in this comparison."
+                orderNote: "The order of your picked pavements could be better!"
             },
             el: {
                 correct: "Σωστά!",
@@ -1095,7 +1095,7 @@ $(document).ready(function() {
                 incorrect: "Η απάντησή δεν είναι σωστή...",
                 incorrect2: "Προσπαθήστε ξανά ή ξαναδείτε 'Πώς να παίξετε'",
                 score: "Βαθμολογία:",
-                orderNote: "Η σειρά δεν λαμβάνεται υπόψη σε αυτή τη σύγκριση."
+                orderNote: "Υπάρχει καλύτερη σειρά επιλογής ποζοδρομίων!"
             }
         };
 
