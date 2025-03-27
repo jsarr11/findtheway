@@ -225,13 +225,29 @@ $(document).ready(function() {
      *  Helper / Utility
      ********************************************************************/
     function logGraphDetails(edges) {
-        const edgeTable = edges.map(edge => ({
-            Vertex1: edge.data.source,
-            Vertex2: edge.data.target,
-            Weight: edge.data.weight
-        }));
-        console.log("Kruskal edges:", edgeTable);
+        const currentLanguage = localStorage.getItem('language') || 'el';
+
+        if (currentLanguage === 'en') {
+            const edgeTable = edges.map(edge => ({
+                "starting house": edge.data.source,
+                "target house": edge.data.target,
+                "cost": edge.data.weight
+            }));
+            console.log("Edges with Cost (Kruskal):");
+            console.table(edgeTable);
+
+        } else {
+            // Greek version
+            const edgeTable = edges.map(edge => ({
+                "αρχικό σπίτι": edge.data.source,
+                "επόμενο σπίτι": edge.data.target,
+                "κόστος": edge.data.weight
+            }));
+            console.log("Πεζοδρόμια με Κόστος (Kruskal):");
+            console.table(edgeTable);
+        }
     }
+
 
     function exportDataForDownload(edgeTable) {
         window.exportData = { table: edgeTable };

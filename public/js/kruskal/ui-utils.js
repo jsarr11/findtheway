@@ -4,24 +4,38 @@ export function updateActionTable(actionHistory, actionTableId) {
     const actionTable = document.getElementById(actionTableId);
     if (!actionTable) return;
 
-    // If no edges => hide the table
     if (actionHistory.length === 0) {
         actionTable.innerHTML = '';
         actionTable.style.display = 'none';
         return;
     }
 
-    // Show the table
     actionTable.style.display = 'table';
-    actionTable.innerHTML = `
-        <tr>
-          <th>Starting Vertex</th>
-          <th>Target Vertex</th>
-          <th>Weight</th>
-        </tr>
-    `;
 
-    // Append rows
+    // Ελέγχουμε τρέχουσα γλώσσα
+    const currentLanguage = localStorage.getItem('language') || 'el';
+
+    let headerRow;
+    if (currentLanguage === 'en') {
+        headerRow = `
+            <tr>
+                <th>starting house</th>
+                <th>target house</th>
+                <th>cost</th>
+            </tr>
+        `;
+    } else {
+        headerRow = `
+            <tr>
+                <th>αρχικό σπίτι</th>
+                <th>επόμενο σπίτι</th>
+                <th>κόστος</th>
+            </tr>
+        `;
+    }
+
+    actionTable.innerHTML = headerRow;
+
     actionHistory.forEach(({ edge }) => {
         const row = document.createElement('tr');
         const startingVertex = edge.data('source');
@@ -35,3 +49,4 @@ export function updateActionTable(actionHistory, actionTableId) {
         actionTable.appendChild(row);
     });
 }
+

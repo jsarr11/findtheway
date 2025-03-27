@@ -270,15 +270,31 @@ $(document).ready(function() {
     }
 
     function logGraphDetails(edges, startingNodeId) {
-        const edgeTable = edges.map(edge => ({
-            Vertex1: edge.data.source,
-            Vertex2: edge.data.target,
-            Weight: edge.data.weight
-        }));
-        console.log("Edges with Weights:");
-        console.table(edgeTable);
-        console.log("Starting Vertex:", startingNodeId);
+        const currentLanguage = localStorage.getItem('language') || 'el';
+
+        if (currentLanguage === 'en') {
+            const edgeTable = edges.map(edge => ({
+                "starting house": edge.data.source,
+                "target house": edge.data.target,
+                "cost": edge.data.weight
+            }));
+            console.log("Edges with Cost:");
+            console.table(edgeTable);
+            console.log("Starting House:", startingNodeId);
+
+        } else {
+            // Greek version
+            const edgeTable = edges.map(edge => ({
+                "αρχικό σπίτι": edge.data.source,
+                "επόμενο σπίτι": edge.data.target,
+                "κόστος": edge.data.weight
+            }));
+            console.log("Πεζοδρόμια με Κόστος:");
+            console.table(edgeTable);
+            console.log("Αρχικό σπίτι:", startingNodeId);
+        }
     }
+
 
     function exportDataForDownload(edgeTable, startingNodeId) {
         window.exportData = { table: edgeTable, startingVertex: startingNodeId };
