@@ -1010,8 +1010,9 @@ $(document).ready(function() {
         </div>
     `);
 
-        if (!isCorrect && correctOrderingFound) {
-            // Show the full MST vs. player's picks
+        // ***** NEW: Always show the full MST table (correct vs. player) *****
+        // (Removes the "if (!isCorrect && correctOrderingFound)" check so it also appears when correct)
+        if (correctOrderingFound) {
             const fullTableHtml = buildDetailedComparisonHTML(
                 lang,
                 correctOrderingFound,
@@ -1031,6 +1032,7 @@ $(document).ready(function() {
             }
         }
     }
+
 
     window.addEventListener('beforeunload', function() {
         stopTimer();
