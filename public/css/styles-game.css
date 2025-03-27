@@ -157,3 +157,16 @@ body {
     max-width: 80%;
     margin-left: 10%;
 }
+
+div h3 {
+    /* Default: all on one line */
+    white-space: nowrap;
+}
+@media screen and (max-width: 330px) {
+        div h3 {
+        white-space: normal;
+        max-width: 90px; /* or whatever ensures wrapping */
+        word-wrap: break-word;
+            padding-left: 30px;
+    }
+}
