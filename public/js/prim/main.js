@@ -295,7 +295,6 @@ $(document).ready(function() {
         }
     }
 
-
     function exportDataForDownload(edgeTable, startingNodeId) {
         window.exportData = { table: edgeTable, startingVertex: startingNodeId };
     }
@@ -318,7 +317,6 @@ $(document).ready(function() {
 
         return mstNodes;
     }
-
 
     function initializeCytoscape(nodes, edges, startingNodeId) {
         return cytoscape({
@@ -429,14 +427,25 @@ $(document).ready(function() {
         if (isFirstEdge) {
             // First edge must touch the starting node
             isValid = (s === startingNodeId || t === startingNodeId);
-            if (!isValid) errorMessage = { en: "First pavement must connect with the starting house", el: "Το πρώτο πεζοδρόμιο πρέπει να συνδέεται με το αρχικό σπίτι" };
+            if (!isValid) {
+                errorMessage = {
+                    en: "First pavement must connect with the starting house",
+                    el: "Το πρώτο πεζοδρόμιο πρέπει να συνδέεται με το αρχικό σπίτι"
+                };
+            }
         } else {
             if (exactlyOneInMST) {
                 isValid = true;
             } else if (bothInMST) {
-                errorMessage = { en: "Your choices must not create a circle", el: "Οι επιλογές σου δεν πρέπει να σχηματίζουν κύκλο" };
+                errorMessage = {
+                    en: "Your choices must not create a circle",
+                    el: "Οι επιλογές σου δεν πρέπει να σχηματίζουν κύκλο"
+                };
             } else {
-                errorMessage = { en: "Your choices must connect with the already existing graph", el: "Οι επιλογές σου πρέπει να συνδέονται με το ήδη υπάρχον δίκτυο" };
+                errorMessage = {
+                    en: "Your choices must connect with the already existing graph",
+                    el: "Οι επιλογές σου πρέπει να συνδέονται με το ήδη υπάρχον δίκτυο"
+                };
             }
         }
 
@@ -471,10 +480,30 @@ $(document).ready(function() {
 
         const w = parseInt(edge.data('weight'));
         addEdgeWeight(w);
+
+        // ---------------------- NEW CODE START ----------------------
+        // Check if there's a smaller edge that also can connect to MST
+        const betterOptionMsg = {
+            en: "There is a better option available",
+            el: "Υπάρχει καλύτερη διαθέσιμη επιλογή"
+        };
+
+        const allEdges = cy.edges();
+        for (let i = 0; i < allEdges.length; i++) {
+            const e = allEdges[i];
+            // skip if already chosen
+            if (actionHistory.some(a => a.edge.id() === e.id())) continue;
+
+            const ew = parseInt(e.data('weight'));
+            if (ew < w && canConnectToMST(e, actionHistory, startingNodeId)) {
+                // Found a smaller valid edge => show bilingual message
+                errorEl.textContent = betterOptionMsg[currentLanguage];
+                errorEl.style.display = "block";
+                break;
+            }
+        }
+        // ---------------------- NEW CODE END ------------------------
     }
-
-
-
 
     function handleUndoAction(cy, actionHistory, startingNodeId, actionTableId) {
         if (actionHistory.length > 0) {
@@ -493,15 +522,15 @@ $(document).ready(function() {
 
     function setNodeStyle(node, startingNodeId, startingNodeColor, otherNodeColor) {
         if (node.id() === startingNodeId) {
-                  node.style({
-                          'background-color': startingNodeColor,
-                          'background-opacity': 1
-                  });
+            node.style({
+                'background-color': startingNodeColor,
+                'background-opacity': 1
+            });
         } else {
-                  node.style({
-                          'background-color': otherNodeColor,
-                          'background-opacity': 1
-                  });
+            node.style({
+                'background-color': otherNodeColor,
+                'background-opacity': 1
+            });
         }
     }
 
@@ -529,6 +558,20 @@ $(document).ready(function() {
         }
     }
 
+    // ---------------------- NEW HELPER FUNCTION ----------------------
+    // For Prim: check if an edge connects exactly one endpoint in MST
+    // to one endpoint out of MST => a valid extension
+    function canConnectToMST(edge, actionHistory, startingNodeId) {
+        const mstNodes = buildMSTNodesFromHistory(actionHistory, startingNodeId);
+
+        const s = edge.data('source');
+        const t = edge.data('target');
+        const inMST_s = mstNodes.has(s);
+        const inMST_t = mstNodes.has(t);
+
+        return (inMST_s && !inMST_t) || (!inMST_s && inMST_t);
+    }
+    // ---------------------- END NEW HELPER --------------------------
 
     function objectsEqual(a, b) {
         return a.Vertex1 === b.Vertex1 && a.Vertex2 === b.Vertex2 && a.Weight === b.Weight;
@@ -815,9 +858,6 @@ $(document).ready(function() {
 
 
 
-
-
-
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() for Prim is executing!");
 
@@ -989,9 +1029,6 @@ $(document).ready(function() {
             }
         }
     }
-
-
-
 
     window.addEventListener('beforeunload', function() {
         stopTimer();
