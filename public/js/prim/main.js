@@ -413,7 +413,7 @@ $(document).ready(function() {
         if (isFirstEdge) {
             // First edge must touch the starting node
             isValid = (s === startingNodeId || t === startingNodeId);
-            if (!isValid) errorMessage = { en: "First edge must connect with the starting house", el: "Η πρώτη ακμή πρέπει να συνδέεται με το αρχικό σπίτι" };
+            if (!isValid) errorMessage = { en: "First pavement must connect with the starting house", el: "Το πρώτο πεζοδρόμιο πρέπει να συνδέεται με το αρχικό σπίτι" };
         } else {
             if (exactlyOneInMST) {
                 isValid = true;
@@ -805,24 +805,24 @@ $(document).ready(function() {
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() for Prim is executing!");
 
-        // 1) Build playerSolution
+        // 1) Build playerSolution as an ordered array of {Vertex1, Vertex2, Weight}
         const playerSolutionFull = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
             const weight = parseInt(edge.data('weight'));
-            if (v1 > v2) [v1, v2] = [v2, v1];  // Sort so Vertex1 < Vertex2
+            if (v1 > v2) [v1, v2] = [v2, v1];  // sort so Vertex1 < Vertex2
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
 
-        // 2) Check if ordering is valid for Prim
+        // 2) Quick helper: checks if an ordering is a valid Prim ordering from the given start
         function isValidPrimOrdering(ordering, startingNode) {
             const tree = new Set([ startingNode ]);
             for (let edge of ordering) {
                 const { Vertex1, Vertex2 } = edge;
                 const inTree1 = tree.has(Vertex1);
                 const inTree2 = tree.has(Vertex2);
-                // Must connect exactly one new vertex each time
-                if ((inTree1 && !inTree2) || (inTree2 && !inTree1)) {
+                // Must connect exactly one new vertex each step
+                if ((inTree1 && !inTree2) || (!inTree1 && inTree2)) {
                     tree.add(inTree1 ? Vertex2 : Vertex1);
                 } else {
                     return false;
@@ -831,36 +831,81 @@ $(document).ready(function() {
             return true;
         }
 
-        // 3) Find if the player's solution is correct
-        let isCorrect = false;
-        let correctOrderingFound = null; // store one MST ordering to compare
+        // 3) Helper: return how many edges match in order from the start
+        function getCommonPrefixLength(arr1, arr2) {
+            const len = Math.min(arr1.length, arr2.length);
+            let i = 0;
+            for (; i < len; i++) {
+                if (
+                    arr1[i].Vertex1 !== arr2[i].Vertex1 ||
+                    arr1[i].Vertex2 !== arr2[i].Vertex2 ||
+                    arr1[i].Weight  !== arr2[i].Weight
+                ) {
+                    break;
+                }
+            }
+            return i;
+        }
 
-        for (let tableObj of window.orderingTables) {
+        // 4) Compare the player’s ordering to all valid MST orderings
+        let isCorrect = false;
+        let correctOrderingFound = null;
+
+        // We'll track whichever MST shares the largest prefix with the player
+        let bestOrdering = null;
+        let bestPrefixLen = -1;
+
+        for (let tableObj of allMSTs) {
             for (let ordering of tableObj.orderings) {
+                // Skip if not a valid Prim sequence from the chosen start
                 if (!isValidPrimOrdering(ordering, parseInt(window.primStartingNodeId))) {
                     continue;
                 }
-                // Check full match
-                if (arraysEqual(playerSolutionFull, ordering)) {
-                    isCorrect = true;
-                    correctOrderingFound = ordering;
-                    break;
+
+                // Check if the player’s ordering exactly matches this MST
+                if (ordering.length === playerSolutionFull.length) {
+                    // If lengths match, see if arrays are identical
+                    let same = true;
+                    for (let i = 0; i < ordering.length; i++) {
+                        if (
+                            ordering[i].Vertex1 !== playerSolutionFull[i].Vertex1 ||
+                            ordering[i].Vertex2 !== playerSolutionFull[i].Vertex2 ||
+                            ordering[i].Weight  !== playerSolutionFull[i].Weight
+                        ) {
+                            same = false;
+                            break;
+                        }
+                    }
+                    if (same) {
+                        isCorrect = true;
+                        correctOrderingFound = ordering;
+                        break; // no need to keep looking if exact match
+                    }
                 }
-                if (!correctOrderingFound) {
-                    correctOrderingFound = ordering; // keep the first valid MST if none stored yet
+
+                // If no exact match, see how many edges match from the beginning
+                const prefix = getCommonPrefixLength(playerSolutionFull, ordering);
+                if (prefix > bestPrefixLen) {
+                    bestPrefixLen = prefix;
+                    bestOrdering  = ordering;
                 }
             }
             if (isCorrect) break;
         }
 
-        // 4) Stop timer, compute score
+        // If not correct, use the MST that had the largest matching prefix
+        if (!isCorrect) {
+            correctOrderingFound = bestOrdering;
+        }
+
+        // 5) Stop the timer, compute a score if correct, etc.
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
-        let score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
+        const score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
 
-        // 5) Show message in popup
+        // 6) Show user feedback
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -878,31 +923,27 @@ $(document).ready(function() {
                 score: "Βαθμολογία:"
             }
         };
-
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? messages[lang].correct : messages[lang].incorrect);
         popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // 6) Clear old content in the comparison area
+        // 7) Produce side-by-side comparison
         const compareContainerId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareContainerId).empty();
 
-        // 7) Always generate a screenshot (correct or not)
-        // If correct => mismatchIndex = -1 => use full MST
-        // If wrong => partial screenshot
+        // Determine first mismatch index to highlight partial edges
         const mismatchIndex = isCorrect ? -1 : findMismatchIndex(playerSolutionFull, correctOrderingFound);
-        const truncatedCorrect = mismatchIndex >= 0
+        const truncatedCorrect = (mismatchIndex >= 0)
             ? correctOrderingFound.slice(0, mismatchIndex + 1)
             : correctOrderingFound;
-        const truncatedPlayer = mismatchIndex >= 0
+        const truncatedPlayer  = (mismatchIndex >= 0)
             ? playerSolutionFull.slice(0, mismatchIndex + 1)
             : playerSolutionFull;
 
-        // Take screenshot with partial or full edges
+        // Snapshot highlighting partial or full edges
         const screenshotData = highlightEdgesAndScreenshot(cy, truncatedCorrect, truncatedPlayer);
-        // Insert the screenshot
         $(compareContainerId).append(`
         <div class="screenshot">
             <img src="${screenshotData}" 
@@ -911,8 +952,8 @@ $(document).ready(function() {
         </div>
     `);
 
-        // 8) Only show the full table if user is wrong
         if (!isCorrect && correctOrderingFound) {
+            // Show the full MST vs. player's picks
             const fullTableHtml = buildDetailedComparisonHTML(
                 lang,
                 correctOrderingFound,
@@ -921,7 +962,7 @@ $(document).ready(function() {
             $(compareContainerId).append(fullTableHtml);
         }
 
-        // 9) If correct => update DB score
+        // 8) If correct, store the user’s score in DB
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
@@ -932,6 +973,7 @@ $(document).ready(function() {
             }
         }
     }
+
 
 
 
