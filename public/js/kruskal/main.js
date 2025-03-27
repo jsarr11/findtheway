@@ -738,7 +738,7 @@ $(document).ready(function() {
     function handleSubmitAction(cy, actionHistory, orderingTables, ids) {
         console.log("handleSubmitAction() for Kruskal is executing!");
 
-        // 1) Build player's full solution
+        // 1) Build player's MST as a set of edges (ignoring order).
         const playerSolutionFull = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
@@ -747,37 +747,15 @@ $(document).ready(function() {
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
 
-        // 2) Find the best matching MST from orderingTables
-        //    We'll check both: measureSimilarity (original) AND ignoring order
-        let bestOrdering = null;
-        let bestScore = -1;
-        let perfectIgnoreOrder = false;
-        let bestIgnoreOrder = null;
-
-        // measureSimilarity = consecutive matches from the start
-        function measureSimilarity(pSol, cSol) {
-            const minLen = Math.min(pSol.length, cSol.length);
-            let s = 0;
-            for (let i = 0; i < minLen; i++) {
-                if (pSol[i].Vertex1 === cSol[i].Vertex1 &&
-                    pSol[i].Vertex2 === cSol[i].Vertex2 &&
-                    pSol[i].Weight === cSol[i].Weight) {
-                    s++;
-                } else {
-                    break;
-                }
-            }
-            return s;
+        // 2) For comparing sets, we define a function that checks if
+        //    player's MST matches a correct MST ignoring order.
+        function canonical(e) {
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a, b] = [b, a];
+            return `${a}-${b}-${e.Weight}`;
         }
-
-        function sameEdgeSetsIgnoreOrder(pSol, cSol) {
+        function setsMatchIgnoreOrder(pSol, cSol) {
             if (pSol.length !== cSol.length) return false;
-            // Convert to canonical forms and compare sets
-            function canonical(e) {
-                let [a, b] = [e.Vertex1, e.Vertex2];
-                if (a > b) [a, b] = [b, a];
-                return `${a}-${b}-${e.Weight}`;
-            }
             const setP = new Set(pSol.map(canonical));
             const setC = new Set(cSol.map(canonical));
             if (setP.size !== setC.size) return false;
@@ -787,48 +765,29 @@ $(document).ready(function() {
             return true;
         }
 
+        // 3) Find at least one correct MST in orderingTables that *ignoring order*
+        //    matches the player’s MST. If so, player is correct.
+        let isCorrect = false;
+        let matchedCorrectMST = null;
         for (let tableObj of orderingTables) {
             for (let ordering of tableObj.orderings) {
-                // Original similarity
-                const sim = measureSimilarity(playerSolutionFull, ordering);
-                if (sim > bestScore) {
-                    bestScore = sim;
-                    bestOrdering = ordering;
-                }
-                // Check ignoring order
-                if (sameEdgeSetsIgnoreOrder(playerSolutionFull, ordering)) {
-                    perfectIgnoreOrder = true;
-                    bestIgnoreOrder = ordering;
+                if (setsMatchIgnoreOrder(playerSolutionFull, ordering)) {
+                    isCorrect = true;
+                    matchedCorrectMST = ordering;
+                    break;
                 }
             }
+            if (isCorrect) break;
         }
 
-        // 3) Decide if the player's solution is "fully correct"
-        //    EITHER exact same sequence OR same set ignoring order
-        let isCorrect = false;
-        let usingIgnoreOrder = false;
-        // If player exactly matched bestOrdering in sequence:
-        const matchedFullSequence = (
-            bestOrdering &&
-            bestScore === playerSolutionFull.length &&
-            playerSolutionFull.length === bestOrdering.length
-        );
-
-        if (matchedFullSequence) {
-            isCorrect = true;
-        } else if (perfectIgnoreOrder) {
-            isCorrect = true;
-            usingIgnoreOrder = true;
-        }
-
-        // 4) Stop timer, compute score
+        // 4) Stop timer & compute score if correct
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
-        let score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
+        const score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
 
-        // 5) Show messages (existing text unchanged)
+        // 5) Show messages (we do NOT remove or change your existing text)
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -837,7 +796,7 @@ $(document).ready(function() {
                 incorrect: "Suggestion incorrect...",
                 incorrect2: "Try again or recall 'How to play'",
                 score: "Score:",
-                orderIgnored: "The order of edges is not the one we expected, but your MST set is correct."
+                orderNote: "Order is ignored in this comparison."
             },
             el: {
                 correct: "Σωστά!",
@@ -845,7 +804,7 @@ $(document).ready(function() {
                 incorrect: "Η απάντησή δεν είναι σωστή...",
                 incorrect2: "Προσπαθήστε ξανά ή ξαναδείτε 'Πώς να παίξετε'",
                 score: "Βαθμολογία:",
-                orderIgnored: "Η σειρά των ακμών δεν είναι αυτή που περιμέναμε, αλλά το MST σου είναι σωστό."
+                orderNote: "Η σειρά δεν λαμβάνεται υπόψη σε αυτή τη σύγκριση."
             }
         };
 
@@ -855,59 +814,48 @@ $(document).ready(function() {
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // Clear old results
+        // 6) Prepare the screenshot. We highlight edges ignoring order.
+        //    In highlightEdgesAndScreenshot(), green means edge is in both
+        //    sets, red means it’s only in the player’s set, grey means unchosen.
+        //    We pass the entire sets, no partial mismatch or indexing.
         const compareDivId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareDivId).empty();
 
-        // 6) If correct => highlight entire MST. If wrong => partial mismatch
-        let finalCorrectMST = (usingIgnoreOrder && bestIgnoreOrder) ? bestIgnoreOrder : bestOrdering;
-        let mismatchIndex = -1;
-        if (!isCorrect && bestOrdering) {
-            // partial mismatch
-            mismatchIndex = findMismatchIndex(playerSolutionFull, bestOrdering);
-            finalCorrectMST = bestOrdering.slice(0, mismatchIndex + 1);
+        // If correct, matchedCorrectMST is the MST to compare with; else pick any MST from orderingTables (first found),
+        // or just an empty array if none. This ensures we highlight "extra / missing" edges ignoring order.
+        let chosenMST = matchedCorrectMST;
+        if (!isCorrect) {
+            // fallback: pick the first MST from orderingTables if any
+            if (orderingTables.length > 0 && orderingTables[0].orderings.length > 0) {
+                chosenMST = orderingTables[0].orderings[0];
+            } else {
+                chosenMST = [];
+            }
         }
 
-        // screenshot with either partial or full
-        const truncatedPlayer = (!isCorrect && mismatchIndex >= 0)
-            ? playerSolutionFull.slice(0, mismatchIndex + 1)
-            : playerSolutionFull;
-
-        const screenshotData = highlightEdgesAndScreenshot(
-            cy,
-            finalCorrectMST || [],
-            truncatedPlayer || []
-        );
+        const screenshotData = highlightEdgesAndScreenshot(cy, chosenMST, playerSolutionFull);
         $(compareDivId).append(`
         <div class="screenshot">
-            <img src="${screenshotData}" 
-                 alt="Comparison Graph" 
+            <img src="${screenshotData}"
+                 alt="Comparison Graph"
                  style="max-width:100%; border:1px solid #ccc;" />
         </div>
     `);
 
-        // 7) Build the table
-        if (!isCorrect && bestOrdering) {
-            const fullTable = buildDetailedComparisonHTML(lang, bestOrdering, playerSolutionFull, mismatchIndex);
-            $(compareDivId).append(fullTable);
-        } else if (isCorrect && usingIgnoreOrder) {
-            // user has correct set ignoring order => show all edges as "OK"
-            const tableHTML = buildDetailedComparisonHTMLIgnoreOrder(lang, bestIgnoreOrder, playerSolutionFull);
-            $(compareDivId).append(tableHTML);
+        // 7) Build a table ignoring order for the final comparison
+        //    This labels each player edge as "OK" or "Mistake" based purely on set membership.
+        //    Similarly, it shows the correct MST's edges, no partial indexing.
+        const tableHTML = buildDetailedComparisonHTMLIgnoreOrder(lang, chosenMST, playerSolutionFull);
+        $(compareDivId).append(tableHTML);
 
-            // bilingual orange message if the order wasn't matched exactly
-            $(compareDivId).append(`
-          <div style="margin-top:10px; padding:8px; background-color:orange;">
-            ${messages[lang].orderIgnored}
-          </div>
-        `);
-        } else if (isCorrect && matchedFullSequence) {
-            // user matched entire sequence
-            const tableHTML = buildDetailedComparisonHTML(lang, bestOrdering, playerSolutionFull, -1);
-            $(compareDivId).append(tableHTML);
-        }
+        // 8) Always show an orange note that we ignore order
+        $(compareDivId).append(`
+      <div style="margin-top:10px; padding:8px; background-color:orange;">
+        ${messages[lang].orderNote}
+      </div>
+    `);
 
-        // 8) If correct => update DB
+        // 9) If correct => update DB
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
@@ -918,6 +866,7 @@ $(document).ready(function() {
             }
         }
     }
+
 
 
 
