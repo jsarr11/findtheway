@@ -398,20 +398,20 @@ $(document).ready(function() {
     }
 
     /********************************************************************
-     *  1) Screenshot up to mismatch
+     *  1) Screenshot up to mismatch (or entire if ignoring order)
      ********************************************************************/
     function highlightEdgesAndScreenshot(cy, correctSol, playerSol) {
         const oldStyles = {};
 
         // Convert edges to canonical string
         function canonical(e) {
-            let [a,b] = [e.Vertex1, e.Vertex2];
-            if (a > b) [a,b] = [b,a];
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a, b] = [b, a];
             return `${a}-${b}-${e.Weight}`;
         }
 
         const correctSet = new Set(correctSol.map(canonical));
-        const playerSet  = new Set(playerSol.map(canonical));
+        const playerSet = new Set(playerSol.map(canonical));
 
         // Color edges
         cy.edges().forEach(ed => {
@@ -460,7 +460,7 @@ $(document).ready(function() {
     /********************************************************************
      *  2) Bilingual Detailed Table
      ********************************************************************/
-    function buildDetailedComparisonHTML(lang, correctSol, playerSol, mismatchIndex) {
+    function buildDetailedComparisonHTML(lang, correctSol, playerSol, mismatchIndex = -1) {
         // Bilingual texts
         const i18n = {
             en: {
@@ -489,7 +489,6 @@ $(document).ready(function() {
         const t = (lang === 'en') ? i18n.en : i18n.el;
         const maxLen = Math.max(correctSol.length, playerSol.length);
 
-        // Build Correct MST table (without a Status column)
         let correctRows = "";
         for (let i = 0; i < maxLen; i++) {
             const cEdge = correctSol[i];
@@ -501,7 +500,8 @@ $(document).ready(function() {
                 edgeText = t.dash;
                 weightText = t.dash;
             }
-            const rowStyle = (i === mismatchIndex) ? 'background-color: #fdd;' : '';
+            // Highlight row if mismatch index
+            const rowStyle = (i === mismatchIndex && mismatchIndex !== -1) ? 'background-color: #fdd;' : '';
             correctRows += `
           <tr style="${rowStyle}">
             <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
@@ -524,7 +524,6 @@ $(document).ready(function() {
       </table>
     `;
 
-        // Build Player MST table (with Status column)
         let playerRows = "";
         for (let i = 0; i < maxLen; i++) {
             const pEdge = playerSol[i];
@@ -536,18 +535,18 @@ $(document).ready(function() {
                 edgeText = t.dash;
                 weightText = t.dash;
             }
-            // Determine status: if both edges exist and match exactly, mark "OK"; else "Mistake"
+            // If both edges exist & match exactly in same index => OK, else Mistake
             if (pEdge && correctSol[i] &&
                 pEdge.Vertex1 === correctSol[i].Vertex1 &&
                 pEdge.Vertex2 === correctSol[i].Vertex2 &&
-                pEdge.Weight  === correctSol[i].Weight) {
+                pEdge.Weight === correctSol[i].Weight) {
                 statusText = t.ok;
             } else if (pEdge) {
                 statusText = t.mistake;
             } else {
                 statusText = t.dash;
             }
-            const rowStyle = (i === mismatchIndex) ? 'background-color: #fdd;' : '';
+            const rowStyle = (i === mismatchIndex && mismatchIndex !== -1) ? 'background-color: #fdd;' : '';
             playerRows += `
           <tr style="${rowStyle}">
             <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
@@ -572,7 +571,6 @@ $(document).ready(function() {
       </table>
     `;
 
-        // Return both tables side by side in a flex container
         return `
       <div style="display:flex; gap:1rem; margin-top:10px; justify-content:center; align-items:flex-start;">
         <div style="width:auto; margin-top:0;">${correctTable}</div>
@@ -581,6 +579,117 @@ $(document).ready(function() {
     `;
     }
 
+    /********************************************************************
+     *  2a) Build table ignoring order (to show all edges as OK
+     *      if the set is correct but the sequence is different)
+     ********************************************************************/
+    function buildDetailedComparisonHTMLIgnoreOrder(lang, correctSol, playerSol) {
+        // Same i18n as above
+        const i18n = {
+            en: {
+                correctMST: "Suggested solution",
+                yourMST: "Your answer",
+                edge: "Pavement",
+                weight: "Cost",
+                status: "Status",
+                correct: "Correct",
+                mistake: "Mistake",
+                ok: "OK",
+                dash: "—"
+            },
+            el: {
+                correctMST: "Προτεινόμενη λύση",
+                yourMST: "Η λύση σου",
+                edge: "Πεζοδρόμιο",
+                weight: "Κόστος",
+                status: "Κατάσταση",
+                correct: "Σωστό",
+                mistake: "Λάθος",
+                ok: "ΟΚ",
+                dash: "—"
+            }
+        };
+        const t = (lang === 'en') ? i18n.en : i18n.el;
+
+        // We'll show them side by side but mark everything in the player's MST as OK
+        // if it appears anywhere in the correct set.
+        const correctLen = correctSol.length;
+        const playerLen = playerSol.length;
+        const maxLen = Math.max(correctLen, playerLen);
+
+        // For fast membership checking
+        function canonical(e) {
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a, b] = [b, a];
+            return `${a}-${b}-${e.Weight}`;
+        }
+        const correctSet = new Set(correctSol.map(canonical));
+
+        // Build correct table
+        let correctRows = "";
+        for (let i = 0; i < correctLen; i++) {
+            const cEdge = correctSol[i];
+            const edgeText = `${cEdge.Vertex1}-${cEdge.Vertex2}`;
+            correctRows += `
+              <tr>
+                <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${cEdge.Weight}</td>
+              </tr>
+            `;
+        }
+        const correctTable = `
+        <h3 style="margin:0 0 4px 0;">${t.correctMST}</h3>
+        <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
+          <thead>
+            <tr>
+              <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+              <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${correctRows}
+          </tbody>
+        </table>
+        `;
+
+        // Build player table
+        let playerRows = "";
+        for (let i = 0; i < playerLen; i++) {
+            const pEdge = playerSol[i];
+            const edgeText = `${pEdge.Vertex1}-${pEdge.Vertex2}`;
+            const isInCorrectSet = correctSet.has(canonical(pEdge));
+            const statusText = isInCorrectSet ? t.ok : t.mistake;
+            playerRows += `
+              <tr>
+                <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${pEdge.Weight}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${statusText}</td>
+              </tr>
+            `;
+        }
+        const playerTable = `
+        <h3 style="margin:0 0 4px 0;">${t.yourMST}</h3>
+        <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
+          <thead>
+            <tr>
+              <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+              <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+              <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${playerRows}
+          </tbody>
+        </table>
+        `;
+
+        return `
+        <div style="display:flex; gap:1rem; margin-top:10px; justify-content:center; align-items:flex-start;">
+          <div style="width:auto; margin-top:0;">${correctTable}</div>
+          <div style="width:auto; margin-top:0;">${playerTable}</div>
+        </div>
+      `;
+    }
 
     /********************************************************************
      *  3) Mismatch Index
@@ -592,7 +701,7 @@ $(document).ready(function() {
             if (
                 p.Vertex1 !== c.Vertex1 ||
                 p.Vertex2 !== c.Vertex2 ||
-                p.Weight  !== c.Weight
+                p.Weight !== c.Weight
             ) {
                 return i;
             }
@@ -601,6 +710,26 @@ $(document).ready(function() {
             return len;
         }
         return -1;
+    }
+
+    /********************************************************************
+     *  Utility to check if two sets of edges match ignoring order
+     ********************************************************************/
+    function sameEdgeSetsIgnoreOrder(pSol, cSol) {
+        if (pSol.length !== cSol.length) return false;
+        // Convert to canonical forms and compare sets
+        function canonical(e) {
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a, b] = [b, a];
+            return `${a}-${b}-${e.Weight}`;
+        }
+        const setP = new Set(pSol.map(canonical));
+        const setC = new Set(cSol.map(canonical));
+        if (setP.size !== setC.size) return false;
+        for (let item of setP) {
+            if (!setC.has(item)) return false;
+        }
+        return true;
     }
 
     /********************************************************************
@@ -619,8 +748,11 @@ $(document).ready(function() {
         });
 
         // 2) Find the best matching MST from orderingTables
+        //    We'll check both: measureSimilarity (original) AND ignoring order
         let bestOrdering = null;
         let bestScore = -1;
+        let perfectIgnoreOrder = false;
+        let bestIgnoreOrder = null;
 
         // measureSimilarity = consecutive matches from the start
         function measureSimilarity(pSol, cSol) {
@@ -638,31 +770,65 @@ $(document).ready(function() {
             return s;
         }
 
+        function sameEdgeSetsIgnoreOrder(pSol, cSol) {
+            if (pSol.length !== cSol.length) return false;
+            // Convert to canonical forms and compare sets
+            function canonical(e) {
+                let [a, b] = [e.Vertex1, e.Vertex2];
+                if (a > b) [a, b] = [b, a];
+                return `${a}-${b}-${e.Weight}`;
+            }
+            const setP = new Set(pSol.map(canonical));
+            const setC = new Set(cSol.map(canonical));
+            if (setP.size !== setC.size) return false;
+            for (let item of setP) {
+                if (!setC.has(item)) return false;
+            }
+            return true;
+        }
+
         for (let tableObj of orderingTables) {
             for (let ordering of tableObj.orderings) {
+                // Original similarity
                 const sim = measureSimilarity(playerSolutionFull, ordering);
                 if (sim > bestScore) {
                     bestScore = sim;
                     bestOrdering = ordering;
                 }
+                // Check ignoring order
+                if (sameEdgeSetsIgnoreOrder(playerSolutionFull, ordering)) {
+                    perfectIgnoreOrder = true;
+                    bestIgnoreOrder = ordering;
+                }
             }
         }
 
-        // If fully matched => correct
-        const isCorrect = (
+        // 3) Decide if the player's solution is "fully correct"
+        //    EITHER exact same sequence OR same set ignoring order
+        let isCorrect = false;
+        let usingIgnoreOrder = false;
+        // If player exactly matched bestOrdering in sequence:
+        const matchedFullSequence = (
             bestOrdering &&
             bestScore === playerSolutionFull.length &&
             playerSolutionFull.length === bestOrdering.length
         );
 
-        // 3) Stop timer, compute score
+        if (matchedFullSequence) {
+            isCorrect = true;
+        } else if (perfectIgnoreOrder) {
+            isCorrect = true;
+            usingIgnoreOrder = true;
+        }
+
+        // 4) Stop timer, compute score
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
         let score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
 
-        // 4) Show messages
+        // 5) Show messages (existing text unchanged)
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -670,14 +836,16 @@ $(document).ready(function() {
                 correct2: "Congratulations!",
                 incorrect: "Suggestion incorrect...",
                 incorrect2: "Try again or recall 'How to play'",
-                score: "Score:"
+                score: "Score:",
+                orderIgnored: "The order of edges is not the one we expected, but your MST set is correct."
             },
             el: {
                 correct: "Σωστά!",
                 correct2: "Συγχαρητήρια!",
                 incorrect: "Η απάντησή δεν είναι σωστή...",
                 incorrect2: "Προσπαθήστε ξανά ή ξαναδείτε 'Πώς να παίξετε'",
-                score: "Βαθμολογία:"
+                score: "Βαθμολογία:",
+                orderIgnored: "Η σειρά των ακμών δεν είναι αυτή που περιμέναμε, αλλά το MST σου είναι σωστό."
             }
         };
 
@@ -691,21 +859,25 @@ $(document).ready(function() {
         const compareDivId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareDivId).empty();
 
-        // 5) Always show screenshot (correct or not)
-        // If correct => mismatchIndex = -1 => use full
-        // If wrong => partial
+        // 6) If correct => highlight entire MST. If wrong => partial mismatch
+        let finalCorrectMST = (usingIgnoreOrder && bestIgnoreOrder) ? bestIgnoreOrder : bestOrdering;
         let mismatchIndex = -1;
         if (!isCorrect && bestOrdering) {
+            // partial mismatch
             mismatchIndex = findMismatchIndex(playerSolutionFull, bestOrdering);
+            finalCorrectMST = bestOrdering.slice(0, mismatchIndex + 1);
         }
-        const truncatedCorrect = (mismatchIndex >= 0)
-            ? bestOrdering.slice(0, mismatchIndex + 1)
-            : bestOrdering;
-        const truncatedPlayer = (mismatchIndex >= 0)
+
+        // screenshot with either partial or full
+        const truncatedPlayer = (!isCorrect && mismatchIndex >= 0)
             ? playerSolutionFull.slice(0, mismatchIndex + 1)
             : playerSolutionFull;
 
-        const screenshotData = highlightEdgesAndScreenshot(cy, truncatedCorrect || [], truncatedPlayer || []);
+        const screenshotData = highlightEdgesAndScreenshot(
+            cy,
+            finalCorrectMST || [],
+            truncatedPlayer || []
+        );
         $(compareDivId).append(`
         <div class="screenshot">
             <img src="${screenshotData}" 
@@ -714,17 +886,28 @@ $(document).ready(function() {
         </div>
     `);
 
-        // 6) Only show the full table if user is wrong
+        // 7) Build the table
         if (!isCorrect && bestOrdering) {
-            const fullTable = buildDetailedComparisonHTML(
-                lang,
-                bestOrdering,
-                playerSolutionFull
-            );
+            const fullTable = buildDetailedComparisonHTML(lang, bestOrdering, playerSolutionFull, mismatchIndex);
             $(compareDivId).append(fullTable);
+        } else if (isCorrect && usingIgnoreOrder) {
+            // user has correct set ignoring order => show all edges as "OK"
+            const tableHTML = buildDetailedComparisonHTMLIgnoreOrder(lang, bestIgnoreOrder, playerSolutionFull);
+            $(compareDivId).append(tableHTML);
+
+            // bilingual orange message if the order wasn't matched exactly
+            $(compareDivId).append(`
+          <div style="margin-top:10px; padding:8px; background-color:orange;">
+            ${messages[lang].orderIgnored}
+          </div>
+        `);
+        } else if (isCorrect && matchedFullSequence) {
+            // user matched entire sequence
+            const tableHTML = buildDetailedComparisonHTML(lang, bestOrdering, playerSolutionFull, -1);
+            $(compareDivId).append(tableHTML);
         }
 
-        // 7) If correct => update DB
+        // 8) If correct => update DB
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
@@ -735,6 +918,7 @@ $(document).ready(function() {
             }
         }
     }
+
 
 
     // Stop timer on unload
