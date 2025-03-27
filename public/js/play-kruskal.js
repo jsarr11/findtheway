@@ -50,16 +50,15 @@ function updateEdgeConstraints() {
     $('#maxWeight').val('');
     $('#error-message').hide();
 
-
     $('#weightsContainer').show();
     $('#playContainer').show();
 
     const vertices = parseInt($('#vertices').val());
     if (isNaN(vertices) || vertices < 4 || vertices > 12) {
-        $('#edgesContainer').hide();
-        $('#edgesRangeDisplay').html('');
-        $('#weightsContainer').hide();
+        $('#weightsContainer').show(); // Make sure weights section appears right away
         $('#playContainer').hide();
+        $('#edgesRangeDisplay').text(''); // Ensure it does not disappear
+
         return;
     } else {
         $('#edgesContainer').show();
@@ -84,17 +83,17 @@ function updateEdgeConstraints() {
     if (mapping) {
         const generatedEdges = Math.floor(Math.random() * (mapping.max - mapping.min + 1)) + mapping.min;
         $('#edges').val(generatedEdges);
-        $('#edgesRangeDisplay').text((localStorage.getItem('language') === 'el' ? '2. Αριθμός πεζοδρομίων: ' : '2. Number of pavements: ') + generatedEdges);
 
-
-        // Ensure Step 3 (Weights) is displayed immediately
-        $('#weightsContainer').show();
-        $('#playContainer').show();
+        // Instead of setting text here, store the random edges in a data attribute
+        $('#edgesRangeDisplay').data('edgesValue', generatedEdges);
     }
 
-
     checkInputs();
+
+    // Move any text/translation to localizePopup
+    localizePopup();
 }
+
 
 
 function generateValidEdges() {
@@ -198,32 +197,49 @@ function showErrorMessage(message) {
 
 function localizePopup() {
     const currentLanguage = localStorage.getItem('language') || 'el';
-    $('#edgesRangeDisplay').text((currentLanguage === 'el' ? '2. Αριθμός πεζοδρομίων: ' : '2. Number of pavements: ') + $('#edges').val());
-    $('#edgesRangeDisplay').append('<br>' + (localStorage.getItem('language') === 'el' ? '(Τυχαίος αριθμός μέσα στο επιτρεπόμενο όριο)' : '(Random number from the valid range)'));
 
+    // Update the popup's other UI elements as before
     if (currentLanguage === 'en') {
         $('#popup-title').text("Create custom level");
         $('#label-vertices').text("Number of houses:");
-        $('#generateEdgesButton').text("Generate a valid number of pavements");
+        $('#generateEdgesButton').text("Generate a valid number of edges");
         $('#label-minWeight').text("Min");
         $('#label-maxWeight').text("Max");
         $('#playButton').text("Let's go!");
         $('#p1').text("1. Give the number of houses, from 4 to 12");
-        $('#p3').text("3. Give min and max costs you want, from 1 to 50");
+        $('#p3').text("3. Give min and max weights you want, from 1 to 50");
     } else {
         $('#popup-title').text("Δημιουργία προσαρμοσμένου επιπέδου");
         $('#label-vertices').text("Αριθμός σπιτιών:");
-        $('#generateEdgesButton').text("Παραγωγή έγκυρου αριθμού πεζοδρομιων");
+        $('#generateEdgesButton').text("Παραγωγή έγκυρου αριθμού πεζοδρομίων");
         $('#label-minWeight').text("Ελάχιστο");
         $('#label-maxWeight').text("Μέγιστο");
         $('#playButton').text("Ας ξεκινήσουμε!");
-        $('#p1').text("1. Δώσε τον από σπίτια, από 4 μεχρι 12");
+        $('#p1').text("1. Δώσε αριθμό από σπίτια, από 4 μεχρι 12");
         $('#p3').text("3. Δώσε το ελάχιστο και μέγιστο κόστος που επιθυμείς, από 1 έως 50");
     }
 
-    // Update the table headers, if the table is visible
+    // Update table headers
     updateEdgesTableLanguage();
+
+    // Now set the #edgesRangeDisplay text based on the stored edges value
+    const edgesValue = $('#edgesRangeDisplay').data('edgesValue');
+    if (edgesValue) {
+        if (currentLanguage === 'el') {
+            $('#edgesRangeDisplay')
+                .text('2. Αριθμός πεζοδρομίων: ' + edgesValue)
+                .append('<br>(Τυχαίος αριθμός μέσα στο επιτρεπόμενο όριο)');
+        } else {
+            $('#edgesRangeDisplay')
+                .text('2. Number of pavements: ' + edgesValue)
+                .append('<br>(Random number from the valid range)');
+        }
+    } else {
+        // If there's no stored edges value, just clear
+        $('#edgesRangeDisplay').text('');
+    }
 }
+
 
 $(document).ready(function () {
     $('#vertices, #edges, #minWeight, #maxWeight').on('input', checkInputs);

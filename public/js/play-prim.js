@@ -78,18 +78,22 @@ function updateEdgeConstraints() {
         headerMax = "Μέγιστες ακμές";
     }
 
-    // Build a table showing only the row for the entered node count using the language-specific headers
+    // Generate the random edges number, but do NOT set language text here
     const mapping = edgesMapping[vertices];
     if (mapping) {
         const generatedEdges = Math.floor(Math.random() * (mapping.max - mapping.min + 1)) + mapping.min;
         $('#edges').val(generatedEdges);
-        $('#edgesRangeDisplay').text((localStorage.getItem('language') === 'el' ? '2. Αριθμός πεζοδρομίων: ' : '2. Number of pavements: ') + generatedEdges);
-        $('#edgesRangeDisplay').append('<br>' + (localStorage.getItem('language') === 'el' ? '(Τυχαίος αριθμός μέσα στο επιτρεπόμενο όριο)' : '(Random number from the valid range)'));
+
+        // Instead of setting #edgesRangeDisplay text directly, store the value in data
+        $('#edgesRangeDisplay').data('edgesValue', generatedEdges);
     }
 
-
     checkInputs();
+
+    // Move all translation logic to localizePopup
+    localizePopup();
 }
+
 
 
 function generateValidEdges() {
@@ -224,8 +228,8 @@ function showErrorMessage(message) {
 
 function localizePopup() {
     const currentLanguage = localStorage.getItem('language') || 'el';
-    $('#edgesRangeDisplay').text((currentLanguage === 'el' ? '2. Αριθμός πεζοδρομίων: ' : '2. Number of pavements: ') + $('#edges').val());
 
+    // Update other popup texts
     if (currentLanguage === 'en') {
         $('#popup-title').text("Create custom level");
         $('#label-vertices').text("Number of houses:");
@@ -248,7 +252,25 @@ function localizePopup() {
 
     // Update the table headers, if the table is visible
     updateEdgesTableLanguage();
+
+    // Now set the #edgesRangeDisplay text based on the stored edgesValue
+    const edgesValue = $('#edgesRangeDisplay').data('edgesValue');
+    if (edgesValue) {
+        if (currentLanguage === 'el') {
+            $('#edgesRangeDisplay')
+                .text('2. Αριθμός πεζοδρομίων: ' + edgesValue)
+                .append('<br>(Τυχαίος αριθμός μέσα στο επιτρεπόμενο όριο)');
+        } else {
+            $('#edgesRangeDisplay')
+                .text('2. Number of pavements: ' + edgesValue)
+                .append('<br>(Random number from the valid range)');
+        }
+    } else {
+        // If there's no stored edges value, just clear the display
+        $('#edgesRangeDisplay').text('');
+    }
 }
+
 
 $(document).ready(function () {
     // Existing bindings for input events
