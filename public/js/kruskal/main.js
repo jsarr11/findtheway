@@ -331,14 +331,128 @@ $(document).ready(function() {
     /********************************************************************
      *  Edge selection & Undo
      ********************************************************************/
+    /************************************************************************
+     * handleEdgeSelection(...) => Called whenever the user clicks on an edge.
+     *    - If the edge is already chosen, it undoes it.
+     *    - Otherwise, it checks for a cycle. If cycle => don't pick; show message.
+     *    - If valid, picks the edge & checks if there's a smaller edge available.
+     *    - Messages appear under the action table in bilingual format
+     ************************************************************************/
     function handleEdgeSelection(evt, cy, actionHistory, actionTableId) {
+        // 1) Bilingual messages
+        const lang = localStorage.getItem('language') || 'el';
+        const messages = {
+            en: {
+                cycle: "This edge creates a cycle and cannot be selected!",
+                smaller: "There is a smaller edge available that doesn't create a cycle."
+            },
+            el: {
+                cycle: "Αυτή η ακμή δημιουργεί κύκλο και δεν μπορεί να επιλεγεί!",
+                smaller: "Υπάρχει διαθέσιμη ακμή με μικρότερο βάρος που δεν δημιουργεί κύκλο."
+            }
+        };
+        const cycleMsg = (lang === 'en') ? messages.en.cycle : messages.el.cycle;
+        const smallerMsg = (lang === 'en') ? messages.en.smaller : messages.el.smaller;
+
+        // 2) Helper to show or clear a text message under the action table
+        function showGameMessage(msg) {
+            const containerId = (lang === 'en') ? 'game-message-en' : 'game-message-el';
+            let container = document.getElementById(containerId);
+            if (!container) {
+                // create a <div> for messages if none found
+                container = document.createElement('div');
+                container.id = containerId;
+                container.style.color = 'red';
+                container.style.margin = '6px 0';
+                // place under the appropriate action table
+                const tableId = (lang === 'en') ? 'action-table-en' : 'action-table-el';
+                const tableElem = document.getElementById(tableId);
+                if (tableElem && tableElem.parentNode) {
+                    tableElem.parentNode.insertBefore(container, tableElem.nextSibling);
+                }
+            }
+            container.textContent = msg; // if msg=='' => effectively hides it
+        }
+
+        // 3) Because the user wants the message to disappear every time they pick ANY edge,
+        //    we clear the message immediately at the start of the function.
+        //    If there's a cycle or smaller-edge warning, we'll overwrite it below.
+        showGameMessage('');
+
+        // 4) Build a union-find from edges in actionHistory
+        function buildUnionFind() {
+            const parent = {};
+            const rank = {};
+
+            actionHistory.forEach(({ edge }) => {
+                const s = edge.data('source');
+                const t = edge.data('target');
+                if (parent[s] === undefined) { parent[s] = s; rank[s] = 0; }
+                if (parent[t] === undefined) { parent[t] = t; rank[t] = 0; }
+            });
+
+            function find(x) {
+                if (parent[x] !== x) {
+                    parent[x] = find(parent[x]);
+                }
+                return parent[x];
+            }
+            function union(a, b) {
+                const ra = find(a);
+                const rb = find(b);
+                if (ra === rb) return false;
+                if (rank[ra] < rank[rb]) {
+                    parent[ra] = rb;
+                } else if (rank[ra] > rank[rb]) {
+                    parent[rb] = ra;
+                } else {
+                    parent[rb] = ra;
+                    rank[ra]++;
+                }
+                return true;
+            }
+
+            // union existing edges
+            actionHistory.forEach(({ edge }) => {
+                union(edge.data('source'), edge.data('target'));
+            });
+
+            return { find, union, parent, rank };
+        }
+
+        function formsCycle(edgeToAdd) {
+            const uf = buildUnionFind();
+            const s = edgeToAdd.data('source');
+            const t = edgeToAdd.data('target');
+            if (uf.parent[s] === undefined) {
+                uf.parent[s] = s; uf.rank[s] = 0;
+            }
+            if (uf.parent[t] === undefined) {
+                uf.parent[t] = t; uf.rank[t] = 0;
+            }
+            const rs = uf.find(s);
+            const rt = uf.find(t);
+            return (rs === rt); // same root => cycle
+        }
+
+        // --- Original flow
         const edge = evt.target;
         const existingIndex = actionHistory.findIndex(a => a.edge.id() === edge.id());
         if (existingIndex !== -1) {
+            // Edge was already chosen => user toggles off
             handleUndoAction(cy, actionHistory, actionTableId);
             return;
         }
 
+        // check cycle
+        if (formsCycle(edge)) {
+            // revert style
+            edge.style({ width: 1, 'line-color': '#999' });
+            showGameMessage(cycleMsg);
+            return;
+        }
+
+        // pick the edge (no cycle)
         edge.style({ width: 4, 'line-color': '#94d95f' });
         const sourceNode = cy.$(`#${edge.data('source')}`);
         const targetNode = cy.$(`#${edge.data('target')}`);
@@ -357,7 +471,82 @@ $(document).ready(function() {
 
         const w = parseInt(edge.data('weight'));
         addEdgeWeight(w);
+
+        // check if there's a smaller unpicked edge that wouldn't form a cycle
+        const allEdges = cy.edges();
+        for (let i = 0; i < allEdges.length; i++) {
+            const e = allEdges[i];
+            // skip chosen edges
+            if (actionHistory.some(a => a.edge.id() === e.id())) continue;
+            const ew = parseInt(e.data('weight'));
+            if (ew < w && !formsCycle(e)) {
+                // show smaller-edge message
+                showGameMessage(smallerMsg);
+                return; // show only once
+            }
+        }
+
+        // if none found => no message
+        showGameMessage('');
     }
+
+
+    /************************************************************************
+     * handleUndoAction(...) => Also clear the message so it's removed
+     * when the user undoes an edge.
+     ************************************************************************/
+    function handleUndoAction(cy, actionHistory, actionTableId) {
+        // Clear any old message so it disappears if user undoes
+        const lang = localStorage.getItem('language') || 'el';
+        const containerId = (lang === 'en') ? 'game-message-en' : 'game-message-el';
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.textContent = '';
+        }
+
+        if (actionHistory.length > 0) {
+            const { edge, sourceNode, targetNode } = actionHistory.pop();
+            edge.style({ width: 1, 'line-color': '#999' });
+
+            function isNodeInTable(history, nodeId) {
+                return history.some(a => {
+                    return a.sourceNode?.id() === nodeId || a.targetNode?.id() === nodeId;
+                });
+            }
+
+            if (!isNodeInTable(actionHistory, sourceNode.id())) {
+                sourceNode.style({
+                    'background-color': '#e9ecef',
+                    'background-opacity': 0
+                });
+            } else {
+                sourceNode.style({
+                    'background-color': '#94d95f',
+                    'background-opacity': 1
+                });
+            }
+
+            if (!isNodeInTable(actionHistory, targetNode.id())) {
+                targetNode.style({
+                    'background-color': '#e9ecef',
+                    'background-opacity': 0
+                });
+            } else {
+                targetNode.style({
+                    'background-color': '#94d95f',
+                    'background-opacity': 1
+                });
+            }
+
+            updateActionTable(actionHistory, actionTableId);
+
+            const w = parseInt(edge.data('weight'));
+            subtractEdgeWeight(w);
+        }
+    }
+
+
+
 
     function handleUndoAction(cy, actionHistory, actionTableId) {
         if (actionHistory.length > 0) {
@@ -398,20 +587,20 @@ $(document).ready(function() {
     }
 
     /********************************************************************
-     *  1) Screenshot up to mismatch
+     *  1) Screenshot up to mismatch (or entire if ignoring order)
      ********************************************************************/
     function highlightEdgesAndScreenshot(cy, correctSol, playerSol) {
         const oldStyles = {};
 
         // Convert edges to canonical string
         function canonical(e) {
-            let [a,b] = [e.Vertex1, e.Vertex2];
-            if (a > b) [a,b] = [b,a];
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a, b] = [b, a];
             return `${a}-${b}-${e.Weight}`;
         }
 
         const correctSet = new Set(correctSol.map(canonical));
-        const playerSet  = new Set(playerSol.map(canonical));
+        const playerSet = new Set(playerSol.map(canonical));
 
         // Color edges
         cy.edges().forEach(ed => {
@@ -460,7 +649,7 @@ $(document).ready(function() {
     /********************************************************************
      *  2) Bilingual Detailed Table
      ********************************************************************/
-    function buildDetailedComparisonHTML(lang, correctSol, playerSol, mismatchIndex) {
+    function buildDetailedComparisonHTML(lang, correctSol, playerSol, mismatchIndex = -1) {
         // Bilingual texts
         const i18n = {
             en: {
@@ -489,7 +678,6 @@ $(document).ready(function() {
         const t = (lang === 'en') ? i18n.en : i18n.el;
         const maxLen = Math.max(correctSol.length, playerSol.length);
 
-        // Build Correct MST table (without a Status column)
         let correctRows = "";
         for (let i = 0; i < maxLen; i++) {
             const cEdge = correctSol[i];
@@ -501,7 +689,8 @@ $(document).ready(function() {
                 edgeText = t.dash;
                 weightText = t.dash;
             }
-            const rowStyle = (i === mismatchIndex) ? 'background-color: #fdd;' : '';
+            // Highlight row if mismatch index
+            const rowStyle = (i === mismatchIndex && mismatchIndex !== -1) ? 'background-color: #fdd;' : '';
             correctRows += `
           <tr style="${rowStyle}">
             <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
@@ -524,7 +713,6 @@ $(document).ready(function() {
       </table>
     `;
 
-        // Build Player MST table (with Status column)
         let playerRows = "";
         for (let i = 0; i < maxLen; i++) {
             const pEdge = playerSol[i];
@@ -536,18 +724,18 @@ $(document).ready(function() {
                 edgeText = t.dash;
                 weightText = t.dash;
             }
-            // Determine status: if both edges exist and match exactly, mark "OK"; else "Mistake"
+            // If both edges exist & match exactly in same index => OK, else Mistake
             if (pEdge && correctSol[i] &&
                 pEdge.Vertex1 === correctSol[i].Vertex1 &&
                 pEdge.Vertex2 === correctSol[i].Vertex2 &&
-                pEdge.Weight  === correctSol[i].Weight) {
+                pEdge.Weight === correctSol[i].Weight) {
                 statusText = t.ok;
             } else if (pEdge) {
                 statusText = t.mistake;
             } else {
                 statusText = t.dash;
             }
-            const rowStyle = (i === mismatchIndex) ? 'background-color: #fdd;' : '';
+            const rowStyle = (i === mismatchIndex && mismatchIndex !== -1) ? 'background-color: #fdd;' : '';
             playerRows += `
           <tr style="${rowStyle}">
             <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
@@ -572,7 +760,6 @@ $(document).ready(function() {
       </table>
     `;
 
-        // Return both tables side by side in a flex container
         return `
       <div style="display:flex; gap:1rem; margin-top:10px; justify-content:center; align-items:flex-start;">
         <div style="width:auto; margin-top:0;">${correctTable}</div>
@@ -581,6 +768,117 @@ $(document).ready(function() {
     `;
     }
 
+    /********************************************************************
+     *  2a) Build table ignoring order (to show all edges as OK
+     *      if the set is correct but the sequence is different)
+     ********************************************************************/
+    function buildDetailedComparisonHTMLIgnoreOrder(lang, correctSol, playerSol) {
+        // Same i18n as above
+        const i18n = {
+            en: {
+                correctMST: "Suggested solution",
+                yourMST: "Your answer",
+                edge: "Pavement",
+                weight: "Cost",
+                status: "Status",
+                correct: "Correct",
+                mistake: "Mistake",
+                ok: "OK",
+                dash: "—"
+            },
+            el: {
+                correctMST: "Προτεινόμενη λύση",
+                yourMST: "Η λύση σου",
+                edge: "Πεζοδρόμιο",
+                weight: "Κόστος",
+                status: "Κατάσταση",
+                correct: "Σωστό",
+                mistake: "Λάθος",
+                ok: "ΟΚ",
+                dash: "—"
+            }
+        };
+        const t = (lang === 'en') ? i18n.en : i18n.el;
+
+        // We'll show them side by side but mark everything in the player's MST as OK
+        // if it appears anywhere in the correct set.
+        const correctLen = correctSol.length;
+        const playerLen = playerSol.length;
+        const maxLen = Math.max(correctLen, playerLen);
+
+        // For fast membership checking
+        function canonical(e) {
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a, b] = [b, a];
+            return `${a}-${b}-${e.Weight}`;
+        }
+        const correctSet = new Set(correctSol.map(canonical));
+
+        // Build correct table
+        let correctRows = "";
+        for (let i = 0; i < correctLen; i++) {
+            const cEdge = correctSol[i];
+            const edgeText = `${cEdge.Vertex1}-${cEdge.Vertex2}`;
+            correctRows += `
+              <tr>
+                <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${cEdge.Weight}</td>
+              </tr>
+            `;
+        }
+        const correctTable = `
+        <h3 style="margin:0 0 4px 0;">${t.correctMST}</h3>
+        <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
+          <thead>
+            <tr>
+              <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+              <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${correctRows}
+          </tbody>
+        </table>
+        `;
+
+        // Build player table
+        let playerRows = "";
+        for (let i = 0; i < playerLen; i++) {
+            const pEdge = playerSol[i];
+            const edgeText = `${pEdge.Vertex1}-${pEdge.Vertex2}`;
+            const isInCorrectSet = correctSet.has(canonical(pEdge));
+            const statusText = isInCorrectSet ? t.ok : t.mistake;
+            playerRows += `
+              <tr>
+                <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${pEdge.Weight}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${statusText}</td>
+              </tr>
+            `;
+        }
+        const playerTable = `
+        <h3 style="margin:0 0 4px 0;">${t.yourMST}</h3>
+        <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
+          <thead>
+            <tr>
+              <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+              <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+              <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${playerRows}
+          </tbody>
+        </table>
+        `;
+
+        return `
+        <div style="display:flex; gap:1rem; margin-top:10px; justify-content:center; align-items:flex-start;">
+          <div style="width:auto; margin-top:0;">${correctTable}</div>
+          <div style="width:auto; margin-top:0;">${playerTable}</div>
+        </div>
+      `;
+    }
 
     /********************************************************************
      *  3) Mismatch Index
@@ -592,7 +890,7 @@ $(document).ready(function() {
             if (
                 p.Vertex1 !== c.Vertex1 ||
                 p.Vertex2 !== c.Vertex2 ||
-                p.Weight  !== c.Weight
+                p.Weight !== c.Weight
             ) {
                 return i;
             }
@@ -604,12 +902,33 @@ $(document).ready(function() {
     }
 
     /********************************************************************
+     *  Utility to check if two sets of edges match ignoring order
+     ********************************************************************/
+    function sameEdgeSetsIgnoreOrder(pSol, cSol) {
+        if (pSol.length !== cSol.length) return false;
+        // Convert to canonical forms and compare sets
+        function canonical(e) {
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a, b] = [b, a];
+            return `${a}-${b}-${e.Weight}`;
+        }
+        const setP = new Set(pSol.map(canonical));
+        const setC = new Set(cSol.map(canonical));
+        if (setP.size !== setC.size) return false;
+        for (let item of setP) {
+            if (!setC.has(item)) return false;
+        }
+        return true;
+    }
+
+    /********************************************************************
      *  4) handleSubmitAction => partial screenshot & full table
      ********************************************************************/
     function handleSubmitAction(cy, actionHistory, orderingTables, ids) {
         console.log("handleSubmitAction() for Kruskal is executing!");
 
-        // 1) Build player's full solution
+        // 1) Build player's MST ignoring order for correctness,
+        //    but we keep the actual sequence for checking tie-based ordering
         const playerSolutionFull = actionHistory.map(({ edge }) => {
             let v1 = parseInt(edge.data('source'));
             let v2 = parseInt(edge.data('target'));
@@ -618,51 +937,148 @@ $(document).ready(function() {
             return { Vertex1: v1, Vertex2: v2, Weight: weight };
         });
 
-        // 2) Find the best matching MST from orderingTables
-        let bestOrdering = null;
-        let bestScore = -1;
-
-        // measureSimilarity = consecutive matches from the start
-        function measureSimilarity(pSol, cSol) {
-            const minLen = Math.min(pSol.length, cSol.length);
-            let s = 0;
-            for (let i = 0; i < minLen; i++) {
-                if (pSol[i].Vertex1 === cSol[i].Vertex1 &&
-                    pSol[i].Vertex2 === cSol[i].Vertex2 &&
-                    pSol[i].Weight === cSol[i].Weight) {
-                    s++;
-                } else {
-                    break;
-                }
-            }
-            return s;
+        // Helper to produce a "canonical" string for set membership
+        function canonical(e) {
+            let [a, b] = [e.Vertex1, e.Vertex2];
+            if (a > b) [a, b] = [b, a];
+            return `${a}-${b}-${e.Weight}`;
         }
 
-        for (let tableObj of orderingTables) {
-            for (let ordering of tableObj.orderings) {
-                const sim = measureSimilarity(playerSolutionFull, ordering);
-                if (sim > bestScore) {
-                    bestScore = sim;
-                    bestOrdering = ordering;
-                }
+        // 2) Check if two MSTs match ignoring order (just sets)
+        function setsMatchIgnoreOrder(pSol, cSol) {
+            if (pSol.length !== cSol.length) return false;
+            const setP = new Set(pSol.map(canonical));
+            const setC = new Set(cSol.map(canonical));
+            if (setP.size !== setC.size) return false;
+            for (let item of setP) {
+                if (!setC.has(item)) return false;
             }
+            return true;
         }
 
-        // If fully matched => correct
-        const isCorrect = (
-            bestOrdering &&
-            bestScore === playerSolutionFull.length &&
-            playerSolutionFull.length === bestOrdering.length
-        );
+        // 3) **Tie‐Aware** sequence check:
+        //    The idea is to group edges by their weight, in ascending order,
+        //    and allow any permutation of edges within the same weight group.
+        //    If those grouped sequences match, we consider them "same order ignoring ties."
+        function sameSequenceIgnoringTies(playerSol, officialSol) {
+            // Quick length check
+            if (playerSol.length !== officialSol.length) return false;
 
-        // 3) Stop timer, compute score
+            // Sort each MST by ascending weight, but keep the original ordering *within* same weights
+            // Actually we want to reflect the *player's chosen order* vs. the official MST order.
+            // So we can't just sort them. We must group them in the order they appear.
+            //   However, typically in Kruskal we talk about ascending weights.
+            //   If the official MST has edges in ascending order, the player’s MST also
+            //   can have the same ascending order for each weight group, but can permute within that group.
+
+            // Approach:
+            //  1) We create a "weight block sequence" for each MST:
+            //     in officialSol, we collect consecutive edges of the same weight as one block.
+            //     in playerSol, we do the same.
+            //  2) We compare block by block. If the weight is the same and the sets of edges are identical,
+            //     we consider that block matched. Then we proceed to the next block.
+            //  3) If the number of blocks or their distinct weights differ in the final
+            //     sequence, it's not the same ignoring ties.
+
+            // A convenient way is to "collapse" consecutive edges of the same weight into a single block.
+            // But we must ensure both MSTs follow the same ascending weight progression.
+            // If the official MST is in ascending order already, we can find its blocks.
+            // The player's MST might not strictly be sorted, but for it to match ignoring ties,
+            // it must have the same "blocks" in the same order of weights.
+
+            // Let's do it directly:
+
+            function buildBlocks(edges) {
+                // We'll go in ascending order of weight from left to right.
+                // But the "official MST" is presumably listed in ascending order.
+                // If it's not guaranteed, we can just sort by weight, but then we lose the original "tie order."
+                // The requirement says "the official MST is in ascending weight (Kruskal style)."
+                // so let's assume officialSol is sorted. If you want to absolutely ensure it, you can do:
+                // edges = [...edges].sort((a,b) => a.Weight - b.Weight);
+                // But let's do it for both to be safe:
+
+                const sorted = [...edges].sort((a, b) => a.Weight - b.Weight);
+                const blocks = [];
+                let currentWeight = null;
+                let currentBlock = [];
+
+                for (let i = 0; i < sorted.length; i++) {
+                    let e = sorted[i];
+                    if (currentWeight === null || e.Weight !== currentWeight) {
+                        // start a new block
+                        if (currentBlock.length > 0) {
+                            blocks.push({ weight: currentWeight, edges: currentBlock });
+                        }
+                        currentWeight = e.Weight;
+                        currentBlock = [ e ];
+                    } else {
+                        // same weight => part of same block
+                        currentBlock.push(e);
+                    }
+                }
+                // push last block
+                if (currentBlock.length > 0) {
+                    blocks.push({ weight: currentWeight, edges: currentBlock });
+                }
+                return blocks;
+            }
+
+            const blocksP = buildBlocks(playerSol);
+            const blocksO = buildBlocks(officialSol);
+
+            if (blocksP.length !== blocksO.length) return false;
+
+            // Now compare block-by-block
+            for (let i = 0; i < blocksP.length; i++) {
+                const bp = blocksP[i];
+                const bo = blocksO[i];
+                // Compare weights
+                if (bp.weight !== bo.weight) return false;
+                // Compare sets of edges in the block
+                if (bp.edges.length !== bo.edges.length) return false;
+
+                const setBp = new Set(bp.edges.map(canonical));
+                const setBo = new Set(bo.edges.map(canonical));
+                // same set ignoring order
+                if (setBp.size !== setBo.size) return false;
+                for (let x of setBp) {
+                    if (!setBo.has(x)) return false;
+                }
+            }
+            return true;
+        }
+
+        // 4) Find if the player's MST is correct ignoring order, and if so,
+        //    whether it's also "tie‐aware" same sequence
+        let isCorrect = false;            // user MST is correct ignoring order
+        let matchedCorrectMST = null;     // the official MST that matches ignoring order
+        let isTieAwareOrder = false;      // user MST matches the official MST in the sense of ignoring ties
+                                          // but still in the same ascending weight block sequence
+
+        // find a matching MST ignoring order
+        outerLoop:
+            for (let tableObj of orderingTables) {
+                for (let officialSol of tableObj.orderings) {
+                    if (setsMatchIgnoreOrder(playerSolutionFull, officialSol)) {
+                        isCorrect = true;
+                        matchedCorrectMST = officialSol;
+                        // Now check tie‐aware sequence
+                        if (sameSequenceIgnoringTies(playerSolutionFull, officialSol)) {
+                            isTieAwareOrder = true;
+                        }
+                        break outerLoop;
+                    }
+                }
+            }
+
+        // 5) Stop timer & compute score
         stopTimer();
         const totalVertices = cy.nodes().length;
         const totalEdges = cy.edges().length;
         const timeUsed = totalSeconds > 0 ? totalSeconds : 1;
-        let score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
+        const score = isCorrect ? Math.floor((totalVertices * totalEdges * 100) / timeUsed) : 0;
 
-        // 4) Show messages
+        // 6) Bilingual messages
         const lang = localStorage.getItem('language') || 'el';
         const messages = {
             en: {
@@ -670,61 +1086,68 @@ $(document).ready(function() {
                 correct2: "Congratulations!",
                 incorrect: "Suggestion incorrect...",
                 incorrect2: "Try again or recall 'How to play'",
-                score: "Score:"
+                score: "Score:",
+                orderNote: "Order is ignored in this comparison."
             },
             el: {
                 correct: "Σωστά!",
                 correct2: "Συγχαρητήρια!",
                 incorrect: "Η απάντησή δεν είναι σωστή...",
                 incorrect2: "Προσπαθήστε ξανά ή ξαναδείτε 'Πώς να παίξετε'",
-                score: "Βαθμολογία:"
+                score: "Βαθμολογία:",
+                orderNote: "Η σειρά δεν λαμβάνεται υπόψη σε αυτή τη σύγκριση."
             }
         };
 
+        // show result text
         const popupMessage = $('#' + ids.popupMessageId);
         popupMessage.text(isCorrect ? messages[lang].correct : messages[lang].incorrect);
         popupMessage.append(`<br>${isCorrect ? messages[lang].correct2 : messages[lang].incorrect2}`);
         popupMessage.append(`<br>${messages[lang].score} ${score}`);
         $('#' + ids.popupId).removeClass('hidden');
 
-        // Clear old results
+        // 7) Clear the comparison area
         const compareDivId = (lang === 'en') ? "#comparison-table-en" : "#comparison-table-el";
         $(compareDivId).empty();
 
-        // 5) Always show screenshot (correct or not)
-        // If correct => mismatchIndex = -1 => use full
-        // If wrong => partial
-        let mismatchIndex = -1;
-        if (!isCorrect && bestOrdering) {
-            mismatchIndex = findMismatchIndex(playerSolutionFull, bestOrdering);
+        // pick an MST to compare for the screenshot
+        let chosenMST = matchedCorrectMST;
+        if (!isCorrect) {
+            // fallback if user is wrong
+            if (orderingTables.length > 0 && orderingTables[0].orderings.length > 0) {
+                chosenMST = orderingTables[0].orderings[0];
+            } else {
+                chosenMST = [];
+            }
         }
-        const truncatedCorrect = (mismatchIndex >= 0)
-            ? bestOrdering.slice(0, mismatchIndex + 1)
-            : bestOrdering;
-        const truncatedPlayer = (mismatchIndex >= 0)
-            ? playerSolutionFull.slice(0, mismatchIndex + 1)
-            : playerSolutionFull;
 
-        const screenshotData = highlightEdgesAndScreenshot(cy, truncatedCorrect || [], truncatedPlayer || []);
+        // screenshot ignoring order
+        const screenshotData = highlightEdgesAndScreenshot(cy, chosenMST, playerSolutionFull);
         $(compareDivId).append(`
         <div class="screenshot">
-            <img src="${screenshotData}" 
-                 alt="Comparison Graph" 
+            <img src="${screenshotData}"
+                 alt="Comparison Graph"
                  style="max-width:100%; border:1px solid #ccc;" />
         </div>
     `);
 
-        // 6) Only show the full table if user is wrong
-        if (!isCorrect && bestOrdering) {
-            const fullTable = buildDetailedComparisonHTML(
-                lang,
-                bestOrdering,
-                playerSolutionFull
-            );
-            $(compareDivId).append(fullTable);
+        // 8) Build a table ignoring order
+        const tableHTML = buildDetailedComparisonHTMLIgnoreOrder(lang, chosenMST, playerSolutionFull);
+        $(compareDivId).append(tableHTML);
+
+        // 9) Show the orange message **only** if MST is correct but the user’s sequence
+        //    truly differs on differently weighted edges => (isCorrect && !isTieAwareOrder).
+        //    If the MST is wrong, or user matched the official MST exactly (including tie permutations),
+        //    we skip the orange block.
+        if (isCorrect && !isTieAwareOrder) {
+            $(compareDivId).append(`
+          <div style="margin-top:10px; padding:8px; background-color:orange;">
+            ${messages[lang].orderNote}
+          </div>
+        `);
         }
 
-        // 7) If correct => update DB
+        // 10) If correct => store DB
         if (score > 0) {
             const username = sessionStorage.getItem('username');
             if (username) {
