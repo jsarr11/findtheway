@@ -173,4 +173,6 @@ div h3 {
 
 #order-el, #order-en {
     background-color: orange;
+    padding-left: 10px;
+    padding-right: 10px;
 }
