@@ -14,6 +14,7 @@ import {
 } from '../common/edgeWeights.js';
 import { updatePlayerScore } from '../common/scoreUpdater.js';
 import { updateScores } from '../common/scoreUpdaterPopup.js';
+import { setOrderMessage } from '../common/common.js';
 
 $(document).ready(function() {
 
@@ -860,6 +861,7 @@ $(document).ready(function() {
 
     function handleSubmitAction(cy, actionHistory, allMSTs, ids) {
         console.log("handleSubmitAction() for Prim is executing!");
+        setOrderMessage();
 
         // 1) Build playerSolution as an ordered array of {Vertex1, Vertex2, Weight}
         const playerSolutionFull = actionHistory.map(({ edge }) => {

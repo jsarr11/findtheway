@@ -14,6 +14,7 @@ import {
 } from '../common/edgeWeights.js';
 import { updatePlayerScore } from '../common/scoreUpdater.js';
 import { updateScores } from '../common/scoreUpdaterPopup.js';
+import { setOrderMessage } from '../common/common.js';
 
 $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -890,6 +891,7 @@ $(document).ready(function() {
      ********************************************************************/
     function handleSubmitAction(cy, actionHistory, orderingTables, ids) {
         console.log("handleSubmitAction() for Kruskal is executing!");
+        setOrderMessage();
 
         // 1) Build player's MST ignoring order for correctness,
         //    but we keep the actual sequence for checking tie-based ordering
