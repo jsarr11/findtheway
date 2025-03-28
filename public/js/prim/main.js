@@ -187,6 +187,7 @@ $(document).ready(function() {
         $('.restart-button').on('click', function() {
             console.log("Restart button clicked (Approach B) — global listener.");
 
+            $('#error-message-en, #error-message-el').hide();
             const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
             const params = JSON.parse(sessionStorage.getItem('gameParams'));
             if (!graphData || !params) return;

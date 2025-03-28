@@ -152,6 +152,8 @@ $(document).ready(function() {
 
         // Restart
         $('.restart-button').on('click', function() {
+            $('#game-message-en, #game-message-el').remove();
+
             const graphData = JSON.parse(sessionStorage.getItem('currentGraph'));
             const params = JSON.parse(sessionStorage.getItem('gameParams'));
             if (!graphData || !params) return;
