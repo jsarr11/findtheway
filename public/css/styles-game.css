@@ -172,7 +172,11 @@ div h3 {
 }
 
 #order-el, #order-en {
-    background-color: orange;
-    padding-left: 10px;
-    padding-right: 10px;
+    background-color: #f5e595;
+    padding-left: 5px;
+    padding-right: 5px;
+    display: inline-block;
+}
+#order-el p, #order-en p {
+    margin: 2px;
 }
