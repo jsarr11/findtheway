@@ -616,131 +616,130 @@ $(document).ready(function() {
     /********************************************************************
      *  2) Bilingual Detailed Table
      ********************************************************************/
-    function buildDetailedComparisonHTML(lang, correctSol, playerSol, mismatchIndex = -1) {
-        // Bilingual texts
-        const i18n = {
-            en: {
-                correctMST: "Suggested solution",
-                yourMST: "Your answer",
-                edge: "Pavement",
-                weight: "Cost",
-                status: "Status",
-                correct: "Correct",
-                mistake: "Mistake",
-                ok: "OK",
-                dash: "—"
-            },
-            el: {
-                correctMST: "Προτεινόμενη λύση",
-                yourMST: "Η λύση σου",
-                edge: "Πεζοδρόμιο",
-                weight: "Κόστος",
-                status: "Κατάσταση",
-                correct: "Σωστό",
-                mistake: "Λάθος",
-                ok: "ΟΚ",
-                dash: "—"
-            }
-        };
-        const t = (lang === 'en') ? i18n.en : i18n.el;
-        const maxLen = Math.max(correctSol.length, playerSol.length);
-
-        let correctRows = "";
-        for (let i = 0; i < maxLen; i++) {
-            const cEdge = correctSol[i];
-            let edgeText, weightText;
-            if (cEdge) {
-                edgeText = `${cEdge.Vertex1}-${cEdge.Vertex2}`;
-                weightText = cEdge.Weight;
-            } else {
-                edgeText = t.dash;
-                weightText = t.dash;
-            }
-            // Highlight row if mismatch index
-            const rowStyle = (i === mismatchIndex && mismatchIndex !== -1) ? 'background-color: #fdd;' : '';
-            correctRows += `
-          <tr style="${rowStyle}">
-            <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
-            <td style="padding:4px; border:1px solid #ccc;">${weightText}</td>
-          </tr>
-        `;
-        }
-        const correctTable = `
-      <h3 style="margin:0 0 4px 0;">${t.correctMST}</h3>
-      <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
-        <thead>
-          <tr>
-            <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
-            <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${correctRows}
-        </tbody>
-      </table>
-    `;
-
-        let playerRows = "";
-        for (let i = 0; i < maxLen; i++) {
-            const pEdge = playerSol[i];
-            let edgeText, weightText, statusText = "";
-            if (pEdge) {
-                edgeText = `${pEdge.Vertex1}-${pEdge.Vertex2}`;
-                weightText = pEdge.Weight;
-            } else {
-                edgeText = t.dash;
-                weightText = t.dash;
-            }
-            // If both edges exist & match exactly in same index => OK, else Mistake
-            if (pEdge && correctSol[i] &&
-                pEdge.Vertex1 === correctSol[i].Vertex1 &&
-                pEdge.Vertex2 === correctSol[i].Vertex2 &&
-                pEdge.Weight === correctSol[i].Weight) {
-                statusText = t.ok;
-            } else if (pEdge) {
-                statusText = t.mistake;
-            } else {
-                statusText = t.dash;
-            }
-            const rowStyle = (i === mismatchIndex && mismatchIndex !== -1) ? 'background-color: #fdd;' : '';
-            playerRows += `
-          <tr style="${rowStyle}">
-            <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
-            <td style="padding:4px; border:1px solid #ccc;">${weightText}</td>
-            <td style="padding:4px; border:1px solid #ccc;">${statusText}</td>
-          </tr>
-        `;
-        }
-        const playerTable = `
-      <h3 style="margin:0 0 4px 0;">${t.yourMST}</h3>
-      <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
-        <thead>
-          <tr>
-            <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
-            <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
-            <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${playerRows}
-        </tbody>
-      </table>
-    `;
-
-        return `
-      <div style="display:flex; gap:1rem; margin-top:10px; justify-content:center; align-items:flex-start;">
-        <div style="width:auto; margin-top:0;">${correctTable}</div>
-        <div style="width:auto; margin-top:0;">${playerTable}</div>
-      </div>
-    `;
-    }
+    // function buildDetailedComparisonHTML(lang, correctSol, playerSol, mismatchIndex = -1) {
+    //     // Bilingual texts
+    //     const i18n = {
+    //         en: {
+    //             correctMST: "Suggested solution",
+    //             yourMST: "Your answer",
+    //             edge: "Pavement",
+    //             weight: "Cost",
+    //             status: "Status",
+    //             correct: "Correct",
+    //             mistake: "Mistake",
+    //             ok: "OK",
+    //             dash: "—"
+    //         },
+    //         el: {
+    //             correctMST: "Προτεινόμενη λύση",
+    //             yourMST: "Η λύση σου",
+    //             edge: "Πεζοδρόμιο",
+    //             weight: "Κόστος",
+    //             status: "Κατάσταση",
+    //             correct: "Σωστό",
+    //             mistake: "Λάθος",
+    //             ok: "ΟΚ",
+    //             dash: "—"
+    //         }
+    //     };
+    //     const t = (lang === 'en') ? i18n.en : i18n.el;
+    //     const maxLen = Math.max(correctSol.length, playerSol.length);
+    //
+    //     let correctRows = "";
+    //     for (let i = 0; i < maxLen; i++) {
+    //         const cEdge = correctSol[i];
+    //         let edgeText, weightText;
+    //         if (cEdge) {
+    //             edgeText = `${cEdge.Vertex1}-${cEdge.Vertex2}`;
+    //             weightText = cEdge.Weight;
+    //         } else {
+    //             edgeText = t.dash;
+    //             weightText = t.dash;
+    //         }
+    //         // Highlight row if mismatch index
+    //         const rowStyle = (i === mismatchIndex && mismatchIndex !== -1) ? 'background-color: #fdd;' : '';
+    //         correctRows += `
+    //       <tr style="${rowStyle}">
+    //         <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
+    //         <td style="padding:4px; border:1px solid #ccc;">${weightText}</td>
+    //       </tr>
+    //     `;
+    //     }
+    //     const correctTable = `
+    //   <h3 style="margin:0 0 4px 0;">${t.correctMST}</h3>
+    //   <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
+    //     <thead>
+    //       <tr>
+    //         <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+    //         <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+    //       </tr>
+    //     </thead>
+    //     <tbody>
+    //       ${correctRows}
+    //     </tbody>
+    //   </table>
+    // `;
+    //
+    //     let playerRows = "";
+    //     for (let i = 0; i < maxLen; i++) {
+    //         const pEdge = playerSol[i];
+    //         let edgeText, weightText, statusText = "";
+    //         if (pEdge) {
+    //             edgeText = `${pEdge.Vertex1}-${pEdge.Vertex2}`;
+    //             weightText = pEdge.Weight;
+    //         } else {
+    //             edgeText = t.dash;
+    //             weightText = t.dash;
+    //         }
+    //         // If both edges exist & match exactly in same index => OK, else Mistake
+    //         if (pEdge && correctSol[i] &&
+    //             pEdge.Vertex1 === correctSol[i].Vertex1 &&
+    //             pEdge.Vertex2 === correctSol[i].Vertex2 &&
+    //             pEdge.Weight === correctSol[i].Weight) {
+    //             statusText = t.ok;
+    //         } else if (pEdge) {
+    //             statusText = t.mistake;
+    //         } else {
+    //             statusText = t.dash;
+    //         }
+    //         const rowStyle = (i === mismatchIndex && mismatchIndex !== -1) ? 'background-color: #fdd;' : '';
+    //         playerRows += `
+    //       <tr style="${rowStyle}">
+    //         <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
+    //         <td style="padding:4px; border:1px solid #ccc;">${weightText}</td>
+    //         <td style="padding:4px; border:1px solid #ccc;">${statusText}</td>
+    //       </tr>
+    //     `;
+    //     }
+    //     const playerTable = `
+    //   <h3 style="margin:0 0 4px 0;">${t.yourMST}</h3>
+    //   <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
+    //     <thead>
+    //       <tr>
+    //         <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+    //         <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+    //         <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+    //       </tr>
+    //     </thead>
+    //     <tbody>
+    //       ${playerRows}
+    //     </tbody>
+    //   </table>
+    // `;
+    //
+    //     return `
+    //   <div style="display:flex; gap:1rem; margin-top:10px; justify-content:center; align-items:flex-start;">
+    //     <div style="width:auto; margin-top:0;">${correctTable}</div>
+    //     <div style="width:auto; margin-top:0;">${playerTable}</div>
+    //   </div>
+    // `;
+    // }
 
     /********************************************************************
      *  2a) Build table ignoring order (to show all edges as OK
      *      if the set is correct but the sequence is different)
      ********************************************************************/
     function buildDetailedComparisonHTMLIgnoreOrder(lang, correctSol, playerSol) {
-        // Same i18n as above
         const i18n = {
             en: {
                 correctMST: "Suggested solution",
@@ -766,14 +765,11 @@ $(document).ready(function() {
             }
         };
         const t = (lang === 'en') ? i18n.en : i18n.el;
-
-        // We'll show them side by side but mark everything in the player's MST as OK
-        // if it appears anywhere in the correct set.
         const correctLen = correctSol.length;
         const playerLen = playerSol.length;
         const maxLen = Math.max(correctLen, playerLen);
 
-        // For fast membership checking
+        // For fast membership checking (if needed elsewhere)
         function canonical(e) {
             let [a, b] = [e.Vertex1, e.Vertex2];
             if (a > b) [a, b] = [b, a];
@@ -781,71 +777,79 @@ $(document).ready(function() {
         }
         const correctSet = new Set(correctSol.map(canonical));
 
-        // Build correct table
+        // Build the Correct MST table with maxLen rows
         let correctRows = "";
-        for (let i = 0; i < correctLen; i++) {
+        for (let i = 0; i < maxLen; i++) {
             const cEdge = correctSol[i];
-            const edgeText = `${cEdge.Vertex1}-${cEdge.Vertex2}`;
+            const edgeText = cEdge ? `${cEdge.Vertex1}-${cEdge.Vertex2}` : t.dash;
+            const weightText = cEdge ? cEdge.Weight : t.dash;
             correctRows += `
-              <tr>
+            <tr>
                 <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
-                <td style="padding:4px; border:1px solid #ccc;">${cEdge.Weight}</td>
-              </tr>
-            `;
+                <td style="padding:4px; border:1px solid #ccc;">${weightText}</td>
+            </tr>
+        `;
         }
         const correctTable = `
         <h3 style="margin:0 0 4px 0;">${t.correctMST}</h3>
         <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
-          <thead>
-            <tr>
-              <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
-              <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${correctRows}
-          </tbody>
+            <thead>
+                <tr>
+                    <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+                    <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${correctRows}
+            </tbody>
         </table>
-        `;
+    `;
 
-        // Build player table
+        // Build the Player MST table with maxLen rows
         let playerRows = "";
-        for (let i = 0; i < playerLen; i++) {
+        for (let i = 0; i < maxLen; i++) {
             const pEdge = playerSol[i];
-            const edgeText = `${pEdge.Vertex1}-${pEdge.Vertex2}`;
-            const isInCorrectSet = correctSet.has(canonical(pEdge));
-            const statusText = isInCorrectSet ? t.ok : t.mistake;
+            const edgeText = pEdge ? `${pEdge.Vertex1}-${pEdge.Vertex2}` : t.dash;
+            const weightText = pEdge ? pEdge.Weight : t.dash;
+            const statusText = pEdge
+                ? (correctSol[i] &&
+                correctSol[i].Vertex1 === pEdge.Vertex1 &&
+                correctSol[i].Vertex2 === pEdge.Vertex2 &&
+                correctSol[i].Weight === pEdge.Weight
+                    ? t.ok : t.mistake)
+                : t.dash;
             playerRows += `
-              <tr>
+            <tr>
                 <td style="padding:4px; border:1px solid #ccc;">${edgeText}</td>
-                <td style="padding:4px; border:1px solid #ccc;">${pEdge.Weight}</td>
+                <td style="padding:4px; border:1px solid #ccc;">${weightText}</td>
                 <td style="padding:4px; border:1px solid #ccc;">${statusText}</td>
-              </tr>
-            `;
+            </tr>
+        `;
         }
         const playerTable = `
         <h3 style="margin:0 0 4px 0;">${t.yourMST}</h3>
         <table style="font-size:0.9rem; border-collapse:collapse; width:100%; margin-top:0;">
-          <thead>
-            <tr>
-              <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
-              <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
-              <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${playerRows}
-          </tbody>
+            <thead>
+                <tr>
+                    <th style="padding:4px; border:1px solid #ccc;">${t.edge}</th>
+                    <th style="padding:4px; border:1px solid #ccc;">${t.weight}</th>
+                    <th style="padding:4px; border:1px solid #ccc;">${t.status}</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${playerRows}
+            </tbody>
         </table>
-        `;
+    `;
 
         return `
         <div style="display:flex; gap:1rem; margin-top:10px; justify-content:center; align-items:flex-start;">
-          <div style="width:auto; margin-top:0;">${correctTable}</div>
-          <div style="width:auto; margin-top:0;">${playerTable}</div>
+            <div style="width:auto; margin-top:0;">${correctTable}</div>
+            <div style="width:auto; margin-top:0;">${playerTable}</div>
         </div>
-      `;
+    `;
     }
+
 
     /********************************************************************
      *  3) Mismatch Index
